@@ -1,1 +1,73 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>WIC 자동화 안내서 (1번 도구 전용 v1.2)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>☀ WIC 자동화 안내서 (1번 도구 전용 v1.2)</h1>
+      <p class="subtitle">
+        이 화면은 <strong>1번 도구(자동화 안내서)</strong>만 남기고,
+        나머지 129개 도구를 모두 지운 뒤
+        <strong>Trigger → Observe → Lock-in → Propagate → Sync</strong>를
+        알멩이 로직으로 고정하는 중앙 안내 모듈이다.
+      </p>
+      <nav class="tags">
+        <span>1번 도구만 유지</span>
+        <span>129개 도구 삭제</span>
+        <span>질문 최소</span>
+        <span>사용자 의도 추입</span>
+      </nav>
+    </header>
 
+    <main class="layout">
+      <!-- 왼쪽: 자동화 루프 실행 -->
+      <section class="panel">
+        <h2>1. 자동화 루프 실행</h2>
+        <p class="panel-desc">
+          아래 버튼을 누르면, 기록 기반 <strong>사용자 의도</strong>를 읽어서<br />
+          ① 상태 진단 → ② 단계별 체크 → ③ 보고서 자동 생성까지 한 번에 실행한다.
+        </p>
+
+        <button id="run-loop" class="primary-btn">자동화 루프 실행</button>
+
+        <div class="log-box">
+          <h3>실행 로그</h3>
+          <pre id="log-output">(아직 엑셀/온라인 연동 전 • 최소 동작 버전)</pre>
+        </div>
+      </section>
+
+      <!-- 오른쪽: 자동 생성 보고서 + 워드 안내서 -->
+      <section class="panel">
+        <h2>2. 자동 생성 보고서 / 워드 안내서</h2>
+
+        <div class="report-box">
+          <h3>자동 생성 보고서 (복사해서 쓰는 용도)</h3>
+          <textarea id="report-output" rows="10" spellcheck="false"></textarea>
+        </div>
+
+        <div class="word-box">
+          <h3>고객용 잠금 워드 안내서</h3>
+          <p class="panel-desc">
+            아래 버튼을 누르면, <strong>잠금 설정된 guide-template.docx</strong>를
+            다운로드한다. (연구비/관심분야 자동 반영은 다음 단계에서 붙인다.)
+          </p>
+          <button id="download-docx" class="secondary-btn">
+            잠금 워드 안내서 다운로드
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <small>
+        현재 버전: 최소 동작 v1.0 (버튼 작동 + 잠금 워드 템플릿 다운로드까지 확인용)  
+        → 이후 단계에서: 엑셀 연구비 분석 · 온라인 연구비 추정 · 고객별 맞춤 문단 자동 삽입 추가
+      </small>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
