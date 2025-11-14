@@ -1,54 +1,105 @@
-const runLoopBtn = document.getElementById("run-loop");
-const logOutput = document.getElementById("log-output");
-const reportOutput = document.getElementById("report-output");
-const downloadBtn = document.getElementById("download-docx");
+const customerFileInput = document.getElementById("customer-file");
+const loadCustomersBtn = document.getElementById("load-customers");
+const analysisOutput = document.getElementById("analysis-output");
 
-function appendLog(line) {
+const generateGuideBtn = document.getElementById("generate-guide");
+const reportOutput = document.getElementById("report-output");
+
+const reactionSelect = document.getElementById("reaction-select");
+const followupNotes = document.getElementById("followup-notes");
+const saveFollowupBtn = document.getElementById("save-followup");
+
+const logOutput = document.getElementById("log-output");
+
+function appendLog(text) {
+  if (!logOutput) return;
   const now = new Date().toISOString().slice(11, 19);
-  logOutput.textContent += `\n[${now}] ${line}`;
+  logOutput.textContent += `\n[${now}] ${text}`;
 }
 
-runLoopBtn?.addEventListener("click", async () => {
-  logOutput.textContent = "[자동화 루프 시작] 최소 동작 버전 테스트 중...";
-  reportOutput.value = "";
-
-  appendLog("1단계: 기록 기반 사용자 의도 읽기 (샘플 데이터).");
-  appendLog("2단계: 도구 상태 점검 및 조건 정리.");
-  appendLog("3단계: 안내용 텍스트 보고서 자동 생성.");
-
-  // 아직 엑셀/온라인 연결 전이므로 예시 텍스트만 채운다.
-  const sampleReport = [
-    "◆ WIC 자동화 안내서 (1번 도구) 실행 보고",
-    "",
-    `- 실행 시각: ${new Date().toISOString()}`,
-    "- 루프 상태: 정상 종료",
-    "- 적용 로직: Trigger → Observe → Lock-in → Propagate → Sync",
-    "- 주의 조건: 1번 도구만 유지, 나머지 129개 도구는 실제 화면에서 보이지 않게 유지",
-    "",
-    "※ 다음 단계에서 고객 엑셀·온라인 연구비 데이터를 연결하여",
-    "   고객별 맞춤 워드 안내서 내용을 자동으로 채워 넣을 예정."
-  ].join("\n");
-
-  reportOutput.value = sampleReport;
-  appendLog("보고서 텍스트 자동 채움 완료.");
-});
-
-downloadBtn?.addEventListener("click", async () => {
-  appendLog("잠금 워드 안내서 다운로드 요청.");
-
-  const res = await fetch("/api/guide-template");
-  if (!res.ok) {
-    appendLog(`다운로드 실패: HTTP ${res.status}`);
+// 1단계: 고객 데이터 불러오기 (파일 선택 + 준비 상태 기록)
+loadCustomersBtn?.addEventListener("click", () => {
+  const file = customerFileInput?.files?.[0];
+  if (!file) {
+    appendLog("고객 엑셀 파일이 선택되지 않았습니다.");
     return;
   }
 
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "WIC_자동화_안내서_템플릿.docx";
-  a.click();
-  URL.revokeObjectURL(url);
+  appendLog(`고객 데이터 파일 준비됨: ${file.name}`);
+  appendLog("※ 실제 엑셀 분석 로직은 이후 단계에서 연결 예정.");
 
-  appendLog("잠금 워드 안내서 템플릿 다운로드 완료.");
+  if (analysisOutput && !analysisOutput.value.trim()) {
+    analysisOutput.value =
+      "예시 기준:\n" +
+      "- 연구비 있는 고객만 필터\n" +
+      "- 최근 문의/구매 고객 우선\n" +
+      "- 특정 연구분야(접착제, 글래스 기판 등) 우선 정리\n";
+  }
+});
+
+// 3단계: 안내서 초안 자동 생성
+generateGuideBtn?.addEventListener("click", () => {
+  const now = new Date().toISOString().replace("T", " ").slice(0, 19);
+  const analysisText = analysisOutput?.value.trim() || "(분석 메모 없음)";
+
+  const guideText = [
+    "◆ WIC 자동화 안내서 (1번 도구) – 고객 안내서 초안",
+    "",
+    `- 생성 시각: ${now}`,
+    "- 기준 로직: 고객데이터 → 분석 → 맞춤 보고서 → 안내서 생성",
+    "",
+    "[1] 고객 데이터 분석 요약",
+    analysisText,
+    "",
+    "[2] 제공 예정 자료",
+    "- 해외 영문 시장보고서: 고객 연구분야·연구비 기준으로 자동 선택",
+    "- 필요 시 국내 보고서 / 영문 공학 도서 / 일본어 공학 도서 / 일본어 세미나 자료로 분기",
+    "",
+    "[3] 다음 단계",
+    "- 고객 반응(열람, 회신, 무응답 등)을 기록",
+    "- 반응에 따라 전화 / 추가자료 메일 / 견적·입찰 연결 등 후속조치 진행",
+  ].join("\n");
+
+  if (reportOutput) {
+    reportOutput.value = guideText;
+  }
+
+  appendLog("안내서 초안이 자동 생성되었습니다.");
+});
+
+// 4단계: 고객 반응 · 후속조치 기록
+saveFollowupBtn?.addEventListener("click", () => {
+  const reaction = reactionSelect?.value;
+  const notes = followupNotes?.value.trim();
+
+  if (!reaction) {
+    appendLog("고객 반응이 선택되지 않았습니다.");
+    return;
+  }
+
+  let reactionLabel = "";
+  switch (reaction) {
+    case "opened":
+      reactionLabel = "안내서 열람";
+      break;
+    case "replied":
+      reactionLabel = "메일/전화 회신";
+      break;
+    case "no-response":
+      reactionLabel = "무응답";
+      break;
+    case "request-quote":
+      reactionLabel = "견적/입찰 요청";
+      break;
+    default:
+      reactionLabel = reaction;
+  }
+
+  appendLog(
+    `고객 반응 기록: ${reactionLabel}${
+      notes ? ` / 메모: ${notes}` : ""
+    }`
+  );
+
+  // 나중에 여기에: 서버로 로그 전송 / 엑셀로 내보내기 등의 로직 추가 가능
 });
