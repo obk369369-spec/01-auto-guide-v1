@@ -2,20 +2,21 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>WIC 자동화 안내서 (1번 도구 전용 v1.3)</title>
+  <title>WIC 자동화 안내서 (1번 도구 전용 v1.4)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="top-bar">
-    <h1>☀ WIC 자동화 안내서 (1번 도구 전용 v1.3)</h1>
+    <h1>☀ WIC 자동화 안내서 (1번 도구 전용 v1.4)</h1>
     <p class="subtitle">
-      이 화면은 <strong>1번 도구(자동화 안내서)</strong>만 담당하고,<br />
-      나머지 129개 도구로 퍼지는 뒤 단계는 <strong>Trigger → Observe → Lock-in → Propagate → Sync</strong> 루프에 따라 자동으로 이어지는 입구다.
+      이 화면은 <strong>1번 도구(자동화 안내서)</strong>만 담당한다.<br />
+      실제 흐름은 <strong>고객 데이터 → 우선순위 고객 선별 → 안내서 자동 생성 → 후속조치 기록</strong>을
+      한 화면에서 끝내도록 설계되었다.
     </p>
     <div class="banner">
-      1단계: 고객 데이터 불러오기 → 2단계: 데이터 분석 요약 →
-      3단계: 안내서 초안 생성 → 4단계: 고객 반응·후속조치 기록
+      1단계: 고객 데이터 불러오기 → 2단계: 우선순위 분석 →
+      3단계: 안내서 자동 생성 → 4단계: 고객 반응·후속조치 기록
     </div>
     <div class="template-download">
       🔒 워드 템플릿 다운로드 :
@@ -30,18 +31,22 @@
       <section class="card">
         <h2>1단계. 고객 데이터 불러오기</h2>
         <p>
-          먼저 <strong>엑셀 고객장부(.xls, .xlsx)</strong>를 올리거나,
-          간단 키워드로 <strong>온라인에서 가져오기</strong>를 실행한다.
+          <strong>여러 연도 엑셀 고객장부(.xls, .xlsx)를 한 번에 올려도 된다.</strong><br />
+          예: 2018, 2020, 2021, 2022, 2023, 2024년 장부 + 신규 고객 카드 등
         </p>
 
         <div class="field">
-          <label for="customerFile">💾 로컬 엑셀 파일 선택</label>
-          <input type="file" id="customerFile" accept=".xls,.xlsx" />
+          <label for="customerFiles">💾 로컬 엑셀 파일 선택 (다중 선택 가능)</label>
+          <input type="file" id="customerFiles" accept=".xls,.xlsx" multiple />
         </div>
 
         <div class="buttons-row">
           <button id="btnLoadLocal">로컬 엑셀 불러오기</button>
         </div>
+
+        <p class="note">
+          ※ 파일을 여러 개 선택하면, 같은 고객(이름+이메일 기준)은 하나로 합쳐서 처리한다.
+        </p>
 
         <div class="divider">또는</div>
 
@@ -50,31 +55,35 @@
           <input
             type="text"
             id="onlineKeyword"
-            placeholder="예: 한국생산기술연구원, 폴리우레탄 접착제, KITECH 등"
+            placeholder="예: 한국생산기술연구원, KITECH, 폴리우레탄 접착제 등"
           />
         </div>
 
         <div class="buttons-row">
-          <button id="btnFetchOnline">온라인에서 가져오기 (프로토타입)</button>
+          <button id="btnFetchOnline">온라인에서 가져오기 (자리만 준비)</button>
         </div>
 
         <p class="note">
-          ※ 지금 버전은 <strong>엑셀 분석 100% 실제 작동</strong>,<br />
-          온라인 가져오기는 나중에 API만 연결하면 되도록 자리만 만들어 둔 상태다.
+          ※ 지금 버전은 엑셀 분석 100% 실제 작동, 온라인 수집은 나중에 API만 연결하면 되는 구조로 자리만 만들어두었다.
         </p>
 
         <div class="status-box">
           <h3>불러오기 상태</h3>
           <pre id="loadStatus">(아직 불러온 데이터가 없습니다)</pre>
         </div>
+
+        <div class="status-box">
+          <h3>불러온 파일 목록</h3>
+          <ul id="fileList"></ul>
+        </div>
       </section>
 
-      <!-- 2단계: 고객 데이터 분석 요약 -->
+      <!-- 2단계: 고객 데이터 분석 요약 + 우선순위 리스트 -->
       <section class="card">
-        <h2>2단계. 고객 데이터 분석 요약</h2>
+        <h2>2단계. 고객 데이터 분석 · 우선순위 리스트</h2>
         <p>
-          불러온 고객 데이터를 바탕으로 <strong>관심분야 / 연구분야 / 연구비 규모 / 직급</strong>
-          등을 요약해서, 어떤 고객에게 안내서를 먼저 보내야 할지 자동으로 적어준다.
+          불러온 고객 데이터를 통합해서 <strong>연구분야 / 관심분야 / 연구비 / 최근 거래</strong>를 기준으로
+          우선순위가 높은 고객을 자동으로 뽑는다.
         </p>
 
         <div class="buttons-row">
@@ -84,13 +93,32 @@
         <label for="analysisSummary" class="sr-only">분석 요약</label>
         <textarea
           id="analysisSummary"
-          rows="14"
+          rows="9"
           placeholder="고객 데이터를 불러온 후 [분석 실행]을 누르면, 여기 요약이 자동으로 생성됩니다."
         ></textarea>
 
         <div class="status-box">
-          <h3>분석 핵심 결과 (요약)</h3>
-          <ul id="analysisHighlights"></ul>
+          <h3>우선순위 고객 리스트 (상위 50명)</h3>
+          <table id="priorityTable">
+            <thead>
+              <tr>
+                <th>선택</th>
+                <th>순위</th>
+                <th>이름</th>
+                <th>기관</th>
+                <th>연구분야</th>
+                <th>관심분야</th>
+                <th>연구비(만원)</th>
+                <th>점수</th>
+              </tr>
+            </thead>
+            <tbody id="priorityBody">
+              <!-- JS에서 채움 -->
+            </tbody>
+          </table>
+          <p class="note">
+            ※ 안내서를 보낼 고객을 체크박스로 선택해 두면, 3단계에서 자동으로 안내서 문단이 생성된다.
+          </p>
         </div>
       </section>
     </section>
@@ -98,36 +126,34 @@
     <section class="grid">
       <!-- 3단계: 안내서 초안 자동 생성 -->
       <section class="card">
-        <h2>3단계. 안내서 초안 자동 생성</h2>
+        <h2>3단계. 안내서 초안 자동 생성 (워드용)</h2>
         <p>
-          아래 버튼을 누르면, 2단계 분석 결과를 기반으로 <strong>고객 안내용 초안 텍스트</strong>가 자동 생성된다.
-          생성된 내용을 그대로 복사해서, 위에서 내려받은
-          <strong>자동화안내서_v1.1.dotx</strong> 문서 안에 붙여 넣으면 된다.
+          2단계 우선순위 리스트에서 체크한 고객들을 기준으로,
+          <strong>워드 템플릿에 붙여 넣을 안내서 문단</strong>을 자동으로 생성한다.
         </p>
 
         <div class="field">
-          <label for="targetSegment">우선 안내 대상 (선택/메모)</label>
+          <label for="targetSegment">우선 안내 대상 설명 (선택/메모)</label>
           <input
             type="text"
             id="targetSegment"
-            placeholder="예: 폴리우레탄 접착제 + 2025년 예산 1,000만원 이상 고객군"
+            placeholder="예: 폴리우레탄 접착제 + 2025년 예산 1,000만원 이상 핵심 고객"
           />
         </div>
 
         <div class="buttons-row">
-          <button id="btnGenerateDraft">안내서 초안 생성</button>
+          <button id="btnGenerateDraft">선택 고객 대상으로 안내서 초안 생성</button>
         </div>
 
         <label for="guideDraft" class="sr-only">안내서 초안</label>
         <textarea
           id="guideDraft"
           rows="18"
-          placeholder="버튼을 누르면 고객 맞춤형 안내서 문구가 여기 자동으로 생성됩니다."
+          placeholder="2단계에서 고객을 선택하고 [선택 고객 대상으로 안내서 초안 생성]을 누르면, 여기 안내서 문단이 자동 생성됩니다."
         ></textarea>
 
         <p class="note">
-          ※ 안내서 초안은 <strong>고객 1명~소규모 그룹 단위</strong>를 기준으로 생성하도록 설계했다.
-          실제 발송 전에 한 번 읽어보고 어색한 표현을 손으로 정리해도 좋다.
+          ※ 생성된 문단을 통째로 복사해서 <strong>자동화안내서_v1.1.dotx</strong> 안에 붙여 넣고 저장하면 된다.
         </p>
       </section>
 
@@ -135,15 +161,16 @@
       <section class="card">
         <h2>4단계. 고객 반응 · 후속조치 기록</h2>
         <p>
-          안내서 발송 후의 <strong>고객 반응</strong>과
-          <strong>후속조치</strong>를 간단하게 기록해두면, 다음에 연락할 때 한눈에 확인할 수 있다.
+          안내서를 보낸 후, 고객의 반응과 다음에 해야 할 일을 간단하게 기록해 두면
+          <strong>다음 연락 시 바로 참고</strong>할 수 있다.
         </p>
 
         <div class="field">
-          <label for="followupCustomer">고객 이름 / 기관</label>
+          <label for="followupCustomer">고객 이름 / 기관 (자동 추천 목록에서 선택 가능)</label>
           <input
             type="text"
             id="followupCustomer"
+            list="customerNameList"
             placeholder="예: 김혜림 박사 / 한국생산기술연구원"
           />
         </div>
@@ -161,10 +188,15 @@
         </div>
 
         <div class="field">
+          <label for="followupNextDate">다음 연락 예정일</label>
+          <input type="date" id="followupNextDate" />
+        </div>
+
+        <div class="field">
           <label for="followupMemo">후속조치 메모</label>
           <textarea
             id="followupMemo"
-            rows="6"
+            rows="5"
             placeholder="예: 11/20 전화, 보고서 샘플 PDF 발송, 다음 주 재통화 예정."
           ></textarea>
         </div>
@@ -175,13 +207,14 @@
         </div>
 
         <div class="status-box">
-          <h3>최근 후속조치 기록 (브라우저에만 저장)</h3>
+          <h3>최근 후속조치 기록 (이 브라우저에만 저장)</h3>
           <table id="followupLog">
             <thead>
               <tr>
                 <th>시간</th>
                 <th>고객</th>
                 <th>반응</th>
+                <th>다음 연락</th>
                 <th>메모</th>
               </tr>
             </thead>
@@ -190,19 +223,22 @@
             </tbody>
           </table>
           <p class="note">
-            ※ 지금 버전은 <strong>이 PC 브라우저 안(localStorage)</strong>에만 저장한다.<br />
-            나중에 4번·5번 도구와 연결할 때, 이 기록을 서버·엑셀과 자동 연동하도록 확장할 수 있다.
+            ※ 지금 버전은 <strong>이 PC 브라우저(localStorage)</strong>에만 저장한다.<br />
+            나중에 4번·5번 도구와 연결할 때 이 기록을 서버·엑셀과 자동 연동하면 된다.
           </p>
         </div>
       </section>
     </section>
+
+    <!-- 이름 자동완성용 datalist -->
+    <datalist id="customerNameList"></datalist>
 
     <!-- 오른쪽 진행상황 패널 -->
     <aside class="sidebar">
       <h2>진행 상황 (1번 도구)</h2>
       <ul id="progressList">
         <li data-step="1">1단계: 고객 데이터 불러오기 - 대기</li>
-        <li data-step="2">2단계: 데이터 분석 요약 - 대기</li>
+        <li data-step="2">2단계: 데이터 분석·우선순위 - 대기</li>
         <li data-step="3">3단계: 안내서 초안 생성 - 대기</li>
         <li data-step="4">4단계: 고객 반응·후속조치 기록 - 대기</li>
       </ul>
@@ -210,7 +246,7 @@
       <h3>Trigger → Observe → Lock-in → Propagate → Sync</h3>
       <ol class="tolps">
         <li><strong>Trigger</strong> : 고객데이터 불러오기(엑셀·온라인)</li>
-        <li><strong>Observe</strong> : 데이터 분석 요약</li>
+        <li><strong>Observe</strong> : 통합 분석 · 우선순위 산출</li>
         <li><strong>Lock-in</strong> : 안내서 초안 + 워드 템플릿</li>
         <li><strong>Propagate</strong> : 이메일·우편 발송 (외부 도구와 연동 예정)</li>
         <li><strong>Sync</strong> : 후속조치 기록을 다른 도구와 동기화</li>
