@@ -2,265 +2,573 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>WIC 자동화 안내서 (1번 도구 전용 v1.4)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>1번 도구 - 자동화 워드 안내서</title>
+  <!-- 엑셀 읽기용 라이브러리 (SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, "맑은 고딕", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #1f2937;
+      color: #fff;
+      padding: 16px 24px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    main {
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .section h2 {
+      margin-top: 0;
+      font-size: 18px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .section small {
+      color: #6b7280;
+    }
+    label {
+      display: block;
+      margin: 8px 0 4px;
+      font-size: 14px;
+    }
+    input[type="file"],
+    input[type="text"],
+    select,
+    button,
+    textarea {
+      font-size: 14px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+    }
+    input[type="file"] {
+      background: #fff;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      padding: 8px 14px;
+      margin-top: 6px;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 999px;
+    }
+    button.secondary {
+      background: #6b7280;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 4px 6px;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #e5f0ff;
+      color: #1d4ed8;
+      margin-right: 4px;
+    }
+    .flex-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .flex-grow {
+      flex: 1;
+      min-width: 0;
+    }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+    }
+    .status-bar {
+      font-size: 13px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+    .status-bar span {
+      margin-right: 16px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      margin-right: 4px;
+      margin-top: 4px;
+    }
+  </style>
 </head>
 <body>
-  <header class="top-bar">
-    <h1>☀ WIC 자동화 안내서 (1번 도구 전용 v1.4)</h1>
-    <p class="subtitle">
-      이 화면은 <strong>1번 도구(자동화 안내서)</strong>만 담당한다.<br />
-      실제 흐름은 <strong>고객 데이터 → 우선순위 고객 선별 → 안내서 자동 생성 → 후속조치 기록</strong>을
-      한 화면에서 끝내도록 설계되었다.
-    </p>
-    <div class="banner">
-      1단계: 고객 데이터 불러오기 → 2단계: 우선순위 분석 →
-      3단계: 안내서 자동 생성 → 4단계: 고객 반응·후속조치 기록
-    </div>
-    <div class="template-download">
-      🔒 워드 템플릿 다운로드 :
-      <a href="자동화안내서_v1.1.dotx" download>자동화안내서_v1.1.dotx 내려받기</a>
-      (잠금 구조가 적용된 기본 안내서 양식)
-    </div>
+  <header>
+    <h1>1번 도구 – 고객 엑셀 기반 자동화 워드 안내서</h1>
   </header>
 
-  <main id="app">
-    <section class="grid">
-      <!-- 1단계: 고객 데이터 불러오기 -->
-      <section class="card">
-        <h2>1단계. 고객 데이터 불러오기</h2>
-        <p>
-          <strong>여러 연도 엑셀 고객장부(.xls, .xlsx)를 한 번에 올려도 된다.</strong><br />
-          예: 2018, 2020, 2021, 2022, 2023, 2024년 장부 + 신규 고객 카드 등
-        </p>
+  <main>
+    <!-- 1단계: 고객 엑셀 다중 업로드 + 통합 -->
+    <section class="section" id="step1">
+      <h2>1단계. 고객 엑셀 업로드 및 통합</h2>
+      <small>여러 연도 장부(예: 2018, 2020, 2021, 2022, 2023, 2024, 신규 고객 카드)를 한 번에 올립니다.</small>
 
-        <div class="field">
-          <label for="customerFiles">💾 로컬 엑셀 파일 선택 (다중 선택 가능)</label>
-          <input type="file" id="customerFiles" accept=".xls,.xlsx" multiple />
+      <label for="excelFiles">엑셀 파일 선택 (.xls / .xlsx, 여러 개 선택 가능)</label>
+      <input type="file" id="excelFiles" multiple accept=".xls,.xlsx" />
+
+      <button id="btnLoadExcel">엑셀 읽기 및 통합</button>
+
+      <div class="status-bar" id="excelStatus">
+        <span>읽은 파일: 0개</span>
+        <span>통합 고객 수: 0명</span>
+      </div>
+
+      <div id="fileSummary"></div>
+
+      <div style="margin-top:8px;">
+        <strong>우선순위 계산 기준(기본값):</strong><br />
+        <span class="pill">연구비 있음: +20</span>
+        <span class="pill">최근 2년 거래: +30</span>
+        <span class="pill">관심분야=우선 주제: +40</span>
+      </div>
+
+      <div style="margin-top:8px;" class="flex-row">
+        <div class="flex-grow">
+          <label for="focusTopic">우선 주제(관심분야 기준)</label>
+          <input type="text" id="focusTopic" placeholder="예: 접착제, 유리기판, 페로브스카이트 등" />
         </div>
-
-        <div class="buttons-row">
-          <button id="btnLoadLocal">로컬 엑셀 불러오기</button>
+        <div>
+          <label for="topN">상위 고객 수</label>
+          <input type="text" id="topN" value="20" style="width:60px;" />
         </div>
-
-        <p class="note">
-          ※ 파일을 여러 개 선택하면, 같은 고객(이름+이메일 기준)은 하나로 합쳐서 처리한다.
-        </p>
-
-        <div class="divider">또는</div>
-
-        <div class="field">
-          <label for="onlineKeyword">🌐 온라인에서 가져오기 (연구소명 / 고객명 / 키워드)</label>
-          <input
-            type="text"
-            id="onlineKeyword"
-            placeholder="예: 한국생산기술연구원, KITECH, 폴리우레탄 접착제 등"
-          />
+        <div>
+          <button id="btnCalcPriority">우선순위 고객 계산</button>
         </div>
+      </div>
 
-        <div class="buttons-row">
-          <button id="btnFetchOnline">온라인에서 가져오기 (자리만 준비)</button>
-        </div>
-
-        <p class="note">
-          ※ 지금 버전은 엑셀 분석 100% 실제 작동, 온라인 수집은 나중에 API만 연결하면 되는 구조로 자리만 만들어두었다.
-        </p>
-
-        <div class="status-box">
-          <h3>불러오기 상태</h3>
-          <pre id="loadStatus">(아직 불러온 데이터가 없습니다)</pre>
-        </div>
-
-        <div class="status-box">
-          <h3>불러온 파일 목록</h3>
-          <ul id="fileList"></ul>
-        </div>
-      </section>
-
-      <!-- 2단계: 고객 데이터 분석 요약 + 우선순위 리스트 -->
-      <section class="card">
-        <h2>2단계. 고객 데이터 분석 · 우선순위 리스트</h2>
-        <p>
-          불러온 고객 데이터를 통합해서 <strong>연구분야 / 관심분야 / 연구비 / 최근 거래</strong>를 기준으로
-          우선순위가 높은 고객을 자동으로 뽑는다.
-        </p>
-
-        <div class="buttons-row">
-          <button id="btnAnalyze" disabled>분석 실행 (엑셀 불러온 후 사용)</button>
-        </div>
-
-        <label for="analysisSummary" class="sr-only">분석 요약</label>
-        <textarea
-          id="analysisSummary"
-          rows="9"
-          placeholder="고객 데이터를 불러온 후 [분석 실행]을 누르면, 여기 요약이 자동으로 생성됩니다."
-        ></textarea>
-
-        <div class="status-box">
-          <h3>우선순위 고객 리스트 (상위 50명)</h3>
-          <table id="priorityTable">
-            <thead>
-              <tr>
-                <th>선택</th>
-                <th>순위</th>
-                <th>이름</th>
-                <th>기관</th>
-                <th>연구분야</th>
-                <th>관심분야</th>
-                <th>연구비(만원)</th>
-                <th>점수</th>
-              </tr>
-            </thead>
-            <tbody id="priorityBody">
-              <!-- JS에서 채움 -->
-            </tbody>
-          </table>
-          <p class="note">
-            ※ 안내서를 보낼 고객을 체크박스로 선택해 두면, 3단계에서 자동으로 안내서 문단이 생성된다.
-          </p>
-        </div>
-      </section>
+      <div id="priorityTableWrapper"></div>
     </section>
 
-    <section class="grid">
-      <!-- 3단계: 안내서 초안 자동 생성 -->
-      <section class="card">
-        <h2>3단계. 안내서 초안 자동 생성 (워드용)</h2>
-        <p>
-          2단계 우선순위 리스트에서 체크한 고객들을 기준으로,
-          <strong>워드 템플릿에 붙여 넣을 안내서 문단</strong>을 자동으로 생성한다.
-        </p>
+    <!-- 2단계: 우선순위 고객 선택 & 안내서 문단 자동 생성 -->
+    <section class="section" id="step2">
+      <h2>2단계. 고객 선택 및 안내서 문단 자동 생성</h2>
+      <small>1단계에서 계산된 우선순위 고객 중 안내서를 보낼 대상을 선택합니다.</small>
 
-        <div class="field">
-          <label for="targetSegment">우선 안내 대상 설명 (선택/메모)</label>
-          <input
-            type="text"
-            id="targetSegment"
-            placeholder="예: 폴리우레탄 접착제 + 2025년 예산 1,000만원 이상 핵심 고객"
-          />
-        </div>
-
-        <div class="buttons-row">
-          <button id="btnGenerateDraft">선택 고객 대상으로 안내서 초안 생성</button>
-        </div>
-
-        <label for="guideDraft" class="sr-only">안내서 초안</label>
-        <textarea
-          id="guideDraft"
-          rows="18"
-          placeholder="2단계에서 고객을 선택하고 [선택 고객 대상으로 안내서 초안 생성]을 누르면, 여기 안내서 문단이 자동 생성됩니다."
-        ></textarea>
-
-        <p class="note">
-          ※ 생성된 문단을 통째로 복사해서 <strong>자동화안내서_v1.1.dotx</strong> 안에 붙여 넣고 저장하면 된다.
-        </p>
-      </section>
-
-      <!-- 4단계: 고객 반응 · 후속조치 기록 -->
-      <section class="card">
-        <h2>4단계. 고객 반응 · 후속조치 기록</h2>
-        <p>
-          안내서를 보낸 후, 고객의 반응과 다음에 해야 할 일을 간단하게 기록해 두면
-          <strong>다음 연락 시 바로 참고</strong>할 수 있다.
-        </p>
-
-        <div class="field">
-          <label for="followupCustomer">고객 이름 / 기관 (자동 추천 목록에서 선택 가능)</label>
-          <input
-            type="text"
-            id="followupCustomer"
-            list="customerNameList"
-            placeholder="예: 김혜림 박사 / 한국생산기술연구원"
-          />
-        </div>
-
-        <div class="field">
-          <label for="followupResponse">고객 반응</label>
-          <select id="followupResponse">
-            <option value="">선택하세요</option>
-            <option value="읽음">읽음 (응답 없음)</option>
-            <option value="회신">회신 (추가 문의)</option>
-            <option value="견적요청">견적 요청</option>
-            <option value="구매완료">구매 완료</option>
-            <option value="무응답">무응답</option>
+      <div class="flex-row">
+        <div class="flex-grow">
+          <label for="customerSelect">고객 선택</label>
+          <select id="customerSelect">
+            <option value="">먼저 1단계에서 우선순위를 계산하세요.</option>
           </select>
         </div>
-
-        <div class="field">
-          <label for="followupNextDate">다음 연락 예정일</label>
-          <input type="date" id="followupNextDate" />
+        <div>
+          <label for="reportTopic">추천 보고서 주제(간단)</label>
+          <input type="text" id="reportTopic" placeholder="예: 글로벌 접착제 시장 보고서" />
         </div>
+      </div>
 
-        <div class="field">
-          <label for="followupMemo">후속조치 메모</label>
-          <textarea
-            id="followupMemo"
-            rows="5"
-            placeholder="예: 11/20 전화, 보고서 샘플 PDF 발송, 다음 주 재통화 예정."
-          ></textarea>
-        </div>
+      <button id="btnGenerateParagraph">선택 고객 안내 문단 생성</button>
 
-        <div class="buttons-row">
-          <button id="btnSaveFollowup">후속조치 기록 저장</button>
-          <button id="btnClearFollowup">입력칸 초기화</button>
-        </div>
+      <label for="templateText" style="margin-top:10px;">워드 안내서 기본 문단 템플릿 (필요하면 수정 가능)</label>
+      <textarea id="templateText">
+Dear {{name}} ({{institution}}),
 
-        <div class="status-box">
-          <h3>최근 후속조치 기록 (이 브라우저에만 저장)</h3>
-          <table id="followupLog">
-            <thead>
-              <tr>
-                <th>시간</th>
-                <th>고객</th>
-                <th>반응</th>
-                <th>다음 연락</th>
-                <th>메모</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- JS에서 채움 -->
-            </tbody>
-          </table>
-          <p class="note">
-            ※ 지금 버전은 <strong>이 PC 브라우저(localStorage)</strong>에만 저장한다.<br />
-            나중에 4번·5번 도구와 연결할 때 이 기록을 서버·엑셀과 자동 연동하면 된다.
-          </p>
-        </div>
-      </section>
+We would like to introduce you to our latest market report related to your research field, "{{researchField}}", and interest area, "{{interestField}}". 
+Based on your R&amp;D budget and recent activities, we believe that the following report will be highly useful for your work:
+
+- Report title: {{reportTopic}}
+
+If you need more detailed contents, sample pages, or additional technical data, please feel free to contact us anytime.
+
+Best regards,
+World Industrial Information Center (WIC)
+      </textarea>
+
+      <label for="generatedParagraph" style="margin-top:10px;">생성된 안내 문단 (워드로 복사 붙여넣기)</label>
+      <textarea id="generatedParagraph" readonly></textarea>
     </section>
 
-    <!-- 이름 자동완성용 datalist -->
-    <datalist id="customerNameList"></datalist>
+    <!-- 3단계: 후속조치 기록 -->
+    <section class="section" id="step3">
+      <h2>3단계. 고객 반응 및 후속조치 기록</h2>
+      <small>안내 메일/전화 후 고객 반응과 다음 액션을 기록합니다. 나중에 다른 도구(4번, 5번)에 넘길 수 있도록 CSV로 저장 가능합니다.</small>
 
-    <!-- 오른쪽 진행상황 패널 -->
-    <aside class="sidebar">
-      <h2>진행 상황 (1번 도구)</h2>
-      <ul id="progressList">
-        <li data-step="1">1단계: 고객 데이터 불러오기 - 대기</li>
-        <li data-step="2">2단계: 데이터 분석·우선순위 - 대기</li>
-        <li data-step="3">3단계: 안내서 초안 생성 - 대기</li>
-        <li data-step="4">4단계: 고객 반응·후속조치 기록 - 대기</li>
-      </ul>
-
-      <h3>Trigger → Observe → Lock-in → Propagate → Sync</h3>
-      <ol class="tolps">
-        <li><strong>Trigger</strong> : 고객데이터 불러오기(엑셀·온라인)</li>
-        <li><strong>Observe</strong> : 통합 분석 · 우선순위 산출</li>
-        <li><strong>Lock-in</strong> : 안내서 초안 + 워드 템플릿</li>
-        <li><strong>Propagate</strong> : 이메일·우편 발송 (외부 도구와 연동 예정)</li>
-        <li><strong>Sync</strong> : 후속조치 기록을 다른 도구와 동기화</li>
-      </ol>
-
-      <div class="status-box">
-        <h3>자동 로그</h3>
-        <pre id="autoLog"></pre>
+      <div class="flex-row">
+        <div class="flex-grow">
+          <label for="logCustomerSelect">고객 선택</label>
+          <select id="logCustomerSelect">
+            <option value="">먼저 1단계에서 우선순위를 계산하세요.</option>
+          </select>
+        </div>
+        <div>
+          <label for="logDate">날짜</label>
+          <input type="text" id="logDate" placeholder="예: 2025-12-03" />
+        </div>
+        <div>
+          <label for="logChannel">안내 방식</label>
+          <select id="logChannel">
+            <option value="메일">메일</option>
+            <option value="전화">전화</option>
+            <option value="면담">면담</option>
+          </select>
+        </div>
       </div>
-    </aside>
+
+      <div class="flex-row">
+        <div class="flex-grow">
+          <label for="logReaction">반응</label>
+          <select id="logReaction">
+            <option value="관심 높음">관심 높음</option>
+            <option value="보통">보통</option>
+            <option value="낮음">낮음</option>
+          </select>
+        </div>
+        <div class="flex-grow">
+          <label for="logActionCode">후속조치 코드</label>
+          <select id="logActionCode">
+            <option value="P">P - 추가 자료(PDF) 발송</option>
+            <option value="Q">Q - 다음 주 재연락</option>
+            <option value="R">R - 견적/구매 가능성 높음</option>
+            <option value="N">N - 추후 보류</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="logMemo">메모</label>
+      <textarea id="logMemo" placeholder="고객이 말한 내용, 요청 사항 등을 간단히 적습니다."></textarea>
+
+      <button id="btnAddLog">기록 추가</button>
+      <button id="btnExportLog" class="secondary">CSV로 내보내기</button>
+
+      <div id="logTableWrapper"></div>
+    </section>
   </main>
 
-  <!-- 엑셀 파서를 위한 라이브러리 (클라이언트 전용) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="app.js"></script>
+  <script>
+    // ------------------------
+    // 전역 상태
+    // ------------------------
+    let mergedCustomers = [];   // 통합 고객 목록
+    let priorityCustomers = []; // 우선순위 고객 목록
+    let followLogs = [];        // 후속조치 기록
+
+    // 유틸: 문자열 안전 추출
+    function safe(v) {
+      if (v === undefined || v === null) return "";
+      return String(v).trim();
+    }
+
+    // 엑셀 파일 읽기
+    document.getElementById('btnLoadExcel').addEventListener('click', async () => {
+      const input = document.getElementById('excelFiles');
+      const files = input.files;
+      const excelStatus = document.getElementById('excelStatus');
+      const fileSummary = document.getElementById('fileSummary');
+
+      if (!files || files.length === 0) {
+        alert('엑셀 파일을 선택해 주세요.');
+        return;
+      }
+
+      mergedCustomers = [];
+      let fileInfoHtml = '<table><thead><tr><th>파일명</th><th>시트 수</th><th>추출 고객 수(대략)</th></tr></thead><tbody>';
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: 'array' });
+        let fileCustomerCount = 0;
+
+        workbook.SheetNames.forEach(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+          json.forEach(row => {
+            const customer = {
+              institution: safe(row["기관명"] || row["기관"] || row["Company"]),
+              name: safe(row["이름"] || row["담당자"] || row["Name"]),
+              email: safe(row["이메일"] || row["Email"]),
+              phone: safe(row["전화"] || row["연락처"] || row["Phone"]),
+              researchField: safe(row["연구분야"] || row["연구 분야"] || row["Research Field"]),
+              interestField: safe(row["관심분야"] || row["관심 분야"] || row["Interest Field"]),
+              budgetFlag: safe(row["연구비"] || row["Budget"]),
+              recentFlag: safe(row["최근거래"] || row["최근 거래"] || row["Recent"]),
+              raw: row
+            };
+            // 최소한 이름+기관은 있어야 고객으로 인정
+            if (customer.name || customer.institution) {
+              mergedCustomers.push(customer);
+              fileCustomerCount++;
+            }
+          });
+        });
+
+        fileInfoHtml += `<tr>
+          <td>${file.name}</td>
+          <td>${workbook.SheetNames.length}</td>
+          <td>${fileCustomerCount}</td>
+        </tr>`;
+      }
+
+      fileInfoHtml += '</tbody></table>';
+      fileSummary.innerHTML = fileInfoHtml;
+
+      excelStatus.innerHTML =
+        `<span>읽은 파일: ${files.length}개</span><span>통합 고객 수: ${mergedCustomers.length}명</span>`;
+
+      alert('엑셀 통합이 완료되었습니다. 이제 우선순위를 계산해 주세요.');
+    });
+
+    // 우선순위 계산
+    document.getElementById('btnCalcPriority').addEventListener('click', () => {
+      if (mergedCustomers.length === 0) {
+        alert('먼저 엑셀을 읽어 주세요.');
+        return;
+      }
+
+      const focusTopic = safe(document.getElementById('focusTopic').value).toLowerCase();
+      let topN = parseInt(document.getElementById('topN').value || "20", 10);
+      if (isNaN(topN) || topN <= 0) topN = 20;
+
+      // 이메일+이름 기준으로 중복 제거
+      const map = new Map();
+      mergedCustomers.forEach(c => {
+        const key = (c.email || "") + "|" + (c.name || "");
+        if (!map.has(key)) {
+          map.set(key, c);
+        } else {
+          // 나중에 필요하면 recentFlag/예전 데이터 병합 가능
+        }
+      });
+
+      const uniqueCustomers = Array.from(map.values());
+
+      // 점수 계산
+      priorityCustomers = uniqueCustomers.map(c => {
+        let score = 0;
+        if (c.budgetFlag && c.budgetFlag !== "0" && c.budgetFlag !== "-") score += 20;
+        if (c.recentFlag && c.recentFlag !== "0" && c.recentFlag !== "-") score += 30;
+
+        const interestLower = (c.interestField || "").toLowerCase();
+        if (focusTopic && interestLower.includes(focusTopic)) {
+          score += 40;
+        }
+
+        return { ...c, score };
+      });
+
+      // 점수 순 정렬
+      priorityCustomers.sort((a, b) => b.score - a.score);
+
+      const selected = priorityCustomers.slice(0, topN);
+
+      // 표 출력
+      const wrapper = document.getElementById('priorityTableWrapper');
+      let html = '<table><thead><tr>' +
+        '<th>순위</th><th>기관</th><th>이름</th><th>연구분야</th><th>관심분야</th><th>연구비</th><th>최근거래</th><th>점수</th>' +
+        '</tr></thead><tbody>';
+      selected.forEach((c, idx) => {
+        html += `<tr>
+          <td>${idx + 1}</td>
+          <td>${c.institution}</td>
+          <td>${c.name}</td>
+          <td>${c.researchField}</td>
+          <td>${c.interestField}</td>
+          <td>${c.budgetFlag}</td>
+          <td>${c.recentFlag}</td>
+          <td>${c.score}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      wrapper.innerHTML = html;
+
+      // 2단계/3단계 고객 선택 박스 갱신
+      const customerSelect = document.getElementById('customerSelect');
+      const logCustomerSelect = document.getElementById('logCustomerSelect');
+      customerSelect.innerHTML = '<option value="">고객을 선택하세요.</option>';
+      logCustomerSelect.innerHTML = '<option value="">고객을 선택하세요.</option>';
+
+      selected.forEach((c, idx) => {
+        const label = `${idx + 1}. ${c.institution} - ${c.name}`;
+        const value = String(idx); // 인덱스로 참조
+        const opt1 = document.createElement('option');
+        opt1.value = value;
+        opt1.textContent = label;
+        customerSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = value;
+        opt2.textContent = label;
+        logCustomerSelect.appendChild(opt2);
+      });
+
+      alert('우선순위 고객 계산이 완료되었습니다.');
+    });
+
+    // 안내 문단 생성
+    document.getElementById('btnGenerateParagraph').addEventListener('click', () => {
+      const idxStr = document.getElementById('customerSelect').value;
+      if (!idxStr) {
+        alert('고객을 먼저 선택해 주세요.');
+        return;
+      }
+      const idx = parseInt(idxStr, 10);
+      const customer = priorityCustomers[idx];
+      if (!customer) {
+        alert('고객 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      const template = document.getElementById('templateText').value;
+      const reportTopic = safe(document.getElementById('reportTopic').value) || "market report";
+
+      let text = template;
+      text = text.replace(/{{name}}/g, customer.name || "");
+      text = text.replace(/{{institution}}/g, customer.institution || "");
+      text = text.replace(/{{researchField}}/g, customer.researchField || "");
+      text = text.replace(/{{interestField}}/g, customer.interestField || "");
+      text = text.replace(/{{reportTopic}}/g, reportTopic);
+
+      document.getElementById('generatedParagraph').value = text;
+    });
+
+    // 후속조치 기록 추가
+    document.getElementById('btnAddLog').addEventListener('click', () => {
+      const idxStr = document.getElementById('logCustomerSelect').value;
+      if (!idxStr) {
+        alert('고객을 먼저 선택해 주세요.');
+        return;
+      }
+      const idx = parseInt(idxStr, 10);
+      const customer = priorityCustomers[idx];
+      if (!customer) {
+        alert('고객 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      const date = safe(document.getElementById('logDate').value);
+      const channel = safe(document.getElementById('logChannel').value);
+      const reaction = safe(document.getElementById('logReaction').value);
+      const actionCode = safe(document.getElementById('logActionCode').value);
+      const memo = safe(document.getElementById('logMemo').value);
+
+      if (!date) {
+        alert('날짜를 입력해 주세요.');
+        return;
+      }
+
+      const log = {
+        customerLabel: `${customer.institution} - ${customer.name}`,
+        institution: customer.institution,
+        name: customer.name,
+        date,
+        channel,
+        reaction,
+        actionCode,
+        memo
+      };
+      followLogs.push(log);
+
+      renderLogTable();
+      document.getElementById('logMemo').value = "";
+    });
+
+    function renderLogTable() {
+      const wrapper = document.getElementById('logTableWrapper');
+      if (followLogs.length === 0) {
+        wrapper.innerHTML = "<p>등록된 기록이 없습니다.</p>";
+        return;
+      }
+      let html = '<table><thead><tr>' +
+        '<th>고객</th><th>날짜</th><th>방식</th><th>반응</th><th>코드</th><th>메모</th>' +
+        '</tr></thead><tbody>';
+      followLogs.forEach(l => {
+        html += `<tr>
+          <td>${l.customerLabel}</td>
+          <td>${l.date}</td>
+          <td>${l.channel}</td>
+          <td>${l.reaction}</td>
+          <td>${l.actionCode}</td>
+          <td>${l.memo}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      wrapper.innerHTML = html;
+    }
+
+    // CSV 내보내기
+    document.getElementById('btnExportLog').addEventListener('click', () => {
+      if (followLogs.length === 0) {
+        alert('내보낼 기록이 없습니다.');
+        return;
+      }
+      const header = ["고객", "기관", "이름", "날짜", "방식", "반응", "코드", "메모"];
+      const rows = followLogs.map(l => [
+        l.customerLabel,
+        l.institution,
+        l.name,
+        l.date,
+        l.channel,
+        l.reaction,
+        l.actionCode,
+        l.memo.replace(/\r?\n/g, " ")
+      ]);
+
+      let csv = "\uFEFF" + header.join(",") + "\n";
+      rows.forEach(r => {
+        // 간단 CSV 인코딩 (콤마 포함시 따옴표 감싸기)
+        const line = r.map(v => {
+          const s = String(v || "");
+          if (s.includes(",") || s.includes('"')) {
+            return '"' + s.replace(/"/g, '""') + '"';
+          }
+          return s;
+        }).join(",");
+        csv += line + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "고객_후속조치_기록.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
 </body>
 </html>
