@@ -1,5 +1,484 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="UTF-8"><title>1번 고객 자동화 안내서</title></head>
-<body>1번 고객 자동화 안내서 도구 테스트 화면</body>
+<head>
+  <meta charset="UTF-8" />
+  <title>1번 고객 자동화 안내서 · Auto Guide (단일 파일 버전)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 16px 0 8px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1.4fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: #ffffff;
+      padding: 12px 16px 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin-bottom: 12px;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #d0d0d0;
+      font-size: 13px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    .row > div {
+      flex: 1;
+    }
+    button {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-main {
+      background: #0078d4;
+      color: #fff;
+    }
+    .btn-sub {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #eee;
+      margin-right: 4px;
+    }
+    .badge-success { background: #d1f4d7; color: #166534; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
+    .small {
+      font-size: 11px;
+      color: #777;
+    }
+    .guide-output {
+      width: 100%;
+      min-height: 180px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d0d0;
+      font-size: 13px;
+      white-space: pre-wrap;
+      background: #fafafa;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .top-bar-right {
+      text-align: right;
+      font-size: 11px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div>
+      <h1>1번 고객 자동화 안내서 · Auto Guide (HTML 단일 버전)</h1>
+      <div class="small">
+        오프라인·온라인 고객 데이터를 바탕으로<br />
+        고객별 안내 메일 초안을 한 번에 만드는 도구입니다. (지금은 브라우저 안에서만 동작)
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <div class="badge">버전 1.0 · 단일 파일</div><br />
+      <span class="small">서버·API 없이 index.html 하나만으로 작동</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- 왼쪽: 고객 데이터 입력/선택 -->
+    <div>
+      <div class="card">
+        <h2>① 고객 데이터 입력</h2>
+        <p class="small">
+          한 줄당 한 명의 고객을 넣습니다. (예: 기관명, 이름, 이메일, 관심분야 등)<br />
+          예: KIST, 김연구 박사, kim@kist.re.kr, perovskite solar cell
+        </p>
+        <textarea id="rawCustomers" placeholder="예시)
+KIST, 김연구 박사, kim@kist.re.kr, perovskite solar cell
+KITECH, 박연구 박사, park@kitech.re.kr, adhesive for glass substrate"></textarea>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="btn-main" id="btnParse">고객 목록 불러오기</button>
+          <button class="btn-sub" id="btnClear">모두 지우기</button>
+        </div>
+        <div class="small" style="margin-top:4px;">
+          고객 목록은 이 브라우저에만 임시 저장(localStorage)됩니다.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>② 대상 고객 선택</h2>
+        <label for="customerSelect">고객 선택</label>
+        <select id="customerSelect">
+          <option value="">먼저 고객 목록을 불러오세요.</option>
+        </select>
+        <div class="row" style="margin-top:8px;">
+          <div>
+            <label>기관 / 회사</label>
+            <input id="fieldOrg" placeholder="예: KIST" />
+          </div>
+          <div>
+            <label>이름 / 직함</label>
+            <input id="fieldName" placeholder="예: 김연구 박사" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <div>
+            <label>이메일</label>
+            <input id="fieldEmail" placeholder="예: user@example.com" />
+          </div>
+          <div>
+            <label>관심 분야 / 키워드</label>
+            <input id="fieldTopic" placeholder="예: perovskite solar cell" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>③ 안내서 옵션</h2>
+        <div class="row">
+          <div>
+            <label>언어</label>
+            <select id="fieldLang">
+              <option value="ko">한국어</option>
+              <option value="en">영어</option>
+            </select>
+          </div>
+          <div>
+            <label>안내 타입</label>
+            <select id="fieldType">
+              <option value="market">시장·기술 보고서 안내</option>
+              <option value="free">무료 부가자료 안내</option>
+              <option value="followup">기존 문의 후속 안내</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:8px;">
+          <label>특이사항 / 메모</label>
+          <textarea id="fieldMemo" placeholder="해당 고객에 대한 특이사항, 최근 통화 내용 등을 간단히 적어둘 수 있습니다."></textarea>
+        </div>
+        <div style="margin-top:8px;">
+          <button class="btn-main" id="btnGenerate">안내 메일 초안 만들기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 안내서 미리보기 / 메일용 텍스트 -->
+    <div>
+      <div class="card">
+        <h2>④ 안내 메일 초안</h2>
+        <div class="small" style="margin-bottom:4px;">
+          아래 내용은 “메일 프로그램에 붙여넣는 텍스트”입니다.<br />
+          나중에는 서버·워드 템플릿과 연결해 자동 Word 안내서, 자동 발송까지 확장할 수 있습니다.
+        </div>
+        <div id="guideOutput" class="guide-output" contenteditable="true">
+여기에 안내 메일 초안이 생성됩니다.
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="btn-main" id="btnCopyMail">메일 내용 복사</button>
+          <button class="btn-sub" id="btnSaveDraft">이 초안을 이 브라우저에 임시 저장</button>
+        </div>
+        <div class="small" style="margin-top:4px;">
+          · “메일 내용 복사”를 누르면 클립보드에 복사됩니다.<br />
+          · “임시 저장”은 이 브라우저(localStorage)에만 저장되며, 서버에는 올라가지 않습니다.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⑤ 사후 조치 기록 (간단 버전)</h2>
+        <div class="row">
+          <div>
+            <label>반응 상태</label>
+            <select id="fieldFollow">
+              <option value="">선택</option>
+              <option value="no-response">미응답</option>
+              <option value="interested">관심 있음</option>
+              <option value="meeting">미팅/추가 자료 요청</option>
+              <option value="closed">거래 완료</option>
+            </select>
+          </div>
+          <div>
+            <label>다음 조치 예정일</label>
+            <input type="date" id="fieldNextDate" />
+          </div>
+        </div>
+        <div style="margin-top:8px;">
+          <label>추가 메모</label>
+          <textarea id="fieldFollowMemo" placeholder="예: 다음 주 초에 후속 안내 메일 예정, 필요 보고서 후보 3개 정리 등"></textarea>
+        </div>
+        <div style="margin-top:8px;">
+          <button class="btn-sub" id="btnSaveFollow">사후 조치 메모 임시 저장</button>
+        </div>
+        <div class="small" style="margin-top:4px;">
+          이 정보도 브라우저에만 저장됩니다. (나중에 7번 세팅 도구와 연결 가능)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 간단한 localStorage 키
+    const LS_CUSTOMERS = "auto_guide_customers_v1";
+    const LS_DRAFT = "auto_guide_last_draft_v1";
+    const LS_FOLLOW = "auto_guide_last_follow_v1";
+
+    const rawCustomers = document.getElementById("rawCustomers");
+    const customerSelect = document.getElementById("customerSelect");
+    const fieldOrg = document.getElementById("fieldOrg");
+    const fieldName = document.getElementById("fieldName");
+    const fieldEmail = document.getElementById("fieldEmail");
+    const fieldTopic = document.getElementById("fieldTopic");
+    const fieldLang = document.getElementById("fieldLang");
+    const fieldType = document.getElementById("fieldType");
+    const fieldMemo = document.getElementById("fieldMemo");
+    const fieldFollow = document.getElementById("fieldFollow");
+    const fieldNextDate = document.getElementById("fieldNextDate");
+    const fieldFollowMemo = document.getElementById("fieldFollowMemo");
+    const guideOutput = document.getElementById("guideOutput");
+
+    function loadCustomersFromStorage() {
+      const saved = localStorage.getItem(LS_CUSTOMERS);
+      if (!saved) return [];
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCustomersToStorage(list) {
+      localStorage.setItem(LS_CUSTOMERS, JSON.stringify(list));
+    }
+
+    function refreshCustomerSelect() {
+      const list = loadCustomersFromStorage();
+      customerSelect.innerHTML = "";
+      if (list.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "저장된 고객 목록이 없습니다.";
+        customerSelect.appendChild(opt);
+        return;
+      }
+      const firstOpt = document.createElement("option");
+      firstOpt.value = "";
+      firstOpt.textContent = "고객을 선택하세요.";
+      customerSelect.appendChild(firstOpt);
+      list.forEach((c, idx) => {
+        const opt = document.createElement("option");
+        opt.value = String(idx);
+        opt.textContent = `${idx + 1}. ${c.org || ""} / ${c.name || ""} / ${c.topic || ""}`;
+        customerSelect.appendChild(opt);
+      });
+    }
+
+    function parseRawCustomers() {
+      const text = rawCustomers.value.trim();
+      if (!text) {
+        alert("고객 정보를 한 줄씩 입력해 주세요.");
+        return;
+      }
+      const lines = text.split(/\r?\n/);
+      const parsed = [];
+      for (const line of lines) {
+        const parts = line.split(",").map(p => p.trim());
+        if (parts.length === 0 || !parts[0]) continue;
+        parsed.push({
+          org:  parts[0] || "",
+          name: parts[1] || "",
+          email: parts[2] || "",
+          topic: parts[3] || ""
+        });
+      }
+      if (parsed.length === 0) {
+        alert("읽을 수 있는 고객 정보가 없습니다.");
+        return;
+      }
+      saveCustomersToStorage(parsed);
+      refreshCustomerSelect();
+      alert(`고객 ${parsed.length}명이 저장되었습니다.`);
+    }
+
+    function fillCustomerFields(idx) {
+      const list = loadCustomersFromStorage();
+      const i = Number(idx);
+      if (isNaN(i) || i < 0 || i >= list.length) return;
+      const c = list[i];
+      fieldOrg.value = c.org || "";
+      fieldName.value = c.name || "";
+      fieldEmail.value = c.email || "";
+      fieldTopic.value = c.topic || "";
+    }
+
+    function generateMail() {
+      const org = fieldOrg.value.trim();
+      const name = fieldName.value.trim();
+      const email = fieldEmail.value.trim();
+      const topic = fieldTopic.value.trim();
+      const lang = fieldLang.value;
+      const type = fieldType.value;
+      const memo = fieldMemo.value.trim();
+
+      let text = "";
+
+      if (lang === "ko") {
+        text += (name ? `${name} 귀하,\n\n` : "안녕하세요,\n\n");
+        if (type === "market") {
+          text += "월드산업정보센터에서 최신 시장·기술 보고서를 안내드립니다.\n";
+        } else if (type === "free") {
+          text += "월드산업정보센터에서 참고용 무료 자료를 안내드립니다.\n";
+        } else if (type === "followup") {
+          text += "이전에 문의 주신 건에 대한 후속 안내를 드립니다.\n";
+        }
+        if (org) {
+          text += `귀 기관(${org})의 연구·사업 방향을 고려하였습니다.\n`;
+        }
+        if (topic) {
+          text += `특히 「${topic}」 관련 주제를 중심으로 자료를 선별하였습니다.\n`;
+        }
+        if (memo) {
+          text += `추가 참고 메모: ${memo}\n`;
+        }
+        text += "\n자세한 보고서 목록과 견적은 회신 주시면 정리하여 보내드리겠습니다.\n";
+        text += "항상 연구와 사업에 도움이 되도록 최선을 다하겠습니다.\n\n";
+        text += "월드산업정보센터 드림\n";
+        if (email) {
+          text += `\n(예상 수신 이메일: ${email})\n`;
+        }
+      } else {
+        text += (name ? `Dear ${name},\n\n` : "Dear Sir or Madam,\n\n");
+        if (type === "market") {
+          text += "We would like to introduce the latest market and technology reports from World Industrial Information Center.\n";
+        } else if (type === "free") {
+          text += "We would like to share some complimentary reference materials from World Industrial Information Center.\n";
+        } else if (type === "followup") {
+          text += "This is a follow-up message regarding your previous inquiry.\n";
+        }
+        if (org) {
+          text += `We considered the R&D and business direction of your organization (${org}).\n`;
+        }
+        if (topic) {
+          text += `Especially, we selected materials related to “${topic}”.\n`;
+        }
+        if (memo) {
+          text += `Additional note: ${memo}\n`;
+        }
+        text += "\nIf you reply to this email, we will send a detailed list and quotation.\n";
+        text += "Best regards,\nWorld Industrial Information Center\n";
+        if (email) {
+          text += `\n(Expected recipient email: ${email})\n`;
+        }
+      }
+
+      guideOutput.textContent = text;
+      localStorage.setItem(LS_DRAFT, text);
+    }
+
+    function copyMail() {
+      const text = guideOutput.textContent || "";
+      if (!text.trim()) {
+        alert("복사할 안내 메일 내용이 없습니다.");
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        alert("메일 내용이 클립보드에 복사되었습니다.");
+      }).catch(() => {
+        alert("복사에 실패했습니다. 내용을 직접 선택해서 복사해 주세요.");
+      });
+    }
+
+    function saveFollow() {
+      const data = {
+        status: fieldFollow.value,
+        nextDate: fieldNextDate.value,
+        memo: fieldFollowMemo.value
+      };
+      localStorage.setItem(LS_FOLLOW, JSON.stringify(data));
+      alert("사후 조치 메모가 임시 저장되었습니다.");
+    }
+
+    function loadDraftAndFollow() {
+      const draft = localStorage.getItem(LS_DRAFT);
+      if (draft) {
+        guideOutput.textContent = draft;
+      }
+      const follow = localStorage.getItem(LS_FOLLOW);
+      if (follow) {
+        try {
+          const data = JSON.parse(follow);
+          fieldFollow.value = data.status || "";
+          fieldNextDate.value = data.nextDate || "";
+          fieldFollowMemo.value = data.memo || "";
+        } catch {}
+      }
+    }
+
+    document.getElementById("btnParse").addEventListener("click", parseRawCustomers);
+    document.getElementById("btnClear").addEventListener("click", () => {
+      rawCustomers.value = "";
+      saveCustomersToStorage([]);
+      refreshCustomerSelect();
+    });
+    customerSelect.addEventListener("change", (e) => {
+      fillCustomerFields(e.target.value);
+    });
+    document.getElementById("btnGenerate").addEventListener("click", generateMail);
+    document.getElementById("btnCopyMail").addEventListener("click", copyMail);
+    document.getElementById("btnSaveDraft").addEventListener("click", () => {
+      const text = guideOutput.textContent || "";
+      localStorage.setItem(LS_DRAFT, text);
+      alert("현재 안내 메일 초안이 임시 저장되었습니다.");
+    });
+    document.getElementById("btnSaveFollow").addEventListener("click", saveFollow);
+
+    // 첫 로드 시 저장된 고객·초안 불러오기
+    (function init() {
+      refreshCustomerSelect();
+      loadDraftAndFollow();
+    })();
+  </script>
+</body>
 </html>
