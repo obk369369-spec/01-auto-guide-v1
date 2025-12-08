@@ -2,413 +2,807 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>1번 고객 자동화 안내서 · Auto Guide v1 (엑셀 입력 버전)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- 엑셀 파싱용 라이브러리 (SheetJS) -->
+  <title>1번 고객 자동화 안내서 · Auto Guide (엑셀 + 안내서 + 사후 조치)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 엑셀 파서 (SheetJS CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 16px;
-      background: #f5f5f5;
-      line-height: 1.5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #222;
     }
-    h1, h2, h3 {
-      margin: 0 0 8px;
+    header {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 16px 20px;
     }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 16px;
+    header h1 { margin: 0 0 4px; font-size: 20px; }
+    header p { margin: 2px 0; font-size: 13px; opacity: 0.9; }
+
+    main {
+      max-width: 1100px;
+      margin: 16px auto 32px;
+      padding: 0 12px;
+    }
+
+    .banner {
+      background: #e5f0ff;
+      border: 1px solid #bfdbfe;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 12px;
     }
+    .banner strong { color: #1d4ed8; }
+
     .section {
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid #e0e0e0;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
     }
-    label {
-      display: block;
-      margin-bottom: 4px;
-      font-weight: 600;
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #111827;
     }
-    input[type="file"],
-    select,
-    textarea,
+    .section small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .section + .section { margin-top: 10px; }
+
+    label { font-size: 13px; display: block; margin-bottom: 4px; }
     input[type="text"],
     input[type="email"],
-    input[type="tel"],
     input[type="number"],
-    input[type="date"] {
+    input[type="date"],
+    select,
+    textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 6px 8px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      border: 1px solid #cccccc;
-      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      outline: none;
     }
+    textarea { resize: vertical; min-height: 80px; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb20;
+    }
+
+    .row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .col-2 { flex: 1 1 48%; min-width: 220px; }
+    .col-3 { flex: 1 1 32%; min-width: 200px; }
+
     button {
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 14px;
+      border-radius: 999px;
       border: none;
-      font-size: 14px;
-      margin-right: 6px;
-    }
-    button.primary {
-      background: #1976d2;
-      color: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+      background: #2563eb;
+      color: #f9fafb;
+      gap: 6px;
     }
     button.secondary {
-      background: #eeeeee;
-      color: #333333;
+      background: #e5e7eb;
+      color: #111827;
     }
-    button.danger {
-      background: #e53935;
-      color: #ffffff;
+    button.outline {
+      background: transparent;
+      border: 1px solid #d1d5db;
+      color: #111827;
     }
     button:disabled {
       opacity: 0.5;
-      cursor: default;
+      cursor: not-allowed;
     }
-    small {
-      color: #666666;
-      font-size: 12px;
-    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 12px;
       margin-top: 8px;
-      font-size: 13px;
     }
     th, td {
-      border: 1px solid #dddddd;
-      padding: 4px 6px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px;
       text-align: left;
       vertical-align: top;
     }
-    th {
-      background: #f0f0f0;
-      font-weight: 600;
-    }
-    .badge {
+    th { background: #f3f4f6; font-weight: 600; }
+    tr.selected-row { background: #e0f2fe; }
+
+    .tag {
       display: inline-block;
       padding: 2px 6px;
-      border-radius: 999px;
       font-size: 11px;
-      background: #eeeeee;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
       margin-right: 4px;
     }
-    .badge.ok {
-      background: #c8e6c9;
-    }
-    .badge.warn {
-      background: #fff9c4;
-    }
-    .badge.err {
-      background: #ffcdd2;
-    }
-    .flex {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .mt-4 { margin-top: 4px; }
-    .mt-8 { margin-top: 8px; }
-    .mt-12 { margin-top: 12px; }
-    .mt-16 { margin-top: 16px; }
-    .text-muted { color: #666666; font-size: 13px; }
-    .pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #eeeeee;
+
+    .debug {
       font-size: 11px;
-      margin-left: 4px;
-    }
-    pre {
-      background: #fafafa;
-      border-radius: 4px;
-      padding: 8px;
+      color: #6b7280;
+      background: #f9fafb;
+      border-radius: 6px;
+      padding: 6px 8px;
+      margin-top: 8px;
+      border: 1px dashed #e5e7eb;
       white-space: pre-wrap;
-      word-break: break-all;
-      border: 1px solid #e0e0e0;
-      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #4b5563;
+      margin-right: 6px;
+    }
+    .pill.ok { background: #dcfce7; color: #166534; }
+    .pill.warn { background: #fef9c3; color: #854d0e; }
+
+    @media (max-width: 640px) {
+      header h1 { font-size: 18px; }
+      .section { padding: 12px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>1번 고객 자동화 안내서 · Auto Guide (엑셀 입력 v1)</h1>
-    <div class="text-muted">
-      오프라인·온라인 고객 데이터를 바탕으로 고객별 안내 메일 초안을 만드는 도구입니다.<br>
-      <b>지금 버전은 엑셀 입력·파싱·목록 표시까지</b> 동작하고, 나머지 단계는 이후 모듈로 추가됩니다.
-    </div>
+<header>
+  <h1>1번 고객 자동화 안내서 · Auto Guide</h1>
+  <p>엑셀 고객 데이터 → 고객별 안내 메일 초안 → 사후 조치까지 한 번에 도와주는 단일 HTML 도구 (public/index.html)</p>
+  <p style="font-size:12px;opacity:0.8;">버전 1.0 · 엑셀 입력 + 안내서 생성 + 사후 조치 기록 · 서버/DB 없이 브라우저(localStorage)만 사용</p>
+</header>
 
-    <!-- 0. 상태 요약 -->
-    <div class="section">
-      <div class="flex-between">
-        <div>
-          <strong>모듈 상태</strong><br />
-          <span class="badge ok" id="status-excel">엑셀 파서: 대기</span>
-          <span class="badge" id="status-storage">저장: 초기화</span>
-        </div>
-        <div class="text-muted">
-          이 화면은 <b>엑셀 업로드 → 파싱 → 표 표시 → 브라우저 저장</b> 모듈만 포함합니다.
-        </div>
-      </div>
-    </div>
-
-    <!-- 1. 엑셀 데이터 입력 -->
-    <div class="section">
-      <h2>① 고객 데이터 입력 (엑셀 파일)</h2>
-      <p class="text-muted">
-        아래 형식의 엑셀 파일을 선택하면, 첫 번째 시트를 읽어 표로 보여 줍니다.<br>
-        <b>열 이름 예시:</b> 기관, 고객이름, 이메일 주소, 유선전화번호, 스마트폰 번호, 연구비, 관심분야, 연구분야
-      </p>
-      <label for="excelFile">엑셀 파일 선택 (XLS / XLSX / CSV)</label>
-      <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" />
-      <div class="mt-8">
-        <button class="primary" id="btnParseExcel">엑셀에서 고객 목록 불러오기</button>
-        <button class="secondary" id="btnLoadFromStorage">저장된 고객 목록 불러오기</button>
-        <button class="danger" id="btnClearAll">모든 고객 데이터 삭제</button>
-      </div>
-      <div class="mt-4 text-muted">
-        · 엑셀에서 불러온 데이터는 이 브라우저(localStorage)에만 저장됩니다.<br>
-        · 도구가 만든 추가 열은, 나중에 기존 열의 오른쪽에 붙이는 방식으로 확장할 예정입니다.
-      </div>
-    </div>
-
-    <!-- 2. 고객 목록 표시 -->
-    <div class="section">
-      <h2>② 고객 목록 확인</h2>
-      <div class="flex-between">
-        <div>
-          <span class="pill" id="customerCountPill">고객 수: 0명</span>
-        </div>
-        <div class="text-muted">
-          엑셀에서 읽은 고객 데이터가 표로 표시됩니다.
-        </div>
-      </div>
-      <div class="mt-8" id="customerTableWrapper">
-        <div class="text-muted">아직 불러온 고객 데이터가 없습니다.</div>
-      </div>
-    </div>
-
-    <!-- 3. 안내서 생성·사후 조치 모듈 자리 (추후 모듈로 추가) -->
-    <div class="section">
-      <h2>③ 안내서 생성 / 사후 조치 (다음 모듈에서 추가)</h2>
-      <div class="text-muted">
-        이 버전에서는 엑셀 입력·파싱·목록 표시 모듈만 포함합니다.<br>
-        안내 메일 초안 생성, 메일 발송 연동, 사후 조치 관리 모듈은 다음 단계에서 이어서 붙입니다.
-      </div>
-    </div>
-
-    <!-- 디버그용 상태 -->
-    <div class="section">
-      <h3>디버그 정보 (간단)</h3>
-      <pre id="debugArea">엑셀 모듈이 준비되었습니다.</pre>
-    </div>
+<main>
+  <div class="banner">
+    <strong>사용 흐름</strong> · ① 엑셀 업로드 → ② 표에서 고객 한 명 클릭 → ③ 안내 메일 초안 만들기 → ④ 사후 조치 기록 저장  
+    (나중에 7번 세팅 도구에서 자동 테스트·자동 수정과 연결 가능)
   </div>
 
-  <script>
-    // 공통 상수: 열 이름 정의
-    const BASE_COLUMNS = [
-      "기관",
-      "고객이름",
-      "이메일 주소",
-      "유선전화번호",
-      "스마트폰 번호",
-      "연구비",
-      "관심분야",
-      "연구분야"
-    ];
-    const STORAGE_KEY = "auto_guide_customers_v1";
+  <!-- 0. 모듈 상태 표시 -->
+  <section class="section">
+    <h2>모듈 상태</h2>
+    <div class="row">
+      <div class="col-3">
+        <label>엑셀 파서</label>
+        <span class="pill" id="excelStatusPill">대기</span>
+      </div>
+      <div class="col-3">
+        <label>저장 상태</label>
+        <span class="pill" id="storageStatusPill">비어 있음</span>
+      </div>
+      <div class="col-3">
+        <label>선택된 고객</label>
+        <span class="pill" id="selectedCustomerPill">없음</span>
+      </div>
+    </div>
+    <small>이 화면은 <strong>엑셀 업로드 → 파싱 → 표 표시 → 브라우저 저장 → 안내서 생성 → 사후 조치 기록</strong> 모듈까지 포함합니다.</small>
+  </section>
 
-    const excelFileInput = document.getElementById("excelFile");
-    const btnParseExcel = document.getElementById("btnParseExcel");
-    const btnLoadFromStorage = document.getElementById("btnLoadFromStorage");
-    const btnClearAll = document.getElementById("btnClearAll");
-    const customerTableWrapper = document.getElementById("customerTableWrapper");
-    const customerCountPill = document.getElementById("customerCountPill");
-    const debugArea = document.getElementById("debugArea");
-    const statusExcel = document.getElementById("status-excel");
-    const statusStorage = document.getElementById("status-storage");
+  <!-- 1. 엑셀 입력 -->
+  <section class="section">
+    <h2>① 고객 데이터 입력 (엑셀 파일)</h2>
+    <small>아래 형식의 엑셀 파일을 선택하면, 첫 번째 시트를 읽어 표로 보여 줍니다.</small>
+    <div style="margin-top:6px; font-size:12px;">
+      <span class="tag">기관</span>
+      <span class="tag">고객이름</span>
+      <span class="tag">이메일 주소</span>
+      <span class="tag">유선전화번호</span>
+      <span class="tag">스마트폰 번호</span>
+      <span class="tag">연구비</span>
+      <span class="tag">관심분야</span>
+      <span class="tag">연구분야</span>
+    </div>
 
-    function setDebug(message) {
-      debugArea.textContent = message;
+    <div class="btn-row" style="margin-top:10px;">
+      <div>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" />
+      </div>
+      <button id="btnLoadFromExcel">엑셀에서 고객 목록 불러오기</button>
+      <button class="secondary" id="btnLoadFromStorage">저장된 고객 목록 불러오기</button>
+      <button class="outline" id="btnClearAll">모든 고객 데이터 삭제</button>
+    </div>
+    <small style="display:block;margin-top:6px;">
+      · 엑셀에서 불러온 데이터는 이 브라우저(localStorage)에만 저장됩니다.  
+      · 도구가 나중에 만드는 추가 열은, 이미 있는 열의 <strong>오른쪽에 붙이는 방식</strong>으로 확장할 수 있습니다.
+    </small>
+  </section>
+
+  <!-- 2. 고객 목록 & 선택 -->
+  <section class="section">
+    <h2>② 고객 목록 확인 및 선택</h2>
+    <div class="row" style="align-items:flex-start; margin-bottom:6px;">
+      <div class="col-2">
+        <label>고객 수</label>
+        <div><span class="pill" id="customerCountPill">0명</span></div>
+      </div>
+      <div class="col-2">
+        <label>선택된 고객 요약</label>
+        <div id="selectedCustomerSummary" style="font-size:12px;color:#374151;">
+          아직 선택된 고객이 없습니다. 표에서 한 행을 클릭해 주세요.
+        </div>
+      </div>
+    </div>
+    <small>· 표의 한 행을 <strong>한 번 클릭</strong>하면 해당 고객이 선택됩니다.  
+           · 선택된 고객 기준으로 안내 메일 초안과 사후 조치가 저장됩니다.</small>
+
+    <div style="max-height:260px; overflow:auto; margin-top:8px; border:1px solid #e5e7eb; border-radius:6px;">
+      <table id="customerTable">
+        <thead>
+          <tr>
+            <th style="width:42px;">선택</th>
+            <th>기관</th>
+            <th>고객이름</th>
+            <th>이메일</th>
+            <th>유선전화번호</th>
+            <th>스마트폰 번호</th>
+            <th>연구비</th>
+            <th>관심분야</th>
+            <th>연구분야</th>
+          </tr>
+        </thead>
+        <tbody id="customerTableBody">
+          <tr><td colspan="9">표시할 고객 데이터가 없습니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. 안내서 생성 -->
+  <section class="section">
+    <h2>③ 안내 메일 초안 생성</h2>
+    <small>선택된 고객을 기준으로, 바로 메일 프로그램에 붙여넣을 수 있는 안내 문구를 만듭니다.</small>
+
+    <div class="row" style="margin-top:10px;">
+      <div class="col-3">
+        <label for="languageSelect">언어</label>
+        <select id="languageSelect">
+          <option value="ko">한국어</option>
+          <!-- 나중에 영어 등도 확장 가능 -->
+        </select>
+      </div>
+      <div class="col-3">
+        <label for="typeSelect">안내 타입</label>
+        <select id="typeSelect">
+          <option value="report">시장·기술 보고서 안내</option>
+          <option value="new-series">신규 보고서 시리즈 안내</option>
+          <option value="follow-up">이전 문의 후속 안내</option>
+        </select>
+      </div>
+      <div class="col-3">
+        <label for="subjectInput">메일 제목(간단 버전)</label>
+        <input type="text" id="subjectInput" placeholder="[기관] [관심분야] 관련 시장·기술 보고서 안내" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <label for="noteInput">특이사항 / 메모 (선택)</label>
+      <textarea id="noteInput" placeholder="예: 지난주 통화에서 perovskite solar cell 양산성 관련 데이터를 요청하셨습니다."></textarea>
+    </div>
+
+    <div class="btn-row" style="margin-top:8px;">
+      <button id="btnGenerateMail">안내 메일 초안 만들기</button>
+      <button class="secondary" id="btnCopyMail" disabled>메일 내용 복사</button>
+    </div>
+
+    <div style="margin-top:10px;">
+      <label>안내 메일 초안</label>
+      <textarea id="mailOutput" readonly placeholder="여기에 안내 메일 초안이 생성됩니다."></textarea>
+      <small style="display:block;margin-top:4px;">
+        · 이 내용은 메일 프로그램(Thunderbird 등)에 그대로 붙여넣어 사용할 수 있습니다.  
+        · 나중에 서버/워드 템플릿과 연결하면 자동 Word 안내서, 자동 발송까지 확장할 수 있습니다.
+      </small>
+    </div>
+  </section>
+
+  <!-- 4. 사후 조치 -->
+  <section class="section">
+    <h2>④ 사후 조치 기록</h2>
+    <small>선택된 고객에 대해 반응 상태와 다음 조치를 간단히 기록합니다. 나중에 7번 세팅 도구에서 한 번에 모아 볼 수 있도록 설계할 수 있습니다.</small>
+
+    <div class="row" style="margin-top:10px;">
+      <div class="col-3">
+        <label for="statusSelect">반응 상태</label>
+        <select id="statusSelect">
+          <option value="">선택</option>
+          <option value="no-response">미응답</option>
+          <option value="interested">관심 있음</option>
+          <option value="need-info">추가 정보 요청</option>
+          <option value="considering">구매 검토 중</option>
+          <option value="ordered">구매 완료</option>
+          <option value="hold">보류</option>
+        </select>
+      </div>
+      <div class="col-3">
+        <label for="nextDateInput">다음 조치 예정일</label>
+        <input type="date" id="nextDateInput" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <label for="followMemoInput">추가 메모</label>
+      <textarea id="followMemoInput" placeholder="예: 다음 주 초에 후속 안내 메일, 후보 보고서 3종 정리 예정 등"></textarea>
+    </div>
+
+    <div class="btn-row" style="margin-top:8px;">
+      <button id="btnSaveFollowUp">사후 조치 메모 저장</button>
+    </div>
+
+    <div style="margin-top:10px;">
+      <label>선택된 고객의 최근 사후 조치 기록</label>
+      <div id="followUpView" class="debug">
+최근 저장된 사후 조치 기록이 없습니다.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 디버그 정보 -->
+  <section class="section">
+    <h2>⑤ 디버그 정보 (간단)</h2>
+    <div id="debugArea" class="debug">
+초기 상태입니다.
+    </div>
+  </section>
+</main>
+
+<script>
+  // ===== 공통 상수 =====
+  const STORAGE_KEY_CUSTOMERS = "autoGuide_customers_v2";
+  const STORAGE_KEY_FOLLOWUPS = "autoGuide_followups_v1";
+
+  let customers = [];
+  let followUps = {};
+  let selectedIndex = null;
+
+  const excelStatusPill = document.getElementById("excelStatusPill");
+  const storageStatusPill = document.getElementById("storageStatusPill");
+  const selectedCustomerPill = document.getElementById("selectedCustomerPill");
+  const customerCountPill = document.getElementById("customerCountPill");
+  const selectedCustomerSummary = document.getElementById("selectedCustomerSummary");
+  const customerTableBody = document.getElementById("customerTableBody");
+  const debugArea = document.getElementById("debugArea");
+  const mailOutput = document.getElementById("mailOutput");
+  const btnCopyMail = document.getElementById("btnCopyMail");
+  const followUpView = document.getElementById("followUpView");
+
+  function setDebug(message) {
+    const now = new Date();
+    const time = now.toLocaleTimeString("ko-KR", { hour12: false });
+    debugArea.textContent = "[" + time + "] " + message;
+  }
+
+  function updatePills() {
+    // 엑셀 파서 상태 (간단 표시)
+    excelStatusPill.textContent = "준비됨";
+    excelStatusPill.classList.add("ok");
+
+    // 저장 상태
+    if (customers.length > 0) {
+      storageStatusPill.textContent = "고객 " + customers.length + "명 저장";
+      storageStatusPill.classList.add("ok");
+    } else {
+      storageStatusPill.textContent = "비어 있음";
+      storageStatusPill.classList.remove("ok");
     }
 
-    function setExcelStatus(text, cls) {
-      statusExcel.textContent = text;
-      statusExcel.className = "badge " + (cls || "");
+    // 선택된 고객
+    if (selectedIndex === null || customers.length === 0 || !customers[selectedIndex]) {
+      selectedCustomerPill.textContent = "없음";
+      selectedCustomerPill.classList.remove("ok");
+    } else {
+      const c = customers[selectedIndex];
+      selectedCustomerPill.textContent = (c.기관 || "") + " / " + (c.고객이름 || "");
+      selectedCustomerPill.classList.add("ok");
     }
 
-    function setStorageStatus(text, cls) {
-      statusStorage.textContent = "저장: " + text;
-      statusStorage.className = "badge " + (cls || "");
+    // 고객 수
+    customerCountPill.textContent = customers.length + "명";
+  }
+
+  function saveCustomersToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(customers));
+    } catch (e) {
+      console.warn("고객 저장 오류:", e);
     }
+    updatePills();
+  }
 
-    function saveCustomers(customers) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-        setStorageStatus("저장 완료", "ok");
-      } catch (e) {
-        setStorageStatus("저장 오류", "err");
-        setDebug("저장 중 오류: " + e.message);
-      }
-    }
-
-    function loadCustomers() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (_) {}
-      return [];
-    }
-
-    function renderCustomerTable(customers) {
-      if (!customers || customers.length === 0) {
-        customerTableWrapper.innerHTML = '<div class="text-muted">표시할 고객 데이터가 없습니다.</div>';
-        customerCountPill.textContent = "고객 수: 0명";
-        return;
-      }
-
-      customerCountPill.textContent = "고객 수: " + customers.length + "명";
-
-      // 실제 열 이름은 첫 번째 행의 키를 기준으로 결정
-      const allKeysSet = new Set();
-      customers.forEach(row => {
-        Object.keys(row || {}).forEach(k => allKeysSet.add(k));
-      });
-
-      // BASE_COLUMNS 순서를 우선 적용하고, 나머지 열은 오른쪽에 추가
-      const allKeys = [];
-      BASE_COLUMNS.forEach(col => {
-        if (allKeysSet.has(col)) allKeys.push(col);
-      });
-      allKeysSet.forEach(k => {
-        if (!allKeys.includes(k)) allKeys.push(k);
-      });
-
-      let html = "<table><thead><tr>";
-      allKeys.forEach(k => {
-        html += "<th>" + k + "</th>";
-      });
-      html += "</tr></thead><tbody>";
-
-      customers.forEach(row => {
-        html += "<tr>";
-        allKeys.forEach(k => {
-          const val = row && row[k] != null ? String(row[k]) : "";
-          html += "<td>" + escapeHtml(val) + "</td>";
-        });
-        html += "</tr>";
-      });
-
-      html += "</tbody></table>";
-      customerTableWrapper.innerHTML = html;
-    }
-
-    function escapeHtml(str) {
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-
-    function parseExcelFile(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            const data = e.target.result;
-            const workbook = XLSX.read(data, { type: "array" });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-            resolve(json);
-          } catch (err) {
-            reject(err);
-          }
-        };
-        reader.onerror = function(e) {
-          reject(e);
-        };
-        reader.readAsArrayBuffer(file);
-      });
-    }
-
-    btnParseExcel.addEventListener("click", async function() {
-      const file = excelFileInput.files && excelFileInput.files[0];
-      if (!file) {
-        alert("엑셀 파일을 먼저 선택해 주세요.");
-        return;
-      }
-      setExcelStatus("읽는 중...", "warn");
-      setDebug("엑셀 파일을 읽는 중입니다: " + file.name);
-
-      try {
-        const rows = await parseExcelFile(file);
-        // rows는 [{열1:값1, 열2:값2, ...}, ...] 형태
-        setExcelStatus("읽기 완료", "ok");
-        setDebug("엑셀에서 " + rows.length + "명의 고객을 불러왔습니다.");
-        saveCustomers(rows);
-        renderCustomerTable(rows);
-      } catch (err) {
-        setExcelStatus("읽기 오류", "err");
-        setDebug("엑셀 파싱 오류: " + err.message);
-        alert("엑셀 파일을 읽는 중 오류가 발생했습니다.");
-      }
-    });
-
-    btnLoadFromStorage.addEventListener("click", function() {
-      const customers = loadCustomers();
-      if (!customers.length) {
-        alert("저장된 고객 데이터가 없습니다.");
-        renderCustomerTable([]);
-        return;
-      }
-      setStorageStatus("불러오기 완료", "ok");
-      setDebug("저장된 고객 데이터 " + customers.length + "명을 불러왔습니다.");
-      renderCustomerTable(customers);
-    });
-
-    btnClearAll.addEventListener("click", function() {
-      if (!confirm("모든 고객 데이터를 삭제할까요? 이 브라우저에서만 삭제됩니다.")) return;
-      localStorage.removeItem(STORAGE_KEY);
-      renderCustomerTable([]);
-      setStorageStatus("비어 있음", "");
-      setDebug("모든 고객 데이터를 삭제했습니다.");
-    });
-
-    // 초기 로딩 시 저장 상태만 체크
-    (function init() {
-      const customers = loadCustomers();
-      if (customers.length > 0) {
-        setStorageStatus("기존 데이터 " + customers.length + "명", "ok");
-        renderCustomerTable(customers);
-        setDebug("기존 저장 데이터를 자동으로 불러왔습니다.");
+  function loadCustomersFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
+      if (raw) {
+        customers = JSON.parse(raw) || [];
       } else {
-        setStorageStatus("비어 있음", "");
-        setDebug("엑셀 모듈이 준비되었습니다. 파일을 선택한 뒤 ‘엑셀에서 고객 목록 불러오기’를 눌러 주세요.");
+        customers = [];
       }
-    })();
-  </script>
+    } catch (e) {
+      console.warn("고객 불러오기 오류:", e);
+      customers = [];
+    }
+    selectedIndex = null;
+    renderCustomerTable();
+    updateSelectedCustomerSummary();
+    updatePills();
+  }
+
+  function saveFollowUpsToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY_FOLLOWUPS, JSON.stringify(followUps));
+    } catch (e) {
+      console.warn("사후 조치 저장 오류:", e);
+    }
+  }
+
+  function loadFollowUpsFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_FOLLOWUPS);
+      if (raw) {
+        followUps = JSON.parse(raw) || {};
+      } else {
+        followUps = {};
+      }
+    } catch (e) {
+      console.warn("사후 조치 불러오기 오류:", e);
+      followUps = {};
+    }
+  }
+
+  function customerKey(c) {
+    if (c.이메일 && c.이메일.trim() !== "") return "EMAIL:" + c.이메일.trim();
+    return "NAME:" + (c.기관 || "") + "::" + (c.고객이름 || "");
+  }
+
+  function renderCustomerTable() {
+    customerTableBody.innerHTML = "";
+    if (!customers || customers.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.textContent = "표시할 고객 데이터가 없습니다.";
+      tr.appendChild(td);
+      customerTableBody.appendChild(tr);
+      return;
+    }
+
+    customers.forEach((c, idx) => {
+      const tr = document.createElement("tr");
+      if (idx === selectedIndex) {
+        tr.classList.add("selected-row");
+      }
+      tr.addEventListener("click", () => {
+        selectedIndex = idx;
+        renderCustomerTable();
+        updateSelectedCustomerSummary();
+        updatePills();
+        renderFollowUpForSelected();
+      });
+
+      const selectTd = document.createElement("td");
+      selectTd.textContent = idx + 1;
+      tr.appendChild(selectTd);
+
+      const cols = ["기관", "고객이름", "이메일", "유선전화번호", "스마트폰번호", "연구비", "관심분야", "연구분야"];
+      cols.forEach((key) => {
+        const td = document.createElement("td");
+        td.textContent = c[key] || "";
+        tr.appendChild(td);
+      });
+
+      customerTableBody.appendChild(tr);
+    });
+  }
+
+  function updateSelectedCustomerSummary() {
+    if (selectedIndex === null || customers.length === 0 || !customers[selectedIndex]) {
+      selectedCustomerSummary.textContent = "아직 선택된 고객이 없습니다. 표에서 한 행을 클릭해 주세요.";
+      return;
+    }
+    const c = customers[selectedIndex];
+    const lines = [];
+    lines.push((c.기관 || "") + " / " + (c.고객이름 || ""));
+    if (c.이메일) lines.push("이메일: " + c.이메일);
+    if (c.관심분야 || c.연구분야) {
+      lines.push("관심·연구분야: " + [c.관심분야, c.연구분야].filter(Boolean).join(" / "));
+    }
+    selectedCustomerSummary.textContent = lines.join(" · ");
+  }
+
+  function parseExcelFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          if (!json || json.length === 0) {
+            return resolve([]);
+          }
+
+          const headerRow = json[0].map((h) => String(h || "").trim());
+          const mapIndex = (name) => headerRow.findIndex((h) => h === name);
+
+          const idx기관 = mapIndex("기관");
+          const idx고객이름 = mapIndex("고객이름");
+          const idx이메일 = mapIndex("이메일 주소");
+          const idx유선 = mapIndex("유선전화번호");
+          const idx모바일 = mapIndex("스마트폰 번호");
+          const idx연구비 = mapIndex("연구비");
+          const idx관심 = mapIndex("관심분야");
+          const idx연구 = mapIndex("연구분야");
+
+          const result = [];
+          for (let i = 1; i < json.length; i++) {
+            const row = json[i];
+            if (!row || row.length === 0) continue;
+            const obj = {
+              기관: idx기관 >= 0 ? String(row[idx기관] || "").trim() : "",
+              고객이름: idx고객이름 >= 0 ? String(row[idx고객이름] || "").trim() : "",
+              이메일: idx이메일 >= 0 ? String(row[idx이메일] || "").trim() : "",
+              유선전화번호: idx유선 >= 0 ? String(row[idx유선] || "").trim() : "",
+              스마트폰번호: idx모바일 >= 0 ? String(row[idx모바일] || "").trim() : "",
+              연구비: idx연구비 >= 0 ? String(row[idx연구비] || "").trim() : "",
+              관심분야: idx관심 >= 0 ? String(row[idx관심] || "").trim() : "",
+              연구분야: idx연구 >= 0 ? String(row[idx연구] || "").trim() : "",
+            };
+            const allEmpty = Object.values(obj).every((v) => !v);
+            if (!allEmpty) result.push(obj);
+          }
+
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = function (err) {
+        reject(err);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function handleExcelLoad() {
+    const fileInput = document.getElementById("excelFileInput");
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) {
+      alert("먼저 엑셀 파일을 선택해 주세요.");
+      return;
+    }
+    setDebug("엑셀 파일을 읽는 중입니다...");
+    excelStatusPill.textContent = "읽는 중";
+    excelStatusPill.classList.remove("ok");
+
+    parseExcelFile(file)
+      .then((rows) => {
+        customers = rows;
+        selectedIndex = null;
+        renderCustomerTable();
+        updateSelectedCustomerSummary();
+        saveCustomersToStorage();
+        excelStatusPill.textContent = "완료";
+        excelStatusPill.classList.add("ok");
+        setDebug("엑셀에서 고객 " + customers.length + "명을 불러왔습니다.");
+      })
+      .catch((err) => {
+        console.error(err);
+        excelStatusPill.textContent = "오류";
+        excelStatusPill.classList.remove("ok");
+        alert("엑셀 파일을 읽는 중 오류가 발생했습니다.");
+        setDebug("엑셀 파싱 중 오류가 발생했습니다.");
+      });
+  }
+
+  function handleClearAll() {
+    if (!confirm("모든 고객 데이터와 사후 조치 기록을 삭제할까요?")) return;
+    customers = [];
+    selectedIndex = null;
+    followUps = {};
+    localStorage.removeItem(STORAGE_KEY_CUSTOMERS);
+    localStorage.removeItem(STORAGE_KEY_FOLLOWUPS);
+    renderCustomerTable();
+    updateSelectedCustomerSummary();
+    renderFollowUpForSelected();
+    updatePills();
+    setDebug("모든 고객 데이터와 사후 조치 기록을 삭제했습니다.");
+  }
+
+  function generateMailText() {
+    if (selectedIndex === null || !customers[selectedIndex]) {
+      alert("먼저 표에서 고객을 선택해 주세요.");
+      return;
+    }
+    const c = customers[selectedIndex];
+    const lang = document.getElementById("languageSelect").value;
+    const type = document.getElementById("typeSelect").value;
+    const subjectInput = document.getElementById("subjectInput");
+    const note = document.getElementById("noteInput").value.trim();
+
+    let subject = subjectInput.value.trim();
+    if (!subject) {
+      const org = c.기관 || "";
+      const topic = c.관심분야 || c.연구분야 || "시장·기술 동향";
+      subject = `[${org}] ${topic} 관련 시장·기술 보고서 안내`;
+      subjectInput.value = subject;
+    }
+
+    let body = "";
+
+    if (lang === "ko") {
+      const org = c.기관 || "";
+      const name = c.고객이름 || "연구자님";
+      const topic = c.관심분야 || c.연구분야 || "관심 분야";
+
+      body += `${org ? org + " " : ""}${name} 귀하,\n\n`;
+      body += `안녕하십니까. 월드산업정보센터입니다.\n`;
+      body += `${topic}와(과) 관련하여 귀 연구실/부서에서 진행 중이신 연구와 연계된 `;
+      if (type === "report") {
+        body += `시장·기술 동향 보고서를 안내드리고자 연락드립니다.\n\n`;
+      } else if (type === "new-series") {
+        body += `신규 발행된 시장·기술 보고서 시리즈를 안내드리고자 합니다.\n\n`;
+      } else if (type === "follow-up") {
+        body += `이전에 문의 주신 내용에 대한 후속 자료를 안내드리고자 합니다.\n\n`;
+      } else {
+        body += `관련 자료를 안내드리고자 합니다.\n\n`;
+      }
+
+      if (note) {
+        body += `※ 참고 메모\n${note}\n\n`;
+      }
+
+      body += `저희가 보유한 자료 중 귀 기관에 도움이 될 수 있는 보고서를 선별하여 `;
+      body += `간단한 개요와 함께 별도 메일 또는 첨부 파일로 전달드릴 수 있습니다.\n\n`;
+      body += `관심 있으신 분야(세부 소재, 공정, 응용 분야 등)가 있으시면 편하신 때에 회신 부탁드립니다.\n\n`;
+      body += `감사합니다.\n`;
+      body += `월드산업정보센터 드림\n`;
+    } else {
+      body += `Dear Customer,\n\n`;
+      body += `This is World Industrial Information Center. We would like to introduce market & technical reports related to your research area.\n\n`;
+      if (note) {
+        body += `Note from previous communication:\n${note}\n\n`;
+      }
+      body += `Please let us know if you are interested in more detailed information.\n\nBest regards,\nWorld Industrial Information Center\n`;
+    }
+
+    const full = `제목: ${subject}\n\n${body}`;
+    mailOutput.value = full;
+    btnCopyMail.disabled = false;
+    setDebug("안내 메일 초안을 생성했습니다.");
+  }
+
+  function copyMailToClipboard() {
+    const text = mailOutput.value;
+    if (!text || !text.trim()) {
+      alert("복사할 메일 내용이 없습니다.");
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => {
+          setDebug("메일 내용을 클립보드에 복사했습니다.");
+        },
+        () => {
+          fallbackCopy(text);
+        }
+      );
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const temp = document.createElement("textarea");
+    temp.style.position = "fixed";
+    temp.style.opacity = "0";
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    try {
+      document.execCommand("copy");
+      setDebug("메일 내용을 클립보드에 복사했습니다. (fallback)");
+    } catch (e) {
+      alert("클립보드 복사에 실패했습니다. 직접 선택해서 복사해 주세요.");
+    }
+    document.body.removeChild(temp);
+  }
+
+  function renderFollowUpForSelected() {
+    if (selectedIndex === null || !customers[selectedIndex]) {
+      followUpView.textContent = "선택된 고객이 없습니다.";
+      return;
+    }
+    const c = customers[selectedIndex];
+    const key = customerKey(c);
+    const rec = followUps[key];
+    if (!rec) {
+      followUpView.textContent = "최근 저장된 사후 조치 기록이 없습니다.";
+      return;
+    }
+    const lines = [];
+    lines.push("반응 상태: " + (rec.statusLabel || rec.status || ""));
+    if (rec.nextDate) lines.push("다음 조치 예정일: " + rec.nextDate);
+    if (rec.memo) lines.push("메모: " + rec.memo);
+    if (rec.updatedAt) lines.push("마지막 저장 시각: " + rec.updatedAt);
+    followUpView.textContent = lines.join("\n");
+  }
+
+  function handleSaveFollowUp() {
+    if (selectedIndex === null || !customers[selectedIndex]) {
+      alert("먼저 표에서 고객을 선택해 주세요.");
+      return;
+    }
+    const c = customers[selectedIndex];
+    const status = document.getElementById("statusSelect").value;
+    const nextDate = document.getElementById("nextDateInput").value;
+    const memo = document.getElementById("followMemoInput").value.trim();
+
+    if (!status && !nextDate && !memo) {
+      alert("사후 조치 내용을 하나 이상 입력해 주세요.");
+      return;
+    }
+
+    const statusLabels = {
+      "no-response": "미응답",
+      "interested": "관심 있음",
+      "need-info": "추가 정보 요청",
+      "considering": "구매 검토 중",
+      "ordered": "구매 완료",
+      "hold": "보류"
+    };
+
+    const key = customerKey(c);
+    followUps[key] = {
+      status,
+      statusLabel: statusLabels[status] || "",
+      nextDate,
+      memo,
+      updatedAt: new Date().toLocaleString("ko-KR")
+    };
+    saveFollowUpsToStorage();
+    renderFollowUpForSelected();
+    setDebug("사후 조치 메모를 저장했습니다.");
+  }
+
+  // ===== 이벤트 연결 =====
+  document.addEventListener("DOMContentLoaded", () => {
+    loadCustomersFromStorage();
+    loadFollowUpsFromStorage();
+    renderFollowUpForSelected();
+    updatePills();
+    setDebug("초기 상태입니다. 엑셀 파일을 선택하고 '엑셀에서 고객 목록 불러오기'를 눌러 시작하세요.");
+
+    document.getElementById("btnLoadFromExcel").addEventListener("click", handleExcelLoad);
+    document.getElementById("btnLoadFromStorage").addEventListener("click", () => {
+      loadCustomersFromStorage();
+      setDebug("저장된 고객 목록을 불러왔습니다.");
+    });
+    document.getElementById("btnClearAll").addEventListener("click", handleClearAll);
+    document.getElementById("btnGenerateMail").addEventListener("click", generateMailText);
+    document.getElementById("btnCopyMail").addEventListener("click", copyMailToClipboard);
+    document.getElementById("btnSaveFollowUp").addEventListener("click", handleSaveFollowUp);
+  });
+</script>
 </body>
 </html>
