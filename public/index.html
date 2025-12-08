@@ -1121,4 +1121,574 @@
             const div = document.createElement("div");
             div.textContent = line;
             if (idx < lines.length - 1) {
-              div.appendChil
+              div.appendChild(document.createElement("br"));
+            }
+            elPreviewBox.appendChild(div);
+          });
+        }
+
+        if (elSubject) {
+          elSubject.value =
+            state.preview.subject ||
+            "고객과 옵션을 선택하면 자동으로 제목이 표시됩니다.";
+        }
+
+        const length = text.length;
+        const linesCount = text ? text.split("\n").length : 0;
+        if (elStatusLength) {
+          elStatusLength.textContent = `글자 수: ${length}자 / 줄 수: ${linesCount}줄`;
+        }
+
+        if (elPillPreview && elDotPreview) {
+          if (text) {
+            elPillPreview.textContent = "생성 완료";
+            elDotPreview.style.backgroundColor = "#10b981";
+          } else {
+            elPillPreview.textContent = "미생성";
+            elDotPreview.style.backgroundColor = "#9ca3af";
+          }
+        }
+
+        if (elLastGenerated) {
+          if (state.preview.lastGeneratedAt) {
+            elLastGenerated.textContent = `최근 생성: ${state.preview.lastGeneratedAt}`;
+          } else {
+            elLastGenerated.textContent = "최근 생성: 없음";
+          }
+        }
+      }
+
+      /**
+       * 이벤트 핸들러
+       */
+      function onSearchChange(event) {
+        const value = (event.target.value || "").trim().toLowerCase();
+        if (!value) {
+          filteredCustomers = null;
+        } else {
+          filteredCustomers = state.customers.filter((c) => {
+            const target =
+              (c.name || "") +
+              " " +
+              (c.org || "") +
+              " " +
+              (c.dept || "") +
+              " " +
+              (c.interest || "");
+            return target.toLowerCase().includes(value);
+          });
+        }
+        renderCustomers();
+      }
+
+      function onNewCustomer() {
+        state.selectedCustomerId = null;
+        renderCustomers();
+        renderCustomerForm();
+      }
+
+      function onSaveCustomer() {
+        const name = ($("#field-name") || {}).value || "";
+        const title = ($("#field-title") || {}).value || "";
+        const org = ($("#field-org") || {}).value || "";
+        const dept = ($("#field-dept") || {}).value || "";
+        const email = ($("#field-email") || {}).value || "";
+        const interest = ($("#field-interest") || {}).value || "";
+        const notes = ($("#field-notes") || {}).value || "";
+
+        if (!name.trim() || !org.trim()) {
+          updateStorageStatus("이름과 기관은 필수입니다. (저장 안 됨)");
+          return;
+        }
+
+        const basicEmailOk = !email || email.includes("@");
+        if (!basicEmailOk) {
+          updateStorageStatus("이메일 형식이 올바르지 않습니다. (저장 안 됨)");
+          return;
+        }
+
+        let existing = null;
+        if (state.selectedCustomerId) {
+          existing = state.customers.find((c) => c.id === state.selectedCustomerId) || null;
+        }
+
+        if (existing) {
+          existing.name = name.trim();
+          existing.title = title.trim();
+          existing.org = org.trim();
+          existing.dept = dept.trim();
+          existing.email = email.trim();
+          existing.interest = interest.trim();
+          existing.notes = notes.trim();
+        } else {
+          const id = generateId();
+          const customer = {
+            id,
+            name: name.trim(),
+            title: title.trim(),
+            org: org.trim(),
+            dept: dept.trim(),
+            email: email.trim(),
+            interest: interest.trim(),
+            notes: notes.trim(),
+          };
+          state.customers.push(customer);
+          state.selectedCustomerId = id;
+        }
+
+        Storage.save(state);
+        filteredCustomers = null;
+        const searchInput = $("#customer-search");
+        if (searchInput) searchInput.value = "";
+        updateStorageStatus("고객 정보 저장 완료");
+        renderCustomers();
+        renderCustomerForm();
+      }
+
+      function onDeleteCustomer() {
+        if (!state.selectedCustomerId) return;
+        const id = state.selectedCustomerId;
+        state.customers = state.customers.filter((c) => c.id !== id);
+        state.selectedCustomerId = null;
+        Storage.save(state);
+        filteredCustomers = null;
+        const searchInput = $("#customer-search");
+        if (searchInput) searchInput.value = "";
+        updateStorageStatus("선택 고객 삭제 완료");
+        renderCustomers();
+        renderCustomerForm();
+      }
+
+      function selectCustomer(id) {
+        if (!id) return;
+        state.selectedCustomerId = id;
+        renderCustomers();
+        renderCustomerForm();
+      }
+
+      function onOptionsChanged(saveImmediately = true) {
+        renderOptions();
+        if (saveImmediately) {
+          Storage.save(state);
+        }
+        updateOptionsStatus("옵션 변경: 저장됨");
+      }
+
+      function generateId() {
+        return (
+          Date.now().toString(36) +
+          "-" +
+          Math.random().toString(36).substring(2, 8)
+        );
+      }
+
+      /**
+       * 안내서 생성
+       */
+      function generatePreview(quickMode) {
+        const customer =
+          state.customers.find((c) => c.id === state.selectedCustomerId) || null;
+
+        if (!customer) {
+          updateOptionsStatus("고객을 먼저 선택하거나 저장해야 합니다.");
+          return;
+        }
+
+        const now = new Date();
+        const timestamp =
+          now.getFullYear() +
+          "-" +
+          pad2(now.getMonth() + 1) +
+          "-" +
+          pad2(now.getDate()) +
+          " " +
+          pad2(now.getHours()) +
+          ":" +
+          pad2(now.getMinutes());
+
+        const { guideType, tone, language, reportKeywords, closing } = state.options;
+        const keywordsList = parseKeywords(reportKeywords);
+        const body = buildBody(customer, {
+          guideType,
+          tone,
+          language,
+          keywordsList,
+          closing,
+          quickMode,
+        });
+        const subject = buildSubject(customer, {
+          guideType,
+          language,
+          keywordsList,
+        });
+
+        state.preview.text = body;
+        state.preview.subject = subject;
+        state.preview.lastGeneratedAt = timestamp;
+
+        Storage.save(state);
+        renderPreview();
+        updateOptionsStatus("안내서 생성 완료");
+      }
+
+      function pad2(n) {
+        return n < 10 ? "0" + n : "" + n;
+      }
+
+      function parseKeywords(str) {
+        if (!str) return [];
+        return str
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      function buildBody(customer, ctx) {
+        const { guideType, tone, language, keywordsList, closing, quickMode } = ctx;
+        if (language === "en") {
+          return buildBodyEn(customer, ctx);
+        }
+        return buildBodyKo(customer, {
+          guideType,
+          tone,
+          keywordsList,
+          closing,
+          quickMode,
+        });
+      }
+
+      function buildBodyKo(customer, ctx) {
+        const { guideType, tone, keywordsList, closing, quickMode } = ctx;
+        const lines = [];
+        const name = customer.name || "";
+        const org = customer.org || "";
+        const dept = customer.dept || "";
+        const title = customer.title || "";
+        const interest = customer.interest || "";
+        const notes = customer.notes || "";
+
+        const firstLineName = name ? `${name} ${title || "연구원"}님께` : "담당자님께";
+
+        if (!quickMode) {
+          lines.push(firstLineName);
+          lines.push("");
+        }
+
+        if (guideType === "first") {
+          lines.push(
+            `안녕하세요. 월드산업정보센터입니다.`
+          );
+          if (tone !== "simple") {
+            const orgLine = org
+              ? `${org}${dept ? " " + dept : ""}에서 진행 중이신 연구 및 사업과 관련하여,`
+              : `현재 진행 중이신 연구 및 사업과 관련하여,`;
+            lines.push(
+              `${orgLine} 최근 문의 주셨던 주제와 연관된 해외 시장조사 및 기술자료를 정리하여 안내드립니다.`
+            );
+          }
+        } else if (guideType === "followup") {
+          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
+          lines.push(
+            `지난번에 공유드렸던 자료 관련하여, ${name ? name + "님께" : "담당자님께"} 도움이 되실 수 있는 추가 보고서를 정리해 안내드립니다.`
+          );
+        } else if (guideType === "quote") {
+          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
+          lines.push(
+            `요청 주신 주제에 대한 해외 시장조사 보고서 및 관련 자료의 구성과 예상 비용을 아래와 같이 정리하여 안내드립니다.`
+          );
+        } else if (guideType === "thanks") {
+          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
+          lines.push(
+            `${org || "귀 기관"}에서의 보고서 이용에 감사드리며, 향후 유사 주제에 대해 추가로 도움이 될 수 있는 자료를 함께 안내드립니다.`
+          );
+        }
+
+        if (interest) {
+          lines.push("");
+          lines.push(`● 고객 관심 주제`);
+          lines.push(`- ${interest}`);
+        }
+
+        if (keywordsList.length > 0) {
+          lines.push("");
+          lines.push(`● 제안 보고서/자료 키워드`);
+          keywordsList.forEach((kw, idx) => {
+            lines.push(`- (${idx + 1}) ${kw}`);
+          });
+        }
+
+        if (tone === "detail") {
+          if (notes) {
+            lines.push("");
+            lines.push(`● 추가 메모 / 참고사항`);
+            lines.push(`- ${notes}`);
+          }
+          lines.push("");
+          lines.push(`※ 상기 자료는 귀 기관의 중장기 연구 방향 및 예산 운영에 맞추어 조합 및 조정이 가능합니다.`);
+          lines.push(
+            `※ 필요 시 샘플 목차나 더 구체적인 발행사 정보를 별도로 정리하여 다시 보내드릴 수 있습니다.`
+          );
+        }
+
+        if (guideType === "quote") {
+          lines.push("");
+          lines.push(`● 견적 관련 안내 (예시 형식)`);
+          lines.push(`- 개별 보고서 금액: 발행사/버전별 상이 (문의 시 세부 견적 안내)`);
+          lines.push(`- 납품 형태: PDF / 서적 / 네트워크 패키지 등 (발행사 규정에 따름)`);
+          lines.push(`- 납기: 입금 확인 후 통상 1~3영업일 내 전달`);
+        }
+
+        if (closing && closing.trim()) {
+          lines.push("");
+          lines.push(closing.trim());
+        }
+
+        if (!quickMode) {
+          lines.push("");
+          lines.push(`감사합니다.`);
+          lines.push(``);
+          lines.push(`월드산업정보센터 드림`);
+        }
+
+        return lines.join("\n");
+      }
+
+      function buildBodyEn(customer, ctx) {
+        const { guideType, tone, keywordsList, closing, quickMode } = ctx;
+        const lines = [];
+        const name = customer.name || "";
+        const org = customer.org || "";
+        const dept = customer.dept || "";
+        const interest = customer.interest || "";
+        const notes = customer.notes || "";
+
+        const greetingName = name ? `Dear Dr. ${name},` : "Dear Sir or Madam,";
+
+        if (!quickMode) {
+          lines.push(greetingName);
+          lines.push("");
+        }
+
+        if (guideType === "first") {
+          lines.push("This is World Industrial Information Center.");
+          if (tone !== "simple") {
+            const orgLine = org
+              ? `For your ongoing projects at ${org}${dept ? ", " + dept : ""},`
+              : "For your ongoing research and projects,";
+            lines.push(
+              `${orgLine} we would like to introduce several market research reports and technical materials related to your interests.`
+            );
+          }
+        } else if (guideType === "followup") {
+          lines.push("This is World Industrial Information Center.");
+          lines.push(
+            "Following our previous communication, we have selected additional reports which may be helpful for your work."
+          );
+        } else if (guideType === "quote") {
+          lines.push("This is World Industrial Information Center.");
+          lines.push(
+            "Please find below the outline and approximate cost information for the requested reports."
+          );
+        } else if (guideType === "thanks") {
+          lines.push("This is World Industrial Information Center.");
+          lines.push(
+            `We appreciate your recent purchase${org ? " from " + org : ""}, and would like to suggest related reports that may support your future projects.`
+          );
+        }
+
+        if (interest) {
+          lines.push("");
+          lines.push("● Main topic of interest");
+          lines.push(`- ${interest}`);
+        }
+
+        if (keywordsList.length > 0) {
+          lines.push("");
+          lines.push("● Suggested report / material keywords");
+          keywordsList.forEach((kw, idx) => {
+            lines.push(`- (${idx + 1}) ${kw}`);
+          });
+        }
+
+        if (tone === "detail") {
+          if (notes) {
+            lines.push("");
+            lines.push("● Additional notes");
+            lines.push(`- ${notes}`);
+          }
+          lines.push("");
+          lines.push(
+            "※ The above items can be adjusted according to your budget and project schedule."
+          );
+          lines.push(
+            "※ Sample tables of contents or more detailed publisher information can be provided upon request."
+          );
+        }
+
+        if (guideType === "quote") {
+          lines.push("");
+          lines.push("● Quotation (example format)");
+          lines.push("- Price: depends on publisher and version (detailed quotation upon request)");
+          lines.push("- Delivery format: PDF / Print / Network package (depending on publisher policy)");
+          lines.push("- Lead time: usually 1–3 business days after payment confirmation");
+        }
+
+        if (closing && closing.trim()) {
+          lines.push("");
+          lines.push(
+            closing.trim() +
+              " (If you prefer, we can prepare an English version for the final email as well.)"
+          );
+        }
+
+        if (!quickMode) {
+          lines.push("");
+          lines.push("Best regards,");
+          lines.push("");
+          lines.push("World Industrial Information Center");
+        }
+
+        return lines.join("\n");
+      }
+
+      function buildSubject(customer, ctx) {
+        const { guideType, language, keywordsList } = ctx;
+        const name = customer.name || "";
+        const org = customer.org || "";
+        const firstKeyword = keywordsList[0] || "";
+
+        if (language === "en") {
+          const baseKw = firstKeyword || "market research reports";
+          if (guideType === "first") {
+            return `[WIC] Introduction of ${baseKw} for your projects`;
+          } else if (guideType === "followup") {
+            return `[WIC] Additional reports related to ${baseKw}`;
+          } else if (guideType === "quote") {
+            return `[WIC] Quotation for ${baseKw}`;
+          } else if (guideType === "thanks") {
+            return `[WIC] Thank you and follow-up suggestions (${baseKw})`;
+          }
+          return `[WIC] Report information (${baseKw})`;
+        }
+
+        const baseKw = firstKeyword || "해외 시장조사 보고서";
+        if (guideType === "first") {
+          if (name) {
+            return `[월드산업정보센터] ${name}님 관련 ${baseKw} 안내`;
+          }
+          return `[월드산업정보센터] ${org || "귀 기관"} 관련 ${baseKw} 안내`;
+        } else if (guideType === "followup") {
+          return `[월드산업정보센터] 추가 ${baseKw} 및 후속 안내`;
+        } else if (guideType === "quote") {
+          return `[월드산업정보센터] ${baseKw} 견적 및 구성 안내`;
+        } else if (guideType === "thanks") {
+          return `[월드산업정보센터] 이용 감사 및 관련 ${baseKw} 추가 안내`;
+        }
+        return `[월드산업정보센터] ${baseKw} 자료 안내`;
+      }
+
+      /**
+       * 클립보드 / 다운로드 / 초기화
+       */
+      function copyPreviewToClipboard() {
+        const text = state.preview.text || "";
+        if (!text) {
+          updateClipboardStatus("복사할 본문이 없습니다.");
+          return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              updateClipboardStatus("클립보드 복사 완료");
+            })
+            .catch(() => {
+              fallbackCopy(text);
+            });
+        } else {
+          fallbackCopy(text);
+        }
+      }
+
+      function fallbackCopy(text) {
+        try {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          temp.style.position = "fixed";
+          temp.style.left = "-9999px";
+          document.body.appendChild(temp);
+          temp.focus();
+          temp.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(temp);
+          updateClipboardStatus(ok ? "클립보드 복사 완료 (호환 모드)" : "복사 실패 (브라우저 제한)");
+        } catch (e) {
+          updateClipboardStatus("복사 실패 (브라우저 제한)");
+        }
+      }
+
+      function downloadPreviewAsTxt() {
+        const text = state.preview.text || "";
+        if (!text) {
+          updateClipboardStatus("다운로드할 본문이 없습니다.");
+          return;
+        }
+
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const now = new Date();
+        const stamp =
+          now.getFullYear().toString() +
+          pad2(now.getMonth() + 1) +
+          pad2(now.getDate()) +
+          "_" +
+          pad2(now.getHours()) +
+          pad2(now.getMinutes());
+        a.href = url;
+        a.download = `wic_customer_guide_${stamp}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        updateClipboardStatus("TXT 파일 다운로드 완료");
+      }
+
+      function clearPreview() {
+        state.preview.text = "";
+        state.preview.subject = "";
+        state.preview.lastGeneratedAt = null;
+        Storage.save(state);
+        renderPreview();
+        updateClipboardStatus("미리보기 초기화 완료");
+      }
+
+      /**
+       * 상태 표시
+       */
+      function updateStorageStatus(text) {
+        const el = $("#status-storage");
+        if (el) {
+          el.textContent = text;
+        }
+      }
+
+      function updateOptionsStatus(text) {
+        const el = $("#status-options");
+        if (el) {
+          el.textContent = text;
+        }
+      }
+
+      function updateClipboardStatus(text) {
+        const el = $("#status-clipboard");
+        if (el) {
+          el.textContent = `클립보드 상태: ${text}`;
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
