@@ -1,1 +1,0 @@
-# auto-guide-v1
