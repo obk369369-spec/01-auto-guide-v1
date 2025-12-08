@@ -2,514 +2,458 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>1번 고객 자동화 안내서 · WIC Guide Generator</title>
+  <title>1번 고객 자동화 안내서 · v1.0 Skeleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 0;
-      background: #f4f5f7;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
       color: #222;
     }
     header {
       background: #1f2937;
-      color: #fff;
-      padding: 16px 24px;
+      color: #f9fafb;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     header h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
     }
-    header p {
-      margin: 4px 0 0;
-      font-size: 13px;
-      opacity: 0.9;
+    header span {
+      font-size: 12px;
+      opacity: 0.8;
     }
     main {
       padding: 16px;
       max-width: 1200px;
       margin: 0 auto;
-    }
-    .grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
       gap: 16px;
+      grid-template-columns: 1.2fr 1.8fr;
     }
     @media (max-width: 900px) {
-      .grid {
+      main {
         grid-template-columns: 1fr;
       }
     }
     .card {
-      background: #fff;
+      background: #ffffff;
       border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      box-sizing: border-box;
+      padding: 12px 14px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     }
     .card h2 {
       margin: 0 0 8px;
-      font-size: 16px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .card h3 {
-      margin: 12px 0 6px;
-      font-size: 14px;
+    .badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .row > * {
+      flex: 1;
+      min-width: 0;
     }
     label {
-      font-size: 13px;
+      font-size: 12px;
       display: block;
       margin-bottom: 4px;
+      color: #4b5563;
     }
     input[type="text"],
     input[type="email"],
-    input[type="file"],
-    select,
-    textarea {
+    textarea,
+    select {
       width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
+      padding: 6px 8px;
       border-radius: 6px;
       border: 1px solid #d1d5db;
       font-size: 13px;
     }
     textarea {
-      min-height: 80px;
       resize: vertical;
+      min-height: 160px;
     }
-    .row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .row > div {
-      flex: 1;
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #e5e7eb;
-      color: #374151;
-      margin-left: 4px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 14px;
-      border-radius: 999px;
+    button {
       border: none;
-      font-size: 13px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
       cursor: pointer;
       background: #2563eb;
-      color: white;
-      gap: 6px;
+      color: #f9fafb;
     }
-    .btn.sub {
-      background: #6b7280;
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
     }
-    .btn:disabled {
+    button:disabled {
       opacity: 0.5;
       cursor: default;
     }
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .status-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 12px;
-      margin-top: 8px;
-      color: #4b5563;
+      margin-top: 6px;
     }
-    .status-pill {
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #e5e7eb;
-    }
-    .status-pill.ok {
-      background: #dcfce7;
-      color: #166534;
-    }
-    .status-pill.warn {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .status-pill.err {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-    .preview-box {
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      padding: 10px;
-      background: #f9fafb;
-      font-size: 13px;
-      white-space: pre-wrap;
-    }
-    .log-list {
-      max-height: 220px;
-      overflow-y: auto;
-      font-size: 12px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      padding: 8px;
-      background: #f9fafb;
-    }
-    .log-item {
-      padding: 4px 0;
+    th, td {
+      padding: 6px 4px;
       border-bottom: 1px solid #e5e7eb;
+      text-align: left;
     }
-    .log-item:last-child {
-      border-bottom: none;
-    }
-    .log-meta {
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
       font-size: 11px;
-      color: #6b7280;
     }
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
+    tr.clickable {
+      cursor: pointer;
+    }
+    tr.clickable:hover {
+      background: #eff6ff;
     }
     .pill {
-      font-size: 11px;
-      padding: 2px 8px;
+      display: inline-block;
+      padding: 2px 6px;
       border-radius: 999px;
-      background: #e5e7eb;
-      cursor: default;
+      font-size: 10px;
+      background: #e0f2fe;
+      color: #0369a1;
+      margin-right: 4px;
     }
-    footer {
-      padding: 10px 16px 16px;
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 4px;
+      background: #9ca3af;
+    }
+    .status-dot.ok { background: #22c55e; }
+    .status-dot.warn { background: #eab308; }
+    .status-dot.err { background: #ef4444; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .log-area {
       font-size: 11px;
-      color: #6b7280;
-      text-align: center;
+      background: #0b1120;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      color: #4b5563;
+      margin-right: 4px;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>1번 고객 자동화 안내서 · Guide Generator</h1>
-    <p>오프라인/온라인 고객 데이터를 읽고 · 고객별 워드 안내서를 만들고 · 메일 연동 후 반응 기반 사후 조치까지 한 흐름으로 관리합니다.</p>
+    <div>
+      <h1>1번 고객 자동화 안내서 · v1.0 Skeleton</h1>
+      <span>오프라인·온라인 고객 데이터 → 안내서 생성 → 메일·사후조치까지 한 흐름을 위한 화면 뼈대</span>
+    </div>
+    <div style="text-align:right;">
+      <span class="small">엔진 단계: 화면 뼈대 · 테스트용 더미 데이터</span><br />
+      <span class="small">다음 단계: 실제 데이터 연동 · 메일 연동 · 사후 조치 자동화</span>
+    </div>
   </header>
 
   <main>
-    <div class="grid">
-      <!-- 왼쪽: 데이터·템플릿 설정 -->
-      <section class="card">
-        <h2>① 고객 데이터 · 템플릿 설정</h2>
+    <!-- 왼쪽: 고객 선택 + 데이터 영역 -->
+    <section class="card">
+      <h2>① 고객 데이터 · 선택 영역 <span class="badge">데이터 뼈대</span></h2>
+      <p class="small">
+        아래 목록은 더미 예시입니다. 나중에 엑셀/DB/7번 세팅 도구 등에서 자동으로 불러오도록 연결할 수 있습니다.
+      </p>
 
-        <h3>고객 데이터 가져오기 <span class="badge">필수</span></h3>
-        <div class="row">
-          <div>
-            <label>오프라인 엑셀 / CSV 업로드</label>
-            <input type="file" id="fileInput" />
+      <div class="row">
+        <div>
+          <label>검색어 (이름, 기관, 분야)</label>
+          <input type="text" id="searchInput" placeholder="예: KITECH, 접착제, 홍길동" />
+        </div>
+        <div>
+          <label>관심 분야 필터</label>
+          <select id="fieldFilter">
+            <option value="">전체</option>
+            <option value="접착제">접착제</option>
+            <option value="반도체 패키징">반도체 패키징</option>
+            <option value="에너지 소재">에너지 소재</option>
+          </select>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>이름</th>
+            <th>기관</th>
+            <th>연구 분야</th>
+            <th>관심</th>
+          </tr>
+        </thead>
+        <tbody id="customerTableBody">
+          <!-- JS에서 채움 -->
+        </tbody>
+      </table>
+
+      <p class="small">
+        행을 클릭하면 오른쪽에 안내서 초안이 자동으로 채워집니다.
+      </p>
+    </section>
+
+    <!-- 오른쪽: 안내서 생성 + 메일·사후 조치 -->
+    <section class="card">
+      <h2>② 안내서 생성 · 메일 · 사후 조치 <span class="badge">안내서 뼈대</span></h2>
+
+      <div class="row">
+        <div>
+          <div class="section-title">선택된 고객 정보</div>
+          <div id="selectedCustomerBox" class="small" style="border:1px solid #e5e7eb;border-radius:6px;padding:6px;min-height:60px;">
+            아직 선택된 고객이 없습니다.
+          </div>
+          <div style="margin-top:6px;">
+            <span class="tag">워드 안내서</span>
+            <span class="tag">메일 연동(예정)</span>
+            <span class="tag">사후 조치(예정)</span>
           </div>
         </div>
-        <div class="row">
-          <div>
-            <label>온라인 고객 DB 주소(예: API / 시트 링크)</label>
-            <input type="text" id="onlineSource" placeholder="https://... 또는 내부 API 주소" />
-          </div>
+        <div>
+          <label>안내서 템플릿 유형 (예시)</label>
+          <select id="templateType">
+            <option value="기본">기본 안내서</option>
+            <option value="신규 고객">신규 고객용</option>
+            <option value="장기 고객">장기 고객용</option>
+          </select>
         </div>
+      </div>
 
-        <h3>안내서 템플릿 선택</h3>
-        <div class="row">
-          <div>
-            <label>기본 템플릿</label>
-            <select id="templateSelect">
-              <option value="basic">기본 안내서 (연구비·관심분야 중심)</option>
-              <option value="renewal">재구매/갱신 안내서</option>
-              <option value="new-report">신규 보고서 추천 안내서</option>
-            </select>
-          </div>
-          <div>
-            <label>언어</label>
-            <select id="langSelect">
-              <option value="ko">한국어</option>
-              <option value="en">영어</option>
-              <option value="ja">일본어</option>
-            </select>
-          </div>
+      <div style="margin-top:10px;">
+        <label>안내서 초안 (워드 자동화 안내서 대상 내용 · 예시)</label>
+        <textarea id="guideDraft" placeholder="고객을 선택하면 여기에 초안이 자동으로 채워집니다."></textarea>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>받는 사람 이메일 (예시)</label>
+          <input type="email" id="emailInput" placeholder="예: name@기관.kr" />
         </div>
-
-        <h3>메일 연동 설정</h3>
-        <div class="row">
-          <div>
-            <label>발신 이메일(예: Thunderbird 계정)</label>
-            <input type="email" id="fromEmail" placeholder="sender@example.com" />
-          </div>
-          <div>
-            <label>연동 방식(예시)</label>
-            <select id="mailMode">
-              <option value="export">워드/EML 파일로 내보내기</option>
-              <option value="api">메일 API로 직접 보내기(추후)</option>
-            </select>
-          </div>
+        <div>
+          <label>사후 조치 계획 메모 (예시)</label>
+          <input type="text" id="followupInput" placeholder="예: 2주 후 재문의, 후속 보고서 제안" />
         </div>
+      </div>
 
-        <h3>사후 조치 규칙(반응별)</h3>
-        <label>간단 규칙 설명(예: “구매 문의 = A등급 / 열람만 = B등급”)</label>
-        <textarea id="followupRule" placeholder="예) 메일 회신·클릭·열람 기록에 따라 A/B/C 등급으로 나누고, A: 전화, B: 추가 메일, C: 분기별 안내만 보냄."></textarea>
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btnCreateDraft">안내서 초안 다시 생성</button>
+        <button id="btnMarkAsSent" class="secondary" disabled>메일 발송 처리(예시)</button>
+        <button id="btnMarkFollowup" class="secondary" disabled>사후 조치 등록(예시)</button>
+      </div>
 
-        <div class="btn-row">
-          <button class="btn" id="btnLoadDummy">테스트용 더미 고객 불러오기</button>
-          <button class="btn sub" id="btnQuickGenerate">선택 고객 1명 미리보기 생성</button>
+      <div style="margin-top:10px;">
+        <div class="section-title">
+          발송·사후 조치 상태 요약
+          <span class="status-dot ok"></span><span class="small">기본 상태(예시)</span>
         </div>
-
-        <div class="status-bar" id="leftStatus">
-          <span class="status-pill">데이터: 0명</span>
-          <span class="status-pill">템플릿: 기본</span>
-          <span class="status-pill warn">메일 연동: 준비 중</span>
+        <div id="statusSummary" class="small">
+          아직 발송·사후 조치 기록이 없습니다. 위 버튼을 눌러 흐름을 테스트해 볼 수 있습니다. (현재는 화면 뼈대용 더미 동작만 포함)
         </div>
-      </section>
+      </div>
 
-      <!-- 오른쪽: 미리보기 · 로그 -->
-      <section class="card">
-        <h2>② 안내서 미리보기 · 발송·사후 조치 요약</h2>
-
-        <h3>고객 선택</h3>
-        <div class="row">
-          <div>
-            <label>고객 선택</label>
-            <select id="customerSelect">
-              <option value="">먼저 데이터를 불러오세요.</option>
-            </select>
-          </div>
+      <div style="margin-top:10px;">
+        <div class="section-title">로그 (테스트용 · 화면 뼈대)</div>
+        <div id="logArea" class="log-area">
+[안내] 화면 뼈대가 로드되었습니다.
+여기에 "안내서 생성 / 메일 발송 / 사후 조치" 흐름 로그가 쌓이도록 확장할 수 있습니다.
         </div>
-
-        <h3>안내서 미리보기</h3>
-        <div class="preview-box" id="previewBox">
-안내서 미리보기 영역입니다.
-고객 데이터를 불러오고, 고객을 선택한 뒤 “미리보기 생성”을 누르면 이곳에 내용이 나타납니다.
-        </div>
-
-        <div class="btn-row">
-          <button class="btn" id="btnGenerate">선택 고객 안내서 미리보기</button>
-          <button class="btn sub" id="btnExportWord">워드/EML로 내보내기(예시)</button>
-          <button class="btn sub" id="btnMarkFollowup">사후 조치 상태 기록(예시)</button>
-        </div>
-
-        <div class="pill-row">
-          <span class="pill" id="pillCustomer">고객: -</span>
-          <span class="pill" id="pillTemplate">템플릿: -</span>
-          <span class="pill" id="pillLang">언어: -</span>
-          <span class="pill" id="pillFollowup">사후 조치: -</span>
-        </div>
-
-        <h3 style="margin-top:14px;">발송·사후 조치 로그(예시)</h3>
-        <div class="log-list" id="logList">
-          <div class="log-item">
-            <div>로그가 여기에 시간순으로 쌓입니다. (예시 레코드)</div>
-            <div class="log-meta">시간: --:-- · 고객: - · 상태: 안내서 생성 완료(예시)</div>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    이 파일은 1번 고객 자동화 안내서 도구의 <strong>화면 뼈대(index.html)</strong>입니다.
-    실제 고객 DB·메일 연동·사후 조치 로직은 나중에 공통 자동화 엔진 규칙에 따라 한 단계씩 연결할 수 있습니다.
-  </footer>
-
   <script>
-    // 아주 간단한 더미 데이터와 상태 관리 (테스트용)
-    const state = {
-      customers: [],
-      selectedCustomerId: null,
-      template: 'basic',
-      lang: 'ko',
-      followupRule: '',
-    };
+    // --- 더미 고객 데이터 (나중에 실제 데이터 소스로 교체 가능) ---
+    const customers = [
+      {
+        id: 1,
+        name: "홍길동",
+        org: "KITECH",
+        field: "접착제",
+        interest: "Glass Substrate 접착제",
+        email: "hong@kitech.re.kr"
+      },
+      {
+        id: 2,
+        name: "김연구",
+        org: "KRICT",
+        field: "에너지 소재",
+        interest: "전고체 전지 소재",
+        email: "kim@krict.re.kr"
+      },
+      {
+        id: 3,
+        name: "이박사",
+        org: "대학 연구소",
+        field: "반도체 패키징",
+        interest: "LSI 패키징용 접착제",
+        email: "lee@univ.ac.kr"
+      }
+    ];
 
-    const fileInput = document.getElementById('fileInput');
-    const onlineSource = document.getElementById('onlineSource');
-    const templateSelect = document.getElementById('templateSelect');
-    const langSelect = document.getElementById('langSelect');
-    const fromEmail = document.getElementById('fromEmail');
-    const mailMode = document.getElementById('mailMode');
-    const followupRule = document.getElementById('followupRule');
+    const tableBody = document.getElementById("customerTableBody");
+    const searchInput = document.getElementById("searchInput");
+    const fieldFilter = document.getElementById("fieldFilter");
+    const selectedCustomerBox = document.getElementById("selectedCustomerBox");
+    const templateType = document.getElementById("templateType");
+    const guideDraft = document.getElementById("guideDraft");
+    const emailInput = document.getElementById("emailInput");
+    const followupInput = document.getElementById("followupInput");
+    const btnCreateDraft = document.getElementById("btnCreateDraft");
+    const btnMarkAsSent = document.getElementById("btnMarkAsSent");
+    const btnMarkFollowup = document.getElementById("btnMarkFollowup");
+    const statusSummary = document.getElementById("statusSummary");
+    const logArea = document.getElementById("logArea");
 
-    const btnLoadDummy = document.getElementById('btnLoadDummy');
-    const btnQuickGenerate = document.getElementById('btnQuickGenerate');
-    const btnGenerate = document.getElementById('btnGenerate');
-    const btnExportWord = document.getElementById('btnExportWord');
-    const btnMarkFollowup = document.getElementById('btnMarkFollowup');
+    let selectedCustomer = null;
 
-    const leftStatus = document.getElementById('leftStatus');
-    const customerSelect = document.getElementById('customerSelect');
-    const previewBox = document.getElementById('previewBox');
-    const pillCustomer = document.getElementById('pillCustomer');
-    const pillTemplate = document.getElementById('pillTemplate');
-    const pillLang = document.getElementById('pillLang');
-    const pillFollowup = document.getElementById('pillFollowup');
-    const logList = document.getElementById('logList');
+    function renderCustomers() {
+      const keyword = (searchInput.value || "").toLowerCase();
+      const field = fieldFilter.value;
+      tableBody.innerHTML = "";
 
-    function updateStatus() {
-      leftStatus.innerHTML = '';
-      const pills = [];
+      customers
+        .filter(c => {
+          const text =
+            (c.name + " " + c.org + " " + c.field + " " + c.interest).toLowerCase();
+          const matchKeyword = !keyword || text.includes(keyword);
+          const matchField = !field || c.field === field;
+          return matchKeyword && matchField;
+        })
+        .forEach(c => {
+          const tr = document.createElement("tr");
+          tr.className = "clickable";
+          tr.innerHTML = `
+            <td>${c.name}</td>
+            <td>${c.org}</td>
+            <td>${c.field}</td>
+            <td>${c.interest}</td>
+          `;
+          tr.addEventListener("click", () => selectCustomer(c));
+          tableBody.appendChild(tr);
+        });
 
-      pills.push(`데이터: ${state.customers.length}명`);
-      const templateLabel = templateSelect.options[templateSelect.selectedIndex]?.text || '템플릿 없음';
-      pills.push(`템플릿: ${templateLabel}`);
-      const mailStatus =
-        fromEmail.value.trim().length > 0 ? '메일 연동: 기본 설정 완료(예시)' : '메일 연동: 준비 중';
-      pills.push(mailStatus);
-
-      pills.forEach((text) => {
-        const span = document.createElement('span');
-        span.className = 'status-pill';
-        span.textContent = text;
-        leftStatus.appendChild(span);
-      });
+      if (!tableBody.children.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" class="small" style="text-align:center;color:#9ca3af;">검색 조건에 맞는 고객이 없습니다.</td>`;
+        tableBody.appendChild(tr);
+      }
     }
 
-    function fillCustomerSelect() {
-      customerSelect.innerHTML = '';
-      if (state.customers.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = '먼저 고객 데이터를 불러오세요.';
-        customerSelect.appendChild(opt);
+    function selectCustomer(c) {
+      selectedCustomer = c;
+      selectedCustomerBox.innerHTML = `
+        <div><strong>${c.name}</strong> (${c.org})</div>
+        <div class="small">
+          연구 분야: ${c.field}<br/>
+          관심 주제: ${c.interest}<br/>
+          기본 이메일: ${c.email || "-"}
+        </div>
+      `;
+      emailInput.value = c.email || "";
+      createDraft();
+      appendLog(`[선택] 고객 선택: ${c.name} / ${c.org}`);
+      btnMarkAsSent.disabled = false;
+      btnMarkFollowup.disabled = false;
+    }
+
+    function createDraft() {
+      if (!selectedCustomer) {
+        guideDraft.value = "먼저 고객을 선택해 주세요.";
         return;
       }
-      const defaultOpt = document.createElement('option');
-      defaultOpt.value = '';
-      defaultOpt.textContent = '고객을 선택하세요.';
-      customerSelect.appendChild(defaultOpt);
+      const t = templateType.value;
+      const c = selectedCustomer;
+      guideDraft.value =
+`[${t}] ${c.org} ${c.name} 귀하
 
-      state.customers.forEach((c, idx) => {
-        const opt = document.createElement('option');
-        opt.value = String(idx);
-        opt.textContent = `${c.name} (${c.org})`;
-        customerSelect.appendChild(opt);
-      });
+안녕하십니까.
+월드산업정보센터에서 ${c.field} 및 "${c.interest}" 분야 자료를 담당하고 있습니다.
+
+이번에 안내드리는 보고서/자료는 귀하의 연구 주제와 밀접한 내용을 포함하고 있으며,
+필요 시 추가 자료(목차, 샘플, 가격 정보)도 함께 보내드릴 수 있습니다.
+
+관심 있으신 경우 짧게 회신 주시면,
+${c.field} / ${c.interest} 관련 맞춤형 자료를 정리하여 다시 안내드리겠습니다.
+
+감사합니다.
+월드산업정보센터 드림`;
+      appendLog(`[생성] 안내서 초안 생성: ${c.name} (${t})`);
     }
 
-    function addLog(message, meta) {
-      const item = document.createElement('div');
-      item.className = 'log-item';
-
-      const m = document.createElement('div');
-      m.textContent = message;
-      const mm = document.createElement('div');
-      mm.className = 'log-meta';
-      const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
-      mm.textContent = `시간: ${time} · ${meta}`;
-
-      item.appendChild(m);
-      item.appendChild(mm);
-      logList.appendChild(item);
-      logList.scrollTop = logList.scrollHeight;
+    function appendLog(text) {
+      const now = new Date();
+      const time = now.toTimeString().slice(0, 8);
+      logArea.textContent += `\n[${time}] ${text}`;
+      logArea.scrollTop = logArea.scrollHeight;
     }
 
-    // 테스트용 더미 고객 데이터
-    btnLoadDummy.addEventListener('click', () => {
-      state.customers = [
-        { name: '장박사', org: 'KRICT', field: '접착제·폴리머', email: 'jang@example.com' },
-        { name: '김박사', org: 'KITECH', field: '유리기판·패키징', email: 'kim@example.com' },
-      ];
-      fillCustomerSelect();
-      updateStatus();
-      addLog('테스트용 더미 고객 2명을 불러왔습니다. (예시)', '고객: 2명 · 상태: 데이터 불러오기(예시)');
+    searchInput.addEventListener("input", renderCustomers);
+    fieldFilter.addEventListener("change", renderCustomers);
+    templateType.addEventListener("change", () => {
+      if (selectedCustomer) createDraft();
     });
 
-    templateSelect.addEventListener('change', () => {
-      state.template = templateSelect.value;
-      updateStatus();
+    btnCreateDraft.addEventListener("click", () => {
+      createDraft();
     });
 
-    langSelect.addEventListener('change', () => {
-      state.lang = langSelect.value;
-      updateStatus();
+    btnMarkAsSent.addEventListener("click", () => {
+      if (!selectedCustomer) return;
+      appendLog(`[발송 처리(예시)] ${selectedCustomer.name} / ${emailInput.value || "(이메일 미입력)"}`);
+      statusSummary.textContent =
+        `최근 처리: ${selectedCustomer.name}에게 안내서 발송 처리(예시). 이후 단계에서 실제 메일 시스템과 연결할 수 있습니다.`;
     });
 
-    followupRule.addEventListener('input', () => {
-      state.followupRule = followupRule.value;
+    btnMarkFollowup.addEventListener("click", () => {
+      if (!selectedCustomer) return;
+      appendLog(`[사후 조치(예시)] ${selectedCustomer.name} / 계획: ${followupInput.value || "(미입력)"}`);
+      statusSummary.textContent =
+        `최근 처리: ${selectedCustomer.name}에 대한 사후 조치 계획 저장(예시). 나중에 7번 도구·재무/재테크 도구와도 연동할 수 있습니다.`;
     });
 
-    customerSelect.addEventListener('change', () => {
-      state.selectedCustomerId = customerSelect.value === '' ? null : Number(customerSelect.value);
-    });
-
-    function buildPreview(customer) {
-      const templateLabel = templateSelect.options[templateSelect.selectedIndex]?.text || '';
-      const langLabel =
-        state.lang === 'ko' ? '한국어' : state.lang === 'en' ? '영어' : '일본어';
-
-      const lines = [];
-      lines.push(`[${templateLabel}] 안내서 (언어: ${langLabel})`);
-      lines.push('');
-      lines.push(`수신: ${customer.name} 박사 (${customer.org})`);
-      lines.push(`연구 분야: ${customer.field}`);
-      lines.push('');
-      lines.push('안녕하세요, 월드산업정보센터입니다.');
-      lines.push('요청하신 연구 분야와 연관된 최신 보고서·기술자료를 중심으로 안내드립니다.');
-      lines.push('');
-      lines.push('- (예시) 추천 보고서 1');
-      lines.push('- (예시) 추천 보고서 2');
-      lines.push('');
-      lines.push('연락을 주시면, 보다 상세한 목차·가격·구매 절차를 안내해 드리겠습니다.');
-      lines.push('');
-      if (state.followupRule.trim().length > 0) {
-        lines.push('[사후 조치 규칙(메모)]');
-        lines.push(state.followupRule.trim());
-      }
-      return lines.join('\n');
-    }
-
-    btnQuickGenerate.addEventListener('click', () => {
-      if (state.customers.length === 0) return;
-      const customer = state.customers[0];
-      customerSelect.value = '0';
-      state.selectedCustomerId = 0;
-      const text = buildPreview(customer);
-      previewBox.textContent = text;
-
-      pillCustomer.textContent = `고객: ${customer.name} (${customer.org})`;
-      pillTemplate.textContent = `템플릿: ${templateSelect.options[templateSelect.selectedIndex]?.text || ''}`;
-      pillLang.textContent = `언어: ${state.lang}`;
-      pillFollowup.textContent = '사후 조치: 준비 중';
-
-      addLog('테스트용 고객 1명에 대한 안내서 미리보기를 생성했습니다. (예시)', `고객: ${customer.name} · 상태: 미리보기 생성(예시)`);
-    });
-
-    btnGenerate.addEventListener('click', () => {
-      if (state.selectedCustomerId == null || isNaN(state.selectedCustomerId)) {
-        alert('먼저 고객을 선택하세요.');
-        return;
-      }
-      const customer = state.customers[state.selectedCustomerId];
-      const text = buildPreview(customer);
-      previewBox.textContent = text;
-
-      pillCustomer.textContent = `고객: ${customer.name} (${customer.org})`;
-      pillTemplate.textContent = `템플릿: ${templateSelect.options[templateSelect.selectedIndex]?.text || ''}`;
-      pillLang.textContent = `언어: ${state.lang}`;
-      pillFollowup.textContent = '사후 조치: 준비 중';
-
-      addLog('선택 고객에 대한 안내서 미리보기를 생성했습니다. (예시)', `고객: ${customer.name} · 상태: 미리보기 생성(예시)`);
-    });
-
-    btnExportWord.addEventListener('click', () => {
-      addLog('워드/EML로 내보내기 기능은 나중에 메일·워드 자동화 모듈과 연결합니다. (예시)', '상태: 내보내기 준비(예시)');
-      alert('지금은 예시 단계입니다.\n나중에 워드/EML 파일 생성 모듈과 연결할 수 있습니다.');
-    });
-
-    btnMarkFollowup.addEventListener('click', () => {
-      pillFollowup.textContent = '사후 조치: 처리 메모 기록됨(예시)';
-      addLog('선택 고객에 대한 사후 조치 상태를 기록했습니다. (예시)', '상태: 사후 조치 기록(예시)');
-    });
-
-    updateStatus();
+    // 초기 렌더
+    renderCustomers();
   </script>
 </body>
 </html>
