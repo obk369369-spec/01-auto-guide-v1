@@ -2,581 +2,1860 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>01번 도구 · Auto Guide v1</title>
+  <title>1번 도구 · 고객 자동화 안내서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+      --bg: #0f172a;
+      --bg-inner: #020617;
+      --bg-card: #020617;
+      --border-soft: #1f2937;
+      --border-strong: #374151;
+      --text-main: #e5e7eb;
+      --text-sub: #9ca3af;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --danger: #f97373;
+      --success: #22c55e;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 9px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
+      --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.75);
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    * { box-sizing: border-box; }
-    body {
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
-      padding: 16px;
+      padding: 0;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 52%, #000 100%);
+      color: var(--text-main);
+      font-family: var(--font-main);
+    }
+
+    body {
+      min-height: 100vh;
       display: flex;
       justify-content: center;
     }
-    .app {
+
+    .app-shell {
       width: 100%;
-      max-width: 1100px;
-      background: #020617;
-      border-radius: 16px;
-      padding: 16px 20px 24px;
-      border: 1px solid #1e293b;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      max-width: 1180px;
+      padding: 18px 12px 28px;
     }
-    h1 {
+
+    @media (min-width: 960px) {
+      .app-shell {
+        padding: 26px 0 36px;
+      }
+    }
+
+    .app-frame {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.98));
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(14px);
+    }
+
+    @media (max-width: 720px) {
+      .app-frame {
+        padding: 14px 12px 16px;
+        border-radius: 18px;
+      }
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.6fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 880px) {
+      header {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .app-title {
       font-size: 20px;
-      margin: 0 0 4px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    h1 span.badge {
-      font-size: 12px;
+
+    .app-title span.badge-main {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 165, 250, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      color: #bfdbfe;
+    }
+
+    .app-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      max-width: 580px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .tag {
+      font-size: 11px;
       padding: 2px 8px;
       border-radius: 999px;
-      background: #22c55e1a;
-      color: #4ade80;
-      border: 1px solid #22c55e;
-    }
-    .subtitle {
-      font-size: 13px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
       color: #9ca3af;
-      margin-bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
-    .grid {
+
+    .tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+    }
+
+    .header-stats {
       display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 2fr);
-      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
     }
-    .card {
-      background: radial-gradient(circle at top left, #0f172a, #020617);
+
+    @media (max-width: 600px) {
+      .header-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .stat-card {
       border-radius: 14px;
-      border: 1px solid #1e293b;
-      padding: 14px 14px 16px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.18), rgba(15, 23, 42, 0.95));
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      box-shadow: var(--shadow-card);
     }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .stat-pill {
+      margin-top: 1px;
+      align-self: flex-start;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: #9ca3af;
+    }
+
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .layout-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      box-shadow: var(--shadow-card);
+      padding: 12px 12px 13px;
+    }
+
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: baseline;
+      gap: 8px;
       margin-bottom: 8px;
     }
+
     .card-title {
       font-size: 14px;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
-    .pill {
+
+    .card-subtitle {
       font-size: 11px;
-      padding: 1px 6px;
+      color: var(--text-sub);
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid #4b5563;
-      color: #9ca3af;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-sub);
+      white-space: nowrap;
     }
-    label {
-      font-size: 12px;
-      color: #9ca3af;
-      display: block;
-      margin-top: 8px;
-      margin-bottom: 4px;
+
+    .badge-accent {
+      border-color: rgba(59, 130, 246, 0.7);
+      color: #bfdbfe;
     }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .field {
+      flex: 1 1 140px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .field-half {
+      flex: 1 1 48%;
+    }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .field-hint {
+      font-size: 10px;
+      color: #6b7280;
+    }
+
     input[type="text"],
+    input[type="email"],
     input[type="number"],
     textarea,
     select {
       width: 100%;
-      font-size: 13px;
-      padding: 7px 9px;
-      border-radius: 8px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #e5e7eb;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: var(--font-main);
+      background: radial-gradient(circle at top, #020617, #020617);
+      color: var(--text-main);
       outline: none;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
     }
+
     textarea {
+      min-height: 70px;
+      max-height: 180px;
       resize: vertical;
-      min-height: 56px;
-      max-height: 160px;
+      line-height: 1.45;
     }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #4b5563;
+    }
+
     input:focus,
     textarea:focus,
     select:focus {
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 1px #38bdf833;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.6);
+      background: radial-gradient(circle at top, #020617, #020617);
     }
-    .row {
-      display: flex;
-      gap: 8px;
-    }
-    .row > div {
-      flex: 1;
-    }
+
     .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 10px;
+      margin-top: 2px;
     }
+
     button {
       border-radius: 999px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 12px;
-      padding: 6px 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+      padding: 6px 11px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background 0.14s ease, box-shadow 0.14s ease, transform 0.04s ease;
     }
-    button.primary {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border-color: transparent;
-      color: #020617;
-      font-weight: 600;
+
+    button .icon {
+      font-size: 13px;
+      line-height: 0;
     }
-    button.outline {
-      border-color: #4b5563;
-      color: #e5e7eb;
+
+    button:hover {
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+      border-color: rgba(59, 130, 246, 0.7);
     }
-    button.small {
-      font-size: 11px;
-      padding: 4px 8px;
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.85);
     }
+
     button:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
     }
-    .output-header {
+
+    .btn-primary {
+      border-color: rgba(59, 130, 246, 0.9);
+      background: radial-gradient(circle at top left, #2563eb, #1d4ed8);
+      color: #e5f0ff;
+    }
+
+    .btn-soft {
+      border-style: dashed;
+      border-color: rgba(75, 85, 99, 0.9);
+    }
+
+    .btn-danger {
+      border-color: rgba(239, 68, 68, 0.9);
+      background: radial-gradient(circle at top left, #b91c1c, #7f1d1d);
+      color: #fee2e2;
+    }
+
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .status-pill.ok {
+      border-color: rgba(34, 197, 94, 0.9);
+      color: #bbf7d0;
+    }
+
+    .status-pill.warn {
+      border-color: rgba(245, 158, 11, 0.9);
+      color: #fed7aa;
+    }
+
+    .status-pill.error {
+      border-color: rgba(248, 113, 113, 0.95);
+      color: #fecaca;
+    }
+
+    .status-pill.neutral {
+      color: var(--text-sub);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 7px rgba(34, 197, 94, 0.7);
+    }
+
+    .status-dot.warn {
+      background: #f59e0b;
+      box-shadow: 0 0 7px rgba(245, 158, 11, 0.7);
+    }
+
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 7px rgba(239, 68, 68, 0.7);
+    }
+
+    .small-text {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .preview-header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
-    }
-    .tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-    .tag {
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px dashed #374151;
-    }
-    .output-box {
-      background: #020617;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      padding: 10px;
-      font-size: 13px;
-      min-height: 180px;
-      max-height: 360px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-    .status-bar {
-      margin-top: 8px;
-      font-size: 11px;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
       gap: 8px;
-      flex-wrap: wrap;
-    }
-    .status-pill {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid #4b5563;
-    }
-    .footer {
-      margin-top: 12px;
-      font-size: 11px;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
     }
 
-    @media (max-width: 840px) {
-      .grid {
-        grid-template-columns: 1fr;
+    .preview-toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      align-items: center;
+    }
+
+    .pill-toggle {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-sub);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pill-toggle.active {
+      border-color: rgba(59, 130, 246, 0.9);
+      color: #bfdbfe;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.8);
+    }
+
+    .preview-box {
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      background: radial-gradient(circle at top, #020617, #020617);
+      padding: 9px 9px 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      max-height: 260px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: keep-all;
+    }
+
+    .preview-empty {
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .guide-section-title {
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    .guide-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .guide-section-body {
+      margin-bottom: 4px;
+    }
+
+    .textarea-plain {
+      display: none;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      background: radial-gradient(circle at top, #020617, #020617);
+      padding: 8px 9px;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .textarea-plain.active {
+      display: block;
+    }
+
+    .plain-hidden {
+      display: none;
+    }
+
+    .grid-followup {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .grid-followup {
+        grid-template-columns: minmax(0, 1fr);
       }
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-main);
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      accent-color: #3b82f6;
+    }
+
+    .check-row label {
+      flex: 1 1 auto;
+    }
+
+    .check-row input[type="date"] {
+      flex: 0 0 auto;
+      max-width: 120px;
+      font-size: 10px;
+      padding: 4px 6px;
+    }
+
+    .followup-summary {
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 7px 8px;
+      font-size: 11px;
+      min-height: 40px;
+      color: var(--text-sub);
+    }
+
+    .followup-summary strong {
+      color: #e5e7eb;
+    }
+
+    .error-text {
+      font-size: 10px;
+      color: #fecaca;
+      margin-top: 2px;
+      display: none;
+    }
+
+    .error-text.visible {
+      display: block;
+    }
+
+    footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    footer span {
+      color: #9ca3af;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>
-      01번 도구 · Auto Guide v1
-      <span class="badge">Local-only · Safe DOM</span>
-    </h1>
-    <div class="subtitle">
-      고객·보고서 정보를 간단히 입력하면, 이메일/문서에 바로 붙여 쓸 수 있는
-      “안내 텍스트 초안”을 자동으로 만들어 주는 안내서 도구입니다.
-      (저장: 브라우저 localStorage)
+  <div class="app-shell">
+    <div class="app-frame">
+      <header>
+        <div class="title-block">
+          <div class="app-title">
+            1번 도구 · 고객 자동화 안내서
+            <span class="badge-main">고객별 워드/메일용 안내서 · 로컬 자동화</span>
+          </div>
+          <div class="app-subtitle">
+            연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인
+            자동 안내서 초안을 만들어 주고, 후속 조치 체크리스트도 같이 관리합니다.
+          </div>
+          <div class="tag-row">
+            <div class="tag">
+              <span class="tag-dot"></span>
+              Local-only · Safe DOM · v1.0
+            </div>
+            <div class="tag">
+              <span class="tag-dot"></span>
+              저장: 이 브라우저의 localStorage만 사용
+            </div>
+            <div class="tag">
+              <span class="tag-dot"></span>
+              화면에 보이는 기능만 동작 (서버/타이머 없음)
+            </div>
+          </div>
+        </div>
+        <div class="header-stats">
+          <div class="stat-card">
+            <div class="stat-label">누적 안내서 생성</div>
+            <div class="stat-value" id="statTotalGuides">0</div>
+            <div class="stat-pill">Generate count</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">오늘 만든 안내서</div>
+            <div class="stat-value" id="statTodayGuides">0</div>
+            <div class="stat-pill">Today</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">마지막 생성 시각</div>
+            <div class="stat-value" style="font-size:13px" id="statLastTime">-</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout-main">
+        <!-- 왼쪽: 고객 정보 + 옵션 -->
+        <section class="column">
+          <article class="card" aria-label="고객 기본 정보">
+            <div class="card-header">
+              <div>
+                <div class="card-title">A. 고객 기본 정보</div>
+                <div class="card-subtitle">
+                  엑셀 고객DB에서 옮겨 적는 것을 기준으로, 안내서에 필수로 들어가는 기본 필드입니다.
+                </div>
+              </div>
+              <div class="badge">필수: 이름 또는 기관 중 1개 이상</div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">고객 이름</div>
+                    <div class="field-hint">예: 홍길동</div>
+                  </div>
+                  <input id="inputName" type="text" placeholder="고객 이름" autocomplete="off" />
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">직함 / 직위</div>
+                    <div class="field-hint">예: 박사 / 책임연구원</div>
+                  </div>
+                  <input id="inputTitle" type="text" placeholder="직함 / 직위" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">기관 / 회사</div>
+                    <div class="field-hint">예: KIST / KITECH</div>
+                  </div>
+                  <input id="inputOrg" type="text" placeholder="기관 / 회사 이름" autocomplete="off" />
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">부서 / 연구실</div>
+                    <div class="field-hint">예: 소재부품연구부</div>
+                  </div>
+                  <input id="inputDept" type="text" placeholder="부서 / 연구실" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">연구 / 관심 분야</div>
+                    <div class="field-hint">예: 반도체 패키징 접착제</div>
+                  </div>
+                  <input id="inputField" type="text" placeholder="연구 / 관심 키워드 한 줄" autocomplete="off" />
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">예상 예산 / 연구비</div>
+                    <div class="field-hint">예: 연 1,200만원</div>
+                  </div>
+                  <input id="inputBudget" type="text" placeholder="예: 1,200만원 수준" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">이메일</div>
+                    <div class="field-hint">선택</div>
+                  </div>
+                  <input id="inputEmail" type="email" placeholder="example@org.re.kr" autocomplete="off" />
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">내 메모 (짧게)</div>
+                    <div class="field-hint">예: 기존 고객 / 예산 있음</div>
+                  </div>
+                  <input id="inputShortNote" type="text" placeholder="안내서에 간단히 반영할 메모" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="status-strip">
+                <span class="status-pill neutral" id="basicStatus">
+                  <span class="status-dot"></span>
+                  기본 정보 상태: 대기 중
+                </span>
+                <span class="small-text">
+                  이름·기관·연구분야는 안내서 인사말, 본문 요약에 자동 반영됩니다.
+                </span>
+              </div>
+              <div id="basicError" class="error-text">고객 이름 또는 기관 중 하나는 반드시 입력해야 합니다.</div>
+            </div>
+          </article>
+
+          <article class="card" aria-label="안내서 옵션">
+            <div class="card-header">
+              <div>
+                <div class="card-title">B. 안내서 옵션 · 보고서 목록</div>
+                <div class="card-subtitle">
+                  신규 문의 / 기존 고객 / 재문의 상황에 따라, 템플릿 구조와 톤이 달라집니다.
+                </div>
+              </div>
+              <div class="badge badge-accent">안내서 구조 자동 조합</div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">안내서 유형</div>
+                    <div class="field-hint">상황 선택</div>
+                  </div>
+                  <select id="selectGuideType">
+                    <option value="new">신규 문의 / 첫 안내</option>
+                    <option value="follow">후속 안내 / 재문의</option>
+                    <option value="renew">정기 안내 / 업데이트</option>
+                  </select>
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">문체 / 톤</div>
+                    <div class="field-hint">예: 연구자 대상 존댓말</div>
+                  </div>
+                  <select id="selectTone">
+                    <option value="standard">연구자용 정중한 톤</option>
+                    <option value="soft">조금 부드러운 톤</option>
+                    <option value="brief">간단 요약용 톤</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">핵심 키워드 (콤마 구분)</div>
+                    <div class="field-hint">예: 글라스 서브스트레이트, 접착제</div>
+                  </div>
+                  <input id="inputKeywords" type="text" placeholder="키워드1, 키워드2, ..." autocomplete="off" />
+                </div>
+                <div class="field field-half">
+                  <div class="field-label-row">
+                    <div class="field-label">예상 사용 채널</div>
+                    <div class="field-hint">메일 / 워드 / PDF</div>
+                  </div>
+                  <select id="selectChannel">
+                    <option value="email">이메일 본문용</option>
+                    <option value="word">워드 안내서 문서용</option>
+                    <option value="both">메일 + 워드 둘 다</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="field-label-row">
+                  <div class="field-label">보고서 / 자료 목록</div>
+                  <div class="field-hint">한 줄당 1개 · 제목만 적으면 번호 매김</div>
+                </div>
+                <textarea id="inputReports" placeholder="예시)
+Glass Substrate for Advanced Packaging 2025
+Semiconductor Packaging Adhesives: Global Market 2024
+고기능 접착제·실란트 세계시장 2023"></textarea>
+              </div>
+
+              <div class="field">
+                <div class="field-label-row">
+                  <div class="field-label">고객 상세 메모 (안내서 본문 반영)</div>
+                  <div class="field-hint">전화 내용, 예산, 원하는 포인트 등 자유 입력</div>
+                </div>
+                <textarea id="inputLongMemo" placeholder="예)
+- 최근 패키징용 유리기판 관련 중장기 로드맵 수립 중
+- 국내·해외 업체 동향, 공정별 기술 포인트, 비용·투자 규모 데이터 필요
+- 기한: 다음 달 예산 집행 전까지"></textarea>
+              </div>
+
+              <div class="btn-row">
+                <button type="button" class="btn-primary" id="btnGenerateGuide">
+                  <span class="icon">⚙️</span>
+                  자동 안내서 초안 생성
+                </button>
+                <button type="button" class="btn-soft" id="btnAppendMemo">
+                  <span class="icon">➕</span>
+                  메모를 안내서에 덧붙이기
+                </button>
+                <button type="button" class="btn-soft" id="btnResetInputs">
+                  <span class="icon">🧹</span>
+                  입력 내용 초기화
+                </button>
+              </div>
+
+              <div class="status-strip">
+                <span class="status-pill neutral" id="optionStatus">
+                  <span class="status-dot"></span>
+                  옵션 상태: 기본값 사용 중
+                </span>
+                <span class="small-text">
+                  안내서 생성 후에도 옵션을 바꿔 다시 생성할 수 있습니다.
+                </span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- 오른쪽: 미리보기 + 후속조치 -->
+        <section class="column">
+          <article class="card" aria-label="자동 안내서 미리보기">
+            <div class="card-header">
+              <div class="preview-header-row">
+                <div>
+                  <div class="card-title">C. 자동 안내서 미리보기</div>
+                  <div class="card-subtitle">
+                    인사·소개·맞춤 제안·후속 안내까지 한 번에 붙여 넣을 수 있는 구조입니다.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="preview-toggle-row">
+                <div class="pill-toggle active" id="toggleViewFormatted">
+                  <span class="icon">📄</span>
+                  안내서 형식 보기
+                </div>
+                <div class="pill-toggle" id="toggleViewPlain">
+                  <span class="icon">📋</span>
+                  순수 텍스트 보기 (복사용)
+                </div>
+                <div class="btn-row" style="margin-left:auto; margin-top:0;">
+                  <button type="button" class="btn-soft" id="btnCopyGuide">
+                    <span class="icon">📎</span>
+                    클립보드 복사
+                  </button>
+                  <button type="button" class="btn-soft" id="btnInsertWordMarkers">
+                    <span class="icon">📝</span>
+                    워드 구분선 추가
+                  </button>
+                </div>
+              </div>
+
+              <div id="guidePreviewBox" class="preview-box">
+                <div class="preview-empty">
+                  아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
+                  <strong>「자동 안내서 초안 생성」</strong> 버튼을 눌러 주세요.
+                </div>
+              </div>
+
+              <textarea id="guidePlainText" class="textarea-plain" readonly></textarea>
+
+              <div class="status-strip">
+                <span class="status-pill neutral" id="guideStatus">
+                  <span class="status-dot"></span>
+                  안내서 상태: 아직 생성 전
+                </span>
+                <span class="small-text" id="guideMetaText">
+                  이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다.
+                </span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" aria-label="후속 조치 체크리스트">
+            <div class="card-header">
+              <div>
+                <div class="card-title">D. 후속 조치 · Follow-up 체크리스트</div>
+                <div class="card-subtitle">
+                  안내서와 연결된 전화 / 메일 / 견적 / 입찰 등 후속 행동을 한 화면에서 관리합니다.
+                </div>
+              </div>
+              <div class="badge">고객 단위 로컬 체크리스트</div>
+            </div>
+            <div class="card-body">
+              <div class="grid-followup">
+                <div class="column" style="gap:6px;">
+                  <div class="check-row">
+                    <input id="chkCall" type="checkbox" />
+                    <label for="chkCall">전화 상담 예정</label>
+                    <input id="dateCall" type="date" />
+                  </div>
+                  <div class="check-row">
+                    <input id="chkEmail" type="checkbox" />
+                    <label for="chkEmail">안내 메일 발송 / 회신 대기</label>
+                    <input id="dateEmail" type="date" />
+                  </div>
+                  <div class="check-row">
+                    <input id="chkQuote" type="checkbox" />
+                    <label for="chkQuote">공식 견적서 / 인보이스 발송</label>
+                    <input id="dateQuote" type="date" />
+                  </div>
+                  <div class="check-row">
+                    <input id="chkBidding" type="checkbox" />
+                    <label for="chkBidding">입찰 / 조달 등록 준비</label>
+                    <input id="dateBidding" type="date" />
+                  </div>
+                </div>
+                <div class="column" style="gap:6px;">
+                  <div class="field">
+                    <div class="field-label-row">
+                      <div class="field-label">추가 메모 (후속 조치용)</div>
+                      <div class="field-hint">예: 입찰 마감일 / 내부 결재 일정</div>
+                    </div>
+                    <textarea id="inputFollowupMemo" placeholder="예)
+- KISTI 조달 등록 필요 여부 확인
+- 내부 결재라인: 팀장 → 본부장
+- 예산 집행 기한: 1월 말까지"></textarea>
+                  </div>
+                  <div class="followup-summary" id="followupSummary">
+                    <strong>다음 할 일 요약:</strong> 체크리스트를 선택하면 여기 한 줄로 정리됩니다.
+                  </div>
+                </div>
+              </div>
+
+              <div class="btn-row">
+                <button type="button" class="btn-primary" id="btnSaveFollowup">
+                  <span class="icon">💾</span>
+                  후속 조치 상태 저장
+                </button>
+                <button type="button" class="btn-soft" id="btnRefreshFollowup">
+                  <span class="icon">🔄</span>
+                  요약 다시 계산
+                </button>
+                <button type="button" class="btn-danger" id="btnClearFollowup">
+                  <span class="icon">♻️</span>
+                  체크리스트 초기화
+                </button>
+              </div>
+
+              <div class="status-strip">
+                <span class="status-pill neutral" id="followupStatus">
+                  <span class="status-dot"></span>
+                  후속 조치 상태: 미저장
+                </span>
+                <span class="small-text">
+                  체크리스트와 메모는 이 브라우저의 localStorage에만 저장됩니다.
+                </span>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer>
+        <div>
+          <span>Local-only / Static · </span>public/index.html · 고객 자동화 안내서 v1.0
+        </div>
+      </footer>
     </div>
+  </div>
 
-    <div class="grid">
-      <!-- 입력 영역 -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            1. 고객 & 보고서 정보 입력
-          </div>
-          <div class="pill">입력 → 오른쪽 초안 생성</div>
-        </div>
+  <script>
+    (function () {
+      "use strict";
 
-        <label for="customerName">고객 이름 / 기관명 *</label>
-        <input id="customerName" type="text" placeholder="예: KIST 세종 분원 김박사님" />
-
-        <label for="customerType">고객 유형 *</label>
-        <select id="customerType">
-          <option value="">선택</option>
-          <option value="natlab">국책연구소</option>
-          <option value="rnd">기업 R&D / 기술연구소</option>
-          <option value="univ">대학 연구실</option>
-          <option value="company">일반 기업 / 구매팀</option>
-          <option value="other">기타</option>
-        </select>
-
-        <div class="row">
-          <div>
-            <label for="reportTitle">보고서 제목 / 키워드 *</label>
-            <input id="reportTitle" type="text" placeholder="예: 2026년 글로벌 글라스 서브스트레이트 시장" />
-          </div>
-          <div>
-            <label for="publisher">발행사 (선택)</label>
-            <input id="publisher" type="text" placeholder="예: Fuji Keizai, MarketsandMarkets..." />
-          </div>
-        </div>
-
-        <label for="focus">관심 분야 / 키워드 (쉼표로 구분)</label>
-        <input id="focus" type="text" placeholder="예: 글라스 서브스트레이트, 반도체 패키징" />
-
-        <div class="row">
-          <div>
-            <label for="channel">안내 채널 *</label>
-            <select id="channel">
-              <option value="">선택</option>
-              <option value="email">이메일</option>
-              <option value="word">워드 안내문</option>
-              <option value="phone">전화 안내 스크립트</option>
-            </select>
-          </div>
-          <div>
-            <label for="tone">톤 & 스타일</label>
-            <select id="tone">
-              <option value="basic">기본·차분</option>
-              <option value="formal">공식적·격식</option>
-              <option value="simple">짧고 간단</option>
-            </select>
-          </div>
-        </div>
-
-        <label for="note">내부 메모 (출력에는 안 나옴)</label>
-        <textarea id="note" placeholder="예: 예산 1,200만 원, 입찰 일정 3월 예정 등"></textarea>
-
-        <div class="btn-row">
-          <button type="button" class="primary" id="btn-generate">
-            ▶ 안내 텍스트 생성
-          </button>
-          <button type="button" class="outline small" id="btn-example">
-            예시 채우기
-          </button>
-          <button type="button" class="outline small" id="btn-clear">
-            입력 초기화
-          </button>
-          <button type="button" class="outline small" id="btn-save">
-            현재 입력 저장
-          </button>
-          <button type="button" class="outline small" id="btn-load">
-            마지막 입력 불러오기
-          </button>
-        </div>
-      </div>
-
-      <!-- 출력 영역 -->
-      <div class="card">
-        <div class="output-header">
-          <div class="card-title">2. 안내 텍스트 초안</div>
-          <div class="btn-row">
-            <button type="button" class="outline small" id="btn-copy">
-              📋 전체 복사
-            </button>
-          </div>
-        </div>
-
-        <div class="tag-row" id="tagRow">
-          <span class="tag">채널: -</span>
-          <span class="tag">톤: -</span>
-          <span class="tag">고객 유형: -</span>
-        </div>
-
-        <div id="output" class="output-box">
-아직 생성된 안내 문구가 없습니다.
-왼쪽 필수 항목을 채운 뒤 [안내 텍스트 생성] 버튼을 눌러 보세요.
-        </div>
-
-        <div class="status-bar">
-          <div class="status-pill" id="statusSaved">저장 상태: -</div>
-          <div>Local-only · Safe DOM · index.html 하나로만 동작</div>
-        </div>
-
-        <div class="footer">
-          <div>01번 Auto Guide v1 · 브라우저를 새로 열어도 마지막 입력 1세트는 자동 복원됩니다.</div>
-          <div>localStorage key: wic_auto_guide_v1_state</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 아주 간단한 JS: 서버·타이머 없음 -->
-    <script>
-      const STORAGE_KEY = "wic_auto_guide_v1_state";
+      const STORAGE_KEY_STATE = "wic_customer_guide_state_v1";
+      const STORAGE_KEY_STATS = "wic_customer_guide_stats_v1";
+      const STORAGE_KEY_FOLLOWUP = "wic_customer_guide_followup_v1";
 
       const $ = (id) => document.getElementById(id);
 
-      const fields = [
-        "customerName",
-        "customerType",
-        "reportTitle",
-        "publisher",
-        "focus",
-        "channel",
-        "tone",
-        "note"
-      ];
+      const inputName = $("inputName");
+      const inputTitle = $("inputTitle");
+      const inputOrg = $("inputOrg");
+      const inputDept = $("inputDept");
+      const inputField = $("inputField");
+      const inputBudget = $("inputBudget");
+      const inputEmail = $("inputEmail");
+      const inputShortNote = $("inputShortNote");
 
-      function getState() {
-        const s = {};
-        for (const f of fields) {
-          s[f] = $(f).value || "";
-        }
-        return s;
+      const selectGuideType = $("selectGuideType");
+      const selectTone = $("selectTone");
+      const selectChannel = $("selectChannel");
+      const inputKeywords = $("inputKeywords");
+      const inputReports = $("inputReports");
+      const inputLongMemo = $("inputLongMemo");
+
+      const btnGenerateGuide = $("btnGenerateGuide");
+      const btnAppendMemo = $("btnAppendMemo");
+      const btnResetInputs = $("btnResetInputs");
+
+      const basicStatus = $("basicStatus");
+      const basicError = $("basicError");
+      const optionStatus = $("optionStatus");
+
+      const guidePreviewBox = $("guidePreviewBox");
+      const guidePlainText = $("guidePlainText");
+      const guideStatus = $("guideStatus");
+      const guideMetaText = $("guideMetaText");
+      const btnCopyGuide = $("btnCopyGuide");
+      const btnInsertWordMarkers = $("btnInsertWordMarkers");
+
+      const toggleViewFormatted = $("toggleViewFormatted");
+      const toggleViewPlain = $("toggleViewPlain");
+
+      const statTotalGuides = $("statTotalGuides");
+      const statTodayGuides = $("statTodayGuides");
+      const statLastTime = $("statLastTime");
+
+      const chkCall = $("chkCall");
+      const chkEmail = $("chkEmail");
+      const chkQuote = $("chkQuote");
+      const chkBidding = $("chkBidding");
+      const dateCall = $("dateCall");
+      const dateEmail = $("dateEmail");
+      const dateQuote = $("dateQuote");
+      const dateBidding = $("dateBidding");
+      const inputFollowupMemo = $("inputFollowupMemo");
+      const followupSummary = $("followupSummary");
+      const followupStatus = $("followupStatus");
+
+      const btnSaveFollowup = $("btnSaveFollowup");
+      const btnRefreshFollowup = $("btnRefreshFollowup");
+      const btnClearFollowup = $("btnClearFollowup");
+
+      function isValidNonEmpty(str) {
+        return typeof str === "string" && str.trim().length > 0;
       }
 
-      function setState(s) {
-        for (const f of fields) {
-          if (s && Object.prototype.hasOwnProperty.call(s, f)) {
-            $(f).value = s[f] ?? "";
-          }
+      function setStatusPill(pillEl, type, text) {
+        if (!pillEl) return;
+        pillEl.textContent = "";
+        const dot = document.createElement("span");
+        dot.className = "status-dot";
+        if (type === "warn") dot.classList.add("warn");
+        if (type === "error") dot.classList.add("error");
+        const spanText = document.createElement("span");
+        spanText.textContent = text;
+
+        pillEl.className = "status-pill";
+        if (type === "ok") {
+          pillEl.classList.add("ok");
+        } else if (type === "warn") {
+          pillEl.classList.add("warn");
+        } else if (type === "error") {
+          pillEl.classList.add("error");
+        } else {
+          pillEl.classList.add("neutral");
         }
+        pillEl.appendChild(dot);
+        pillEl.appendChild(spanText);
       }
 
-      function saveState(manual = false) {
-        const s = getState();
+      function formatDateTime(dt) {
+        const d = dt instanceof Date ? dt : new Date(dt);
+        if (Number.isNaN(d.getTime())) return "-";
+        const pad = (n) => String(n).padStart(2, "0");
+        return (
+          d.getFullYear() +
+          "-" +
+          pad(d.getMonth() + 1) +
+          "-" +
+          pad(d.getDate()) +
+          " " +
+          pad(d.getHours()) +
+          ":" +
+          pad(d.getMinutes())
+        );
+      }
+
+      function parseJSONSafe(value, fallback) {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-          $("statusSaved").textContent =
-            "저장 상태: 마지막 입력 자동 저장 완료" + (manual ? " (수동 저장)" : "");
+          if (!value) return fallback;
+          const parsed = JSON.parse(value);
+          return typeof parsed === "object" && parsed !== null ? parsed : fallback;
         } catch (e) {
-          $("statusSaved").textContent = "저장 상태: 저장 실패 (localStorage 용량 확인 필요)";
+          return fallback;
         }
       }
 
-      function loadState(showMessage = true) {
+      function saveState() {
+        const state = {
+          customer: {
+            name: inputName.value || "",
+            title: inputTitle.value || "",
+            org: inputOrg.value || "",
+            dept: inputDept.value || "",
+            field: inputField.value || "",
+            budget: inputBudget.value || "",
+            email: inputEmail.value || "",
+            shortNote: inputShortNote.value || ""
+          },
+          options: {
+            guideType: selectGuideType.value,
+            tone: selectTone.value,
+            channel: selectChannel.value,
+            keywords: inputKeywords.value || ""
+          },
+          reportsText: inputReports.value || "",
+          memoText: inputLongMemo.value || "",
+          guideText: guidePlainText.value || ""
+        };
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) {
-            if (showMessage) {
-              $("statusSaved").textContent = "저장 상태: 저장된 입력 없음";
-            }
-            return;
+          localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(state));
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_STATE);
+          if (!raw) return;
+          const state = parseJSONSafe(raw, null);
+          if (!state) return;
+
+          if (state.customer) {
+            inputName.value = state.customer.name || "";
+            inputTitle.value = state.customer.title || "";
+            inputOrg.value = state.customer.org || "";
+            inputDept.value = state.customer.dept || "";
+            inputField.value = state.customer.field || "";
+            inputBudget.value = state.customer.budget || "";
+            inputEmail.value = state.customer.email || "";
+            inputShortNote.value = state.customer.shortNote || "";
           }
-          const s = JSON.parse(raw);
-          setState(s);
-          if (showMessage) {
-            $("statusSaved").textContent = "저장 상태: 마지막 입력 불러오기 완료";
+          if (state.options) {
+            if (state.options.guideType) selectGuideType.value = state.options.guideType;
+            if (state.options.tone) selectTone.value = state.options.tone;
+            if (state.options.channel) selectChannel.value = state.options.channel;
+            inputKeywords.value = state.options.keywords || "";
+          }
+          inputReports.value = state.reportsText || "";
+          inputLongMemo.value = state.memoText || "";
+
+          if (isValidNonEmpty(state.guideText)) {
+            guidePlainText.value = state.guideText;
+            renderGuideFromPlain(state.guideText);
+            setStatusPill(guideStatus, "ok", "안내서 상태: 저장된 안내서를 불러왔습니다.");
           }
         } catch (e) {
-          $("statusSaved").textContent = "저장 상태: 불러오기 오류";
+          // ignore
         }
       }
 
-      function fillExample() {
-        $("customerName").value = "KIST 세종 분원 김박사님";
-        $("customerType").value = "natlab";
-        $("reportTitle").value =
-          "2026년 글로벌 반도체용 글라스 서브스트레이트 시장 보고서";
-        $("publisher").value = "Fuji Keizai";
-        $("focus").value = "글라스 서브스트레이트, 반도체 패키징, 첨단 패키지";
-        $("channel").value = "email";
-        $("tone").value = "basic";
-        $("note").value =
-          "최근 문의: 글라스 서브스트레이트 공정, 연구비 약 1,200만 원 규모 추정.";
-        saveState();
-      }
-
-      function clearInputs() {
-        for (const f of fields) {
-          $(f).value = "";
-        }
-        saveState();
-      }
-
-      function humanCustomerType(v) {
-        switch (v) {
-          case "natlab":
-            return "국책연구소";
-          case "rnd":
-            return "기업 R&D / 기술연구소";
-          case "univ":
-            return "대학 연구실";
-          case "company":
-            return "일반 기업 / 구매팀";
-          case "other":
-            return "기타";
-          default:
-            return "-";
+      function saveStats(newStats) {
+        try {
+          localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(newStats));
+        } catch (e) {
+          // ignore
         }
       }
 
-      function humanChannel(v) {
-        switch (v) {
-          case "email":
-            return "이메일";
-          case "word":
-            return "워드 안내문";
-          case "phone":
-            return "전화 안내 스크립트";
-          default:
-            return "-";
+      function loadStats() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_STATS);
+          if (!raw) return null;
+          return parseJSONSafe(raw, null);
+        } catch (e) {
+          return null;
         }
       }
 
-      function humanTone(v) {
-        switch (v) {
-          case "basic":
-            return "기본·차분";
-          case "formal":
-            return "공식적·격식";
-          case "simple":
-            return "짧고 간단";
-          default:
-            return "-";
+      function updateStatsOnGenerate() {
+        const now = new Date();
+        const todayKey = now.toISOString().slice(0, 10);
+        let stats = loadStats();
+        if (!stats) {
+          stats = {
+            totalGuides: 0,
+            todayGuides: 0,
+            todayKey: todayKey,
+            lastGeneratedAt: null
+          };
+        }
+        stats.totalGuides += 1;
+        if (stats.todayKey !== todayKey) {
+          stats.todayGuides = 0;
+          stats.todayKey = todayKey;
+        }
+        stats.todayGuides += 1;
+        stats.lastGeneratedAt = now.toISOString();
+        saveStats(stats);
+        applyStatsToUI(stats);
+      }
+
+      function applyStatsToUI(stats) {
+        if (!stats) return;
+        statTotalGuides.textContent = String(stats.totalGuides || 0);
+        statTodayGuides.textContent = String(stats.todayGuides || 0);
+        if (stats.lastGeneratedAt) {
+          statLastTime.textContent = formatDateTime(stats.lastGeneratedAt);
+        } else {
+          statLastTime.textContent = "-";
         }
       }
 
-      function generateText() {
-        const s = getState();
+      function loadAndApplyStats() {
+        const stats = loadStats();
+        if (!stats) return;
+        applyStatsToUI(stats);
+      }
 
-        if (!s.customerName.trim() || !s.reportTitle.trim() || !s.customerType || !s.channel) {
-          $("output").textContent =
-            "[필수 항목 누락]\n\n"고객 이름/기관명, 고객 유형, 보고서 제목, 안내 채널"은 꼭 채워 주세요.";
+      function loadFollowup() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_FOLLOWUP);
+          if (!raw) return;
+          const data = parseJSONSafe(raw, null);
+          if (!data) return;
+          chkCall.checked = !!data.chkCall;
+          chkEmail.checked = !!data.chkEmail;
+          chkQuote.checked = !!data.chkQuote;
+          chkBidding.checked = !!data.chkBidding;
+          dateCall.value = data.dateCall || "";
+          dateEmail.value = data.dateEmail || "";
+          dateQuote.value = data.dateQuote || "";
+          dateBidding.value = data.dateBidding || "";
+          inputFollowupMemo.value = data.memo || "";
+          refreshFollowupSummary();
+          setStatusPill(followupStatus, "ok", "후속 조치 상태: 저장된 정보를 불러왔습니다.");
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function saveFollowup() {
+        const data = {
+          chkCall: chkCall.checked,
+          chkEmail: chkEmail.checked,
+          chkQuote: chkQuote.checked,
+          chkBidding: chkBidding.checked,
+          dateCall: dateCall.value || "",
+          dateEmail: dateEmail.value || "",
+          dateQuote: dateQuote.value || "",
+          dateBidding: dateBidding.value || "",
+          memo: inputFollowupMemo.value || "",
+          updatedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY_FOLLOWUP, JSON.stringify(data));
+        } catch (e) {
+          // ignore
+        }
+        refreshFollowupSummary();
+        setStatusPill(followupStatus, "ok", "후속 조치 상태: 저장 완료");
+      }
+
+      function clearFollowup() {
+        chkCall.checked = false;
+        chkEmail.checked = false;
+        chkQuote.checked = false;
+        chkBidding.checked = false;
+        dateCall.value = "";
+        dateEmail.value = "";
+        dateQuote.value = "";
+        dateBidding.value = "";
+        inputFollowupMemo.value = "";
+        followupSummary.innerHTML =
+          "<strong>다음 할 일 요약:</strong> 체크리스트를 선택하면 여기 한 줄로 정리됩니다.";
+        setStatusPill(followupStatus, "warn", "후속 조치 상태: 초기화됨 (저장 필요)");
+        try {
+          localStorage.removeItem(STORAGE_KEY_FOLLOWUP);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function refreshFollowupSummary() {
+        const items = [];
+        if (chkCall.checked) {
+          items.push("전화 상담 (" + (dateCall.value || "일정 미정") + ")");
+        }
+        if (chkEmail.checked) {
+          items.push("안내 메일/회신 (" + (dateEmail.value || "일정 미정") + ")");
+        }
+        if (chkQuote.checked) {
+          items.push("견적/인보이스 (" + (dateQuote.value || "일정 미정") + ")");
+        }
+        if (chkBidding.checked) {
+          items.push("입찰/조달 (" + (dateBidding.value || "일정 미정") + ")");
+        }
+
+        const memo = inputFollowupMemo.value.trim();
+        if (!items.length && !memo) {
+          followupSummary.innerHTML =
+            "<strong>다음 할 일 요약:</strong> 체크리스트를 선택하면 여기 한 줄로 정리됩니다.";
           return;
         }
 
-        const channelLabel = humanChannel(s.channel);
-        const toneLabel = humanTone(s.tone);
-        const typeLabel = humanCustomerType(s.customerType);
+        const parts = [];
+        if (items.length) {
+          parts.push("<strong>다음 할 일:</strong> " + items.join(", "));
+        }
+        if (memo) {
+          parts.push("<strong>메모:</strong> " + memo.replace(/\n+/g, " / "));
+        }
+        followupSummary.innerHTML = parts.join("<br>");
+      }
 
-        const publisherPart = s.publisher
-          ? ` (${s.publisher} 발행)`
-          : "";
+      function getCustomerSummary() {
+        const name = inputName.value.trim();
+        const title = inputTitle.value.trim();
+        const org = inputOrg.value.trim();
+        const dept = inputDept.value.trim();
+        const field = inputField.value.trim();
+        const budget = inputBudget.value.trim();
+        const shortNote = inputShortNote.value.trim();
 
-        const focusPart = s.focus
-          ? `\n\n주요 관심 키워드로는 ${s.focus} 등을 중심으로 정리해 두었습니다.`
-          : "";
+        const hasBasic = isValidNonEmpty(name) || isValidNonEmpty(org);
+        if (!hasBasic) {
+          basicError.classList.add("visible");
+          setStatusPill(
+            basicStatus,
+            "error",
+            "기본 정보 상태: 이름 또는 기관이 비어 있어 안내서 생성이 불가합니다."
+          );
+          return null;
+        }
+        basicError.classList.remove("visible");
+        setStatusPill(
+          basicStatus,
+          "ok",
+          "기본 정보 상태: 안내서 생성에 필요한 최소 정보가 입력되었습니다."
+        );
 
-        const notePart = s.note
-          ? `\n\n[내부 메모]\n${s.note}`
-          : "";
-
-        let intro;
-        if (s.channel === "email") {
-          intro = `${s.customerName}께,\n\n항상 연구와 업무에 수고가 많으십니다.`;
-        } else if (s.channel === "word") {
-          intro = `${s.customerName} 대상 보고서 안내문 초안입니다.\n`;
-        } else {
-          intro = `${s.customerName} 안내용 전화 스크립트 초안입니다.\n`;
+        const lines = [];
+        if (name || org) {
+          let line = "";
+          if (org) line += org;
+          if (dept) line += (line ? " " : "") + dept;
+          if (name) line += (line ? " " : "") + name + " " + (title || "선생님");
+          lines.push(line);
+        }
+        if (field) {
+          lines.push("연구/관심 분야: " + field);
+        }
+        if (budget) {
+          lines.push("예상 예산/연구비: " + budget);
+        }
+        if (shortNote) {
+          lines.push("내 메모: " + shortNote);
         }
 
-        let main =
-          `이번에 안내드리는 자료는\n“${s.reportTitle}”${publisherPart} 입니다.\n\n` +
-          `주요 고객군은 ${typeLabel}에 해당하며, ${s.customerName}께서 진행 중이신 연구·사업 방향과도 관련성이 높은 주제입니다.${focusPart}\n`;
-
-        let closing;
-        if (s.channel === "email") {
-          closing =
-            `\n관심이 있으시다면 목차와 개략적인 내용, 견적서를 함께 보내드리겠습니다.\n` +
-            `검토 후 편하신 시간에 연락 주시면 자세히 설명드리겠습니다.\n\n감사합니다.`;
-        } else if (s.channel === "word") {
-          closing =
-            `\n상기 보고서에 대한 보다 자세한 안내(목차, 샘플 페이지, 견적 등)가 필요하시면\n` +
-            `연락처 또는 이메일을 통해 언제든 문의해 주시기 바랍니다.\n`;
-        } else {
-          closing =
-            `\n전화 안내 시, 먼저 현재 진행 중인 연구 주제를 짧게 여쭙고,\n` +
-            `해당 보고서가 어떤 부분에서 도움이 될 수 있는지 1~2가지 포인트만 간단히 설명합니다.\n`;
-        }
-
-        const full =
-          `${intro}\n\n` +
-          `${main}\n` +
-          `${closing}` +
-          `${notePart}`;
-
-        $("output").textContent = full;
-
-        // 태그 갱신
-        const tagRow = $("tagRow");
-        tagRow.innerHTML = "";
-        const makeTag = (text) => {
-          const span = document.createElement("span");
-          span.className = "tag";
-          span.textContent = text;
-          return span;
+        return {
+          name: name,
+          title: title,
+          org: org,
+          dept: dept,
+          field: field,
+          budget: budget,
+          shortNote: shortNote,
+          lines: lines
         };
-        tagRow.appendChild(makeTag(`채널: ${channelLabel}`));
-        tagRow.appendChild(makeTag(`톤: ${toneLabel || "-"}`));
-        tagRow.appendChild(makeTag(`고객 유형: ${typeLabel}`));
       }
 
-      function copyOutput() {
-        const text = $("output").textContent || "";
-        if (!text.trim()) return;
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            $("statusSaved").textContent = "복사 완료: 안내 텍스트가 클립보드에 저장되었습니다.";
-          })
-          .catch(() => {
-            $("statusSaved").textContent = "복사 실패: 브라우저 권한을 확인해 주세요.";
+      function buildGuideText() {
+        const customer = getCustomerSummary();
+        if (!customer) return null;
+
+        const guideType = selectGuideType.value;
+        const tone = selectTone.value;
+        const channel = selectChannel.value;
+        const keywordsRaw = inputKeywords.value || "";
+        const keywords = keywordsRaw
+          .split(",")
+          .map((k) => k.trim())
+          .filter((k) => k.length > 0);
+        const reportsText = inputReports.value || "";
+        const reportLines = reportsText
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
+        const memo = inputLongMemo.value.trim();
+
+        const lines = [];
+
+        // 1) 인사말
+        let greetingName = "";
+        if (customer.org && customer.dept) {
+          greetingName = customer.org + " " + customer.dept;
+        } else if (customer.org) {
+          greetingName = customer.org;
+        }
+        if (customer.name) {
+          greetingName += (greetingName ? " " : "") + customer.name + " " + (customer.title || "선생님");
+        }
+
+        const baseGreeting =
+          tone === "soft"
+            ? "안녕하세요."
+            : tone === "brief"
+            ? "안녕하십니까."
+            : "안녕하십니까.";
+
+        if (greetingName) {
+          lines.push(baseGreeting + " " + greetingName + "");
+        } else {
+          lines.push(baseGreeting + " 월드산업정보센터 담당자입니다.");
+        }
+
+        // 2) 자기소개 + 상황 요약
+        const introLines = [];
+        if (guideType === "new") {
+          introLines.push(
+            "월드산업정보센터에서 " +
+              (customer.field || "관련 산업·기술") +
+              " 분야 해외 시장·기술 자료를 안내드리고 있는 담당자입니다."
+          );
+          introLines.push(
+            "연구·사업 기획에 활용하실 수 있는 최신 시장동향, 주요 업체·기술, 투자·규모 데이터 등을 정리한 자료를 중심으로 안내드립니다."
+          );
+        } else if (guideType === "follow") {
+          introLines.push(
+            "이전에 안내드렸던 자료와 " +
+              (customer.field || "연구") +
+              " 관련 추가 문의 주신 내용을 함께 반영하여 정리해 드립니다."
+          );
+          introLines.push(
+            "기존 검토 자료와 비교·보완이 가능하도록, 연속선상에서 활용하실 수 있는 보고서를 중심으로 구성하였습니다."
+          );
+        } else {
+          introLines.push(
+            "정기적으로 " +
+              (customer.field || "관심 분야") +
+              " 관련 해외 시장·기술 동향을 정리하여 안내드리고 있습니다."
+          );
+          introLines.push(
+            "이번에는 최근 1~2년 사이 업데이트된 내용 위주로, 기존 보고서와 연계하여 활용 가능한 자료들을 정리했습니다."
+          );
+        }
+
+        if (keywords.length) {
+          introLines.push("특히, " + keywords.join(", ") + " 등의 키워드를 중심으로 한 내용이 포함됩니다.");
+        }
+
+        if (customer.shortNote) {
+          introLines.push("내부 메모상 참고 사항: " + customer.shortNote + ".");
+        }
+
+        if (memo) {
+          introLines.push("고객 요청/상황 메모 요약: " + memo.replace(/\n+/g, " / "));
+        }
+
+        lines.push("");
+        lines.push("[1] 고객 상황 및 안내 목적");
+        introLines.forEach((l) => lines.push("· " + l));
+
+        // 3) 제안 보고서 / 자료 목록
+        lines.push("");
+        lines.push("[2] 제안 드리는 보고서 / 자료 목록");
+
+        if (reportLines.length) {
+          reportLines.forEach((title, idx) => {
+            const num = String(idx + 1).padStart(2, "0");
+            lines.push(num + ") " + title);
           });
+        } else {
+          lines.push("현재 고객 DB 기준으로 등록된 보고서 목록이 없어, 추후 확정되는 자료를 기준으로 다시 정리드립니다.");
+        }
+
+        lines.push(
+          "※ 각 보고서는 목차·요약본을 별도 파일(PDF) 또는 워드 문서로 제공해 드릴 수 있으며, 필요 시 일부 챕터 중심의 선택 검토도 가능합니다."
+        );
+
+        // 4) 활용 방법 / 예산 관련 안내
+        lines.push("");
+        lines.push("[3] 활용 방법 및 예산 관련 안내");
+
+        if (customer.budget) {
+          lines.push(
+            "· 예상 예산(" +
+              customer.budget +
+              ") 범위 내에서 최적의 조합을 제안드릴 수 있도록, 우선 순위가 높은 자료부터 검토를 진행하시면 좋습니다."
+          );
+        } else {
+          lines.push(
+            "· 연구과제 또는 부서 예산 범위에 맞춰, 필수 자료와 선택 자료를 구분하여 단계적으로 구매·활용하실 수 있습니다."
+          );
+        }
+
+        lines.push(
+          "· 연구 방향 설정, 중장기 로드맵 수립, 신규 사업 검토, 경쟁사·해외업체 벤치마킹 자료로 함께 활용 가능합니다."
+        );
+        lines.push(
+          "· 필요 시, 동일 주제의 다른 발행사 자료(경쟁·보완 가능한 타 보고서)도 비교 안내해 드릴 수 있습니다."
+        );
+
+        // 5) 후속 조치 / 응답 요청
+        lines.push("");
+        lines.push("[4] 후속 진행 및 필요 정보 안내");
+
+        if (channel === "email") {
+          lines.push(
+            "· 검토 후 관심 있으신 보고서(제목 또는 번호)를 메일 회신으로 알려주시면, 목차와 가격, 제공 방식(서적/PDF/데이터 등)을 다시 정리해 드리겠습니다."
+          );
+        } else if (channel === "word") {
+          lines.push(
+            "· 이 안내서는 워드/한글 문서 기준으로 작성되어 있으며, 내부 공유용으로 편집·추가 기입 후 사용하셔도 무방합니다."
+          );
+          lines.push(
+            "· 검토 후 내부에서 확정된 보고서 목록을 정리해 주시면, 별도 메일을 통해 견적서·인보이스 및 납품 일정을 안내드리겠습니다."
+          );
+        } else {
+          lines.push(
+            "· 메일 본문/워드 문서 어느 쪽으로 사용하셔도 되도록, 전체 내용을 한 번에 정리하였습니다."
+          );
+          lines.push(
+            "· 내부 검토 후 회신 주시면, 최종 확정된 보고서 목록 기준으로 견적·납품 등 후속 절차를 바로 진행하겠습니다."
+          );
+        }
+
+        lines.push(
+          "· 입찰 또는 조달 등록이 필요한 경우, 기관별 규정에 맞추어 등록 가능 여부 및 진행 절차도 함께 확인해 드립니다."
+        );
+
+        // 6) 마무리 인사
+        lines.push("");
+        lines.push("[5] 마무리 인사");
+
+        if (customer.org || customer.field) {
+          lines.push(
+            "언급해 주신 " +
+              (customer.field || "연구/사업") +
+              " 방향에 실제 도움이 될 수 있도록, 최신 자료 기준으로 계속 보완해 나가겠습니다."
+          );
+        } else {
+          lines.push(
+            "연구 및 사업 계획 수립에 직접 도움이 되실 수 있도록, 최신 자료 기준으로 계속 보완해 나가겠습니다."
+          );
+        }
+
+        lines.push(
+          "추가로 필요하신 주제나 자료가 있으시면 언제든지 편하게 말씀해 주시면 감사하겠습니다."
+        );
+        lines.push("");
+        lines.push("월드산업정보센터 드림");
+
+        return lines.join("\n");
       }
 
-      // 이벤트 연결
-      $("btn-example").addEventListener("click", () => {
-        fillExample();
-      });
-      $("btn-clear").addEventListener("click", () => {
-        clearInputs();
-        $("output").textContent =
-          "입력을 모두 지웠습니다.\n다시 정보를 채우고 [안내 텍스트 생성] 버튼을 눌러 주세요.";
-      });
-      $("btn-generate").addEventListener("click", () => {
-        generateText();
+      function renderGuideFromPlain(text) {
+        if (!isValidNonEmpty(text)) {
+          guidePreviewBox.innerHTML =
+            '<div class="preview-empty">아직 자동 안내서가 없습니다. 왼쪽에서 정보를 입력한 뒤 다시 생성해 주세요.</div>';
+          guidePlainText.value = "";
+          return;
+        }
+
+        const lines = text.split(/\r?\n/);
+        const container = document.createElement("div");
+        let currentSection = null;
+
+        function addSection(title) {
+          currentSection = document.createElement("div");
+          const h = document.createElement("div");
+          h.className = "guide-section-title";
+          h.textContent = title;
+          currentSection.appendChild(h);
+          container.appendChild(currentSection);
+        }
+
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            const br = document.createElement("div");
+            br.className = "guide-section-body";
+            br.innerHTML = "&nbsp;";
+            container.appendChild(br);
+            currentSection = null;
+            return;
+          }
+
+          const sectionMatch = trimmed.match(/^\[(\d+)\]\s*(.+)$/);
+          if (sectionMatch) {
+            addSection(sectionMatch[1] + ". " + sectionMatch[2]);
+            return;
+          }
+
+          const numMatch = trimmed.match(/^(\d{2})\)\s*(.+)$/);
+          if (numMatch) {
+            if (!currentSection) {
+              currentSection = document.createElement("div");
+              container.appendChild(currentSection);
+            }
+            const p = document.createElement("div");
+            p.className = "guide-section-body";
+            p.textContent = numMatch[1] + ") " + numMatch[2];
+            currentSection.appendChild(p);
+            return;
+          }
+
+          if (!currentSection) {
+            currentSection = document.createElement("div");
+            container.appendChild(currentSection);
+          }
+          const p = document.createElement("div");
+          p.className = "guide-section-body";
+          p.textContent = trimmed;
+          currentSection.appendChild(p);
+        });
+
+        guidePreviewBox.innerHTML = "";
+        guidePreviewBox.appendChild(container);
+      }
+
+      function generateGuide() {
+        const guideText = buildGuideText();
+        if (!guideText) return;
+
+        guidePlainText.value = guideText;
+        renderGuideFromPlain(guideText);
         saveState();
-      });
-      $("btn-save").addEventListener("click", () => {
-        saveState(true);
-      });
-      $("btn-load").addEventListener("click", () => {
-        loadState(true);
-      });
-      $("btn-copy").addEventListener("click", () => {
-        copyOutput();
+        updateStatsOnGenerate();
+
+        setStatusPill(guideStatus, "ok", "안내서 상태: 자동 생성 완료");
+        guideMetaText.textContent =
+          "자동 생성된 안내서는 이 브라우저 localStorage에 저장되며, 새로고침 후에도 유지됩니다.";
+      }
+
+      function appendMemoToGuide() {
+        const memo = inputLongMemo.value.trim();
+        if (!memo) {
+          setStatusPill(
+            guideStatus,
+            "warn",
+            "안내서 상태: 추가할 메모가 없습니다. 메모를 입력한 뒤 다시 시도해 주세요."
+          );
+          return;
+        }
+        let current = guidePlainText.value || "";
+        const addition = "\n\n[추가 메모]\n" + memo.replace(/\n+/g, "\n· ");
+        const updated = (current ? current + addition : addition).trim();
+        guidePlainText.value = updated;
+        renderGuideFromPlain(updated);
+        saveState();
+        setStatusPill(guideStatus, "ok", "안내서 상태: 메모를 본문에 추가했습니다.");
+      }
+
+      function resetInputs() {
+        inputName.value = "";
+        inputTitle.value = "";
+        inputOrg.value = "";
+        inputDept.value = "";
+        inputField.value = "";
+        inputBudget.value = "";
+        inputEmail.value = "";
+        inputShortNote.value = "";
+        inputKeywords.value = "";
+        inputReports.value = "";
+        inputLongMemo.value = "";
+        basicError.classList.remove("visible");
+        setStatusPill(basicStatus, "neutral", "기본 정보 상태: 대기 중");
+        setStatusPill(optionStatus, "neutral", "옵션 상태: 기본값 사용 중");
+        saveState();
+      }
+
+      function copyGuideToClipboard() {
+        const text = guidePlainText.value || "";
+        if (!text.trim()) {
+          setStatusPill(guideStatus, "warn", "안내서 상태: 복사할 내용이 없습니다.");
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(function () {
+              setStatusPill(guideStatus, "ok", "안내서 상태: 클립보드 복사 완료");
+            })
+            .catch(function () {
+              fallbackCopy(text);
+            });
+        } else {
+          fallbackCopy(text);
+        }
+      }
+
+      function fallbackCopy(text) {
+        const temp = document.createElement("textarea");
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        try {
+          document.execCommand("copy");
+          setStatusPill(guideStatus, "ok", "안내서 상태: 클립보드 복사 완료");
+        } catch (e) {
+          setStatusPill(guideStatus, "error", "안내서 상태: 복사 중 문제가 발생했습니다.");
+        }
+        document.body.removeChild(temp);
+      }
+
+      function insertWordMarkers() {
+        const text = guidePlainText.value || "";
+        if (!text.trim()) {
+          setStatusPill(
+            guideStatus,
+            "warn",
+            "안내서 상태: 워드 구분선을 추가할 안내서가 없습니다."
+          );
+          return;
+        }
+        const markerLine = "\n------------------------------------------------------------\n";
+        const enhanced = text + markerLine + "※ 위 안내서는 워드/한글 문서에 붙여 넣어 내·외부 공유용으로 활용 가능합니다.";
+        guidePlainText.value = enhanced;
+        renderGuideFromPlain(enhanced);
+        saveState();
+        setStatusPill(guideStatus, "ok", "안내서 상태: 워드 구분선을 추가했습니다.");
+      }
+
+      function switchToFormattedView() {
+        toggleViewFormatted.classList.add("active");
+        toggleViewPlain.classList.remove("active");
+        guidePreviewBox.style.display = "block";
+        guidePlainText.classList.remove("active");
+      }
+
+      function switchToPlainView() {
+        toggleViewPlain.classList.add("active");
+        toggleViewFormatted.classList.remove("active");
+        guidePreviewBox.style.display = "none";
+        guidePlainText.classList.add("active");
+      }
+
+      function onAnyInputChange() {
+        saveState();
+      }
+
+      function init() {
+        loadState();
+        loadAndApplyStats();
+        loadFollowup();
+        setStatusPill(basicStatus, "neutral", "기본 정보 상태: 대기 중");
+        setStatusPill(optionStatus, "neutral", "옵션 상태: 기본값 사용 중");
+      }
+
+      btnGenerateGuide.addEventListener("click", function () {
+        generateGuide();
       });
 
-      // 처음 로드 시 마지막 상태 자동 복원
-      loadState(false);
-    </script>
-  </div>
+      btnAppendMemo.addEventListener("click", function () {
+        appendMemoToGuide();
+      });
+
+      btnResetInputs.addEventListener("click", function () {
+        resetInputs();
+      });
+
+      btnCopyGuide.addEventListener("click", function () {
+        copyGuideToClipboard();
+      });
+
+      btnInsertWordMarkers.addEventListener("click", function () {
+        insertWordMarkers();
+      });
+
+      toggleViewFormatted.addEventListener("click", function () {
+        switchToFormattedView();
+      });
+
+      toggleViewPlain.addEventListener("click", function () {
+        switchToPlainView();
+      });
+
+      [
+        inputName,
+        inputTitle,
+        inputOrg,
+        inputDept,
+        inputField,
+        inputBudget,
+        inputEmail,
+        inputShortNote,
+        inputKeywords,
+        inputReports,
+        inputLongMemo,
+        selectGuideType,
+        selectTone,
+        selectChannel
+      ].forEach(function (el) {
+        el.addEventListener("input", onAnyInputChange);
+        el.addEventListener("change", onAnyInputChange);
+      });
+
+      btnSaveFollowup.addEventListener("click", function () {
+        saveFollowup();
+      });
+
+      btnRefreshFollowup.addEventListener("click", function () {
+        refreshFollowupSummary();
+      });
+
+      btnClearFollowup.addEventListener("click", function () {
+        clearFollowup();
+      });
+
+      [chkCall, chkEmail, chkQuote, chkBidding, dateCall, dateEmail, dateQuote, dateBidding, inputFollowupMemo].forEach(
+        function (el) {
+          el.addEventListener("change", function () {
+            refreshFollowupSummary();
+          });
+        }
+      );
+
+      document.addEventListener("DOMContentLoaded", function () {
+        init();
+      });
+    })();
+  </script>
 </body>
 </html>
