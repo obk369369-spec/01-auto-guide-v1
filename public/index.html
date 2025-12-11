@@ -2,1693 +2,581 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>1번 도구 - 고객 자동화 안내서 (WIC)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01번 도구 · Auto Guide v1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
     }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f4f5f7;
-      color: #222;
-    }
-
-    .app-root {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: #101827;
-      color: #f9fafb;
-      padding: 16px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-    }
-
-    header .title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    header p {
-      margin: 0;
-      font-size: 12px;
-      opacity: 0.75;
-    }
-
-    header .meta-info {
-      font-size: 11px;
-      opacity: 0.7;
-      text-align: right;
-    }
-
-    main {
-      flex: 1;
       padding: 16px;
-      max-width: 1280px;
-      width: 100%;
-      margin: 0 auto;
+      display: flex;
+      justify-content: center;
     }
-
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      background: #020617;
+      border-radius: 16px;
+      padding: 16px 20px 24px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 span.badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #22c55e1a;
+      color: #4ade80;
+      border: 1px solid #22c55e;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
     .grid {
       display: grid;
-      grid-template-columns: minmax(260px, 320px) minmax(260px, 360px) minmax(320px, 1fr);
-      gap: 12px;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 2fr);
+      gap: 16px;
     }
-
-    @media (max-width: 1024px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .panel-preview {
-        grid-column: 1 / -1;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      .panel-preview {
-        grid-column: auto;
-      }
-    }
-
     .card {
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 12px 12px 14px;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border: 1px solid #e5e7eb;
+      background: radial-gradient(circle at top left, #0f172a, #020617);
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+      padding: 14px 14px 16px;
     }
-
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
     }
-
     .card-title {
       font-size: 14px;
       font-weight: 600;
-      color: #111827;
-    }
-
-    .card-subtitle {
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .card-body {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 6px;
-      font-size: 12px;
     }
-
-    .section-label {
+    .pill {
       font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
       color: #9ca3af;
-      margin-bottom: 2px;
     }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .field-row {
-      display: flex;
-      gap: 6px;
-    }
-
-    .field-row > .field-group {
-      flex: 1;
-    }
-
     label {
-      font-size: 11px;
-      color: #374151;
+      font-size: 12px;
+      color: #9ca3af;
+      display: block;
+      margin-top: 8px;
+      margin-bottom: 4px;
     }
-
     input[type="text"],
-    input[type="email"],
-    input[type="search"],
+    input[type="number"],
     textarea,
     select {
       width: 100%;
-      padding: 6px 7px;
-      font-size: 12px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
+      font-size: 13px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
       outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-      background-color: #f9fafb;
     }
-
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="search"]:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
-      background-color: #ffffff;
-    }
-
     textarea {
       resize: vertical;
-      min-height: 72px;
-      max-height: 260px;
+      min-height: 56px;
+      max-height: 160px;
     }
-
-    .muted {
-      font-size: 11px;
-      color: #9ca3af;
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px #38bdf833;
     }
-
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    .row > div {
+      flex: 1;
+    }
     .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 10px;
     }
-
-    .btn {
-      border: none;
-      cursor: pointer;
+    button {
       border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 12px;
       padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
-      white-space: nowrap;
-      user-select: none;
-    }
-
-    .btn-primary {
-      background: #2563eb;
-      color: #f9fafb;
-      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.35);
-    }
-
-    .btn-primary:disabled {
-      background: #9ca3af;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: #fef2f2;
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: #374151;
-      border: 1px dashed #d1d5db;
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-0.5px);
-      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.2);
-    }
-
-    .btn:active:not(:disabled) {
-      transform: translateY(0.5px) scale(0.98);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
-    }
-
-    .pill {
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 10px;
-      background: #e5e7eb;
-      color: #374151;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .pill-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #10b981;
-    }
-
-    .customer-list {
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      max-height: 220px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .customer-list-header {
-      padding: 4px 8px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .customer-list-header span {
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .customer-list-body {
-      overflow-y: auto;
-    }
-
-    .customer-item {
-      padding: 6px 8px;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 11px;
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      background: #f9fafb;
-      transition: background-color 0.12s ease;
-    }
-
-    .customer-item:last-child {
-      border-bottom: none;
-    }
-
-    .customer-item:hover {
-      background: #e5f0ff;
-    }
-
-    .customer-item.selected {
-      background: #2563eb;
-      color: #f9fafb;
-    }
-
-    .customer-item.selected .customer-item-sub {
-      color: #d1fae5;
-    }
-
-    .customer-item-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
+      display: inline-flex;
+      align-items: center;
       gap: 4px;
     }
-
-    .customer-item-name {
+    button.primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border-color: transparent;
+      color: #020617;
       font-weight: 600;
     }
-
-    .customer-item-sub {
-      font-size: 10px;
-      color: #6b7280;
+    button.outline {
+      border-color: #4b5563;
+      color: #e5e7eb;
     }
-
-    .badge {
-      border-radius: 999px;
-      padding: 1px 6px;
-      font-size: 10px;
-      background: #eef2ff;
-      color: #3730a3;
+    button.small {
+      font-size: 11px;
+      padding: 4px 8px;
     }
-
-    .preview-box {
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      background: #fefefe;
-      padding: 8px;
-      min-height: 260px;
-      max-height: 520px;
-      overflow-y: auto;
-      font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 12px;
-      line-height: 1.6;
-      white-space: pre-wrap;
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
-
-    .preview-placeholder {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .stats-row {
+    .output-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      color: #9ca3af;
-      margin-top: 2px;
+      margin-bottom: 6px;
     }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #10b981;
-    }
-
-    .status-row {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .chip-row {
+    .tag-row {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      margin-top: 2px;
+      font-size: 11px;
+      color: #9ca3af;
     }
-
-    .chip {
-      font-size: 10px;
+    .tag {
       padding: 2px 6px;
       border-radius: 999px;
-      background: #eef2ff;
-      color: #4338ca;
+      border: 1px dashed #374151;
     }
-
-    .help-text {
+    .output-box {
+      background: #020617;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      font-size: 13px;
+      min-height: 180px;
+      max-height: 360px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .status-bar {
+      margin-top: 8px;
       font-size: 11px;
       color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-
-    .divider {
-      height: 1px;
-      margin: 4px 0;
-      background: #e5e7eb;
+    .status-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
     }
-
-    .readonly-input {
-      padding: 6px 7px;
+    .footer {
+      margin-top: 12px;
       font-size: 11px;
-      border-radius: 6px;
-      border: 1px dashed #d1d5db;
-      background: #f9fafb;
       color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .tagline {
-      font-size: 10px;
-      color: #9ca3af;
-      margin-top: -4px;
+    @media (max-width: 840px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="app-root">
-    <header>
-      <div class="title-group">
-        <h1>1번 도구 · 고객 자동화 안내서</h1>
-        <p>WIC 고객별 맞춤 안내문을 빠르게 생성하고 재사용하는 전용 모듈</p>
+  <div class="app">
+    <h1>
+      01번 도구 · Auto Guide v1
+      <span class="badge">Local-only · Safe DOM</span>
+    </h1>
+    <div class="subtitle">
+      고객·보고서 정보를 간단히 입력하면, 이메일/문서에 바로 붙여 쓸 수 있는
+      “안내 텍스트 초안”을 자동으로 만들어 주는 안내서 도구입니다.
+      (저장: 브라우저 localStorage)
+    </div>
+
+    <div class="grid">
+      <!-- 입력 영역 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            1. 고객 & 보고서 정보 입력
+          </div>
+          <div class="pill">입력 → 오른쪽 초안 생성</div>
+        </div>
+
+        <label for="customerName">고객 이름 / 기관명 *</label>
+        <input id="customerName" type="text" placeholder="예: KIST 세종 분원 김박사님" />
+
+        <label for="customerType">고객 유형 *</label>
+        <select id="customerType">
+          <option value="">선택</option>
+          <option value="natlab">국책연구소</option>
+          <option value="rnd">기업 R&D / 기술연구소</option>
+          <option value="univ">대학 연구실</option>
+          <option value="company">일반 기업 / 구매팀</option>
+          <option value="other">기타</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label for="reportTitle">보고서 제목 / 키워드 *</label>
+            <input id="reportTitle" type="text" placeholder="예: 2026년 글로벌 글라스 서브스트레이트 시장" />
+          </div>
+          <div>
+            <label for="publisher">발행사 (선택)</label>
+            <input id="publisher" type="text" placeholder="예: Fuji Keizai, MarketsandMarkets..." />
+          </div>
+        </div>
+
+        <label for="focus">관심 분야 / 키워드 (쉼표로 구분)</label>
+        <input id="focus" type="text" placeholder="예: 글라스 서브스트레이트, 반도체 패키징" />
+
+        <div class="row">
+          <div>
+            <label for="channel">안내 채널 *</label>
+            <select id="channel">
+              <option value="">선택</option>
+              <option value="email">이메일</option>
+              <option value="word">워드 안내문</option>
+              <option value="phone">전화 안내 스크립트</option>
+            </select>
+          </div>
+          <div>
+            <label for="tone">톤 & 스타일</label>
+            <select id="tone">
+              <option value="basic">기본·차분</option>
+              <option value="formal">공식적·격식</option>
+              <option value="simple">짧고 간단</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="note">내부 메모 (출력에는 안 나옴)</label>
+        <textarea id="note" placeholder="예: 예산 1,200만 원, 입찰 일정 3월 예정 등"></textarea>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-generate">
+            ▶ 안내 텍스트 생성
+          </button>
+          <button type="button" class="outline small" id="btn-example">
+            예시 채우기
+          </button>
+          <button type="button" class="outline small" id="btn-clear">
+            입력 초기화
+          </button>
+          <button type="button" class="outline small" id="btn-save">
+            현재 입력 저장
+          </button>
+          <button type="button" class="outline small" id="btn-load">
+            마지막 입력 불러오기
+          </button>
+        </div>
       </div>
-      <div class="meta-info">
-        <div>WIC 자동화 시스템 · public/index.html</div>
-        <div id="meta-version">v1.0 · Local-only · Safe DOM</div>
+
+      <!-- 출력 영역 -->
+      <div class="card">
+        <div class="output-header">
+          <div class="card-title">2. 안내 텍스트 초안</div>
+          <div class="btn-row">
+            <button type="button" class="outline small" id="btn-copy">
+              📋 전체 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="tag-row" id="tagRow">
+          <span class="tag">채널: -</span>
+          <span class="tag">톤: -</span>
+          <span class="tag">고객 유형: -</span>
+        </div>
+
+        <div id="output" class="output-box">
+아직 생성된 안내 문구가 없습니다.
+왼쪽 필수 항목을 채운 뒤 [안내 텍스트 생성] 버튼을 눌러 보세요.
+        </div>
+
+        <div class="status-bar">
+          <div class="status-pill" id="statusSaved">저장 상태: -</div>
+          <div>Local-only · Safe DOM · index.html 하나로만 동작</div>
+        </div>
+
+        <div class="footer">
+          <div>01번 Auto Guide v1 · 브라우저를 새로 열어도 마지막 입력 1세트는 자동 복원됩니다.</div>
+          <div>localStorage key: wic_auto_guide_v1_state</div>
+        </div>
       </div>
-    </header>
+    </div>
 
-    <main>
-      <div class="tagline">※ 이 화면에 보이는 것만 동작합니다. (저장: 브라우저 localStorage)</div>
-      <div class="grid" aria-label="고객 자동화 안내서 메인 레이아웃">
-        <!-- Left: 고객 관리 -->
-        <section class="card panel-customers" aria-label="고객 관리 패널">
-          <div class="card-header">
-            <div>
-              <div class="card-title">고객 관리</div>
-              <div class="card-subtitle">고객 카드 선택 → 안내서 자동 생성</div>
-            </div>
-            <div class="pill">
-              <span class="pill-dot"></span>
-              <span id="pill-customer-count">고객 0명</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="section-label">고객 목록</div>
-            <div class="customer-list" aria-label="고객 목록 리스트">
-              <div class="customer-list-header">
-                <span id="customer-list-label">선택된 고객 없음</span>
-                <span id="customer-list-count">0명</span>
-              </div>
-              <div class="customer-list-body" id="customer-list"></div>
-            </div>
+    <!-- 아주 간단한 JS: 서버·타이머 없음 -->
+    <script>
+      const STORAGE_KEY = "wic_auto_guide_v1_state";
 
-            <div class="field-group" style="margin-top:6px;">
-              <label for="customer-search">고객 검색 (이름/기관/관심)</label>
-              <input
-                id="customer-search"
-                type="search"
-                placeholder="예: KIST / 접착제 / 홍길동"
-                autocomplete="off"
-              />
-              <div class="help-text">검색어를 비우면 전체 고객이 다시 보입니다.</div>
-            </div>
+      const $ = (id) => document.getElementById(id);
 
-            <div class="divider"></div>
+      const fields = [
+        "customerName",
+        "customerType",
+        "reportTitle",
+        "publisher",
+        "focus",
+        "channel",
+        "tone",
+        "note"
+      ];
 
-            <div class="section-label">고객 카드 입력</div>
-            <div class="field-row">
-              <div class="field-group">
-                <label for="field-name">이름 *</label>
-                <input id="field-name" type="text" placeholder="예: 홍길동" autocomplete="off" />
-              </div>
-              <div class="field-group">
-                <label for="field-title">직함</label>
-                <input id="field-title" type="text" placeholder="예: 책임연구원" autocomplete="off" />
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="field-org">기관/회사 *</label>
-                <input id="field-org" type="text" placeholder="예: 한국과학기술연구원(KIST)" autocomplete="off" />
-              </div>
-              <div class="field-group">
-                <label for="field-dept">부서</label>
-                <input id="field-dept" type="text" placeholder="예: 재료연구본부" autocomplete="off" />
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="field-email">이메일</label>
-                <input id="field-email" type="email" placeholder="예: name@kist.re.kr" autocomplete="off" />
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label for="field-interest">관심 분야 / 키워드</label>
-              <input
-                id="field-interest"
-                type="text"
-                placeholder="예: 반도체 패키징용 글래스 섭스트레이트, 고내열 접착제"
-                autocomplete="off"
-              />
-              <div class="help-text">고객이 최근 문의하거나 관심을 보인 주제를 간단히 적어둡니다.</div>
-            </div>
-
-            <div class="field-group">
-              <label for="field-notes">메모 (예산, 특이사항 등)</label>
-              <textarea
-                id="field-notes"
-                placeholder="예: 2025년 예산 1,200만원 / 해외 시장조사 보고서 집중 / 후지경제 + SK 스페셜티 관련 관심"
-              ></textarea>
-            </div>
-
-            <div class="btn-row">
-              <button type="button" class="btn btn-primary" id="btn-save-customer">고객 저장/업데이트</button>
-              <button type="button" class="btn btn-secondary" id="btn-new-customer">새 고객 카드</button>
-              <button type="button" class="btn btn-danger" id="btn-delete-customer" disabled>선택 고객 삭제</button>
-            </div>
-
-            <div class="stats-row">
-              <div class="status-row">
-                <span class="status-dot"></span>
-                <span id="status-storage">localStorage · 자동 저장 대기 중</span>
-              </div>
-              <div id="status-selected" aria-live="polite">선택: 없음</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Middle: 안내서 옵션 -->
-        <section class="card panel-options" aria-label="안내서 옵션 패널">
-          <div class="card-header">
-            <div>
-              <div class="card-title">안내서 옵션</div>
-              <div class="card-subtitle">톤·언어·형식을 미리 고정해 두고 재사용</div>
-            </div>
-            <span class="badge" id="badge-language">언어: 한국어</span>
-          </div>
-          <div class="card-body">
-            <div class="section-label">기본 옵션</div>
-            <div class="field-group">
-              <label for="opt-guide-type">안내서 유형</label>
-              <select id="opt-guide-type">
-                <option value="first">① 첫 문의용 안내 (처음 인사)</option>
-                <option value="followup">② 후속 안내 (추가 제안/리마인드)</option>
-                <option value="quote">③ 견적 동반 안내 (금액 안내 포함)</option>
-                <option value="thanks">④ 납품 후 감사 안내</option>
-              </select>
-            </div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="opt-tone">톤 & 길이</label>
-                <select id="opt-tone">
-                  <option value="simple">간단 · 짧게 (핵심 위주)</option>
-                  <option value="standard">표준 · 보통 길이</option>
-                  <option value="detail">자세히 · 길게 (설명 포함)</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="opt-language">언어</label>
-                <select id="opt-language">
-                  <option value="ko">한국어</option>
-                  <option value="en">영어 (간단 템플릿)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label for="opt-report-keywords">보고서/자료 키워드 (쉼표 구분)</label>
-              <input
-                id="opt-report-keywords"
-                type="text"
-                placeholder="예: 후지경제 보고서, SK 스페셜티, Sulfur Hexafluoride 시장, Perovskite Solar"
-                autocomplete="off"
-              />
-              <div class="help-text">실제 제안할 보고서 이름이나 핵심 키워드를 쉼표(,)로 나눠 적습니다.</div>
-            </div>
-
-            <div class="field-group">
-              <label for="opt-closing">맺음말 기본 문장</label>
-              <textarea
-                id="opt-closing"
-                placeholder="예: 검토 후 궁금하신 점이나 추가로 필요하신 주제가 있으시면 언제든지 편하게 말씀 부탁드립니다."
-              ></textarea>
-              <div class="help-text">
-                자주 쓰는 맺음말을 저장해 두면 안내서 생성 시 자동으로 붙습니다.
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="section-label">자동 요약 태그</div>
-            <div class="readonly-input" id="auto-tags" aria-live="polite">
-              안내서 유형, 언어, 톤에 따라 태그가 자동으로 표시됩니다.
-            </div>
-            <div class="chip-row" id="chip-row">
-              <!-- 자동 태그 칩 -->
-            </div>
-
-            <div class="btn-row">
-              <button type="button" class="btn btn-primary" id="btn-generate">안내서 자동 생성</button>
-              <button type="button" class="btn btn-secondary" id="btn-generate-quick">
-                고객 + 키워드로 빠른 생성
-              </button>
-            </div>
-
-            <div class="stats-row">
-              <div class="status-row">
-                <span class="status-dot"></span>
-                <span id="status-options">옵션 변경: 미반영</span>
-              </div>
-              <div id="status-last-generated">최근 생성: 없음</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Right: 안내서 미리보기 -->
-        <section class="card panel-preview" aria-label="안내서 미리보기 패널">
-          <div class="card-header">
-            <div>
-              <div class="card-title">안내서 미리보기</div>
-              <div class="card-subtitle">고객에게 바로 보낼 수 있는 수준으로 확인</div>
-            </div>
-            <div class="pill">
-              <span class="pill-dot" id="dot-preview"></span>
-              <span id="pill-preview">미생성</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="section-label">본문</div>
-            <div id="preview-box" class="preview-box" aria-live="polite">
-              <div class="preview-placeholder">
-                ① 왼쪽에서 고객을 선택하거나 새로 저장합니다.<br />
-                ② 가운데에서 안내서 옵션과 키워드를 설정합니다.<br />
-                ③ 아래 버튼 "안내서 자동 생성"을 누르면 이곳에 본문이 만들어집니다.
-              </div>
-            </div>
-
-            <div class="field-group" style="margin-top:6px;">
-              <label for="preview-subject">이메일 제목 추천</label>
-              <input
-                id="preview-subject"
-                type="text"
-                readonly
-                class="readonly-input"
-                value="고객과 옵션을 선택하면 자동으로 제목이 표시됩니다."
-              />
-            </div>
-
-            <div class="btn-row">
-              <button type="button" class="btn btn-primary" id="btn-copy">
-                본문 전체 복사
-              </button>
-              <button type="button" class="btn btn-secondary" id="btn-download">
-                TXT 파일로 저장
-              </button>
-              <button type="button" class="btn btn-ghost" id="btn-clear-preview">
-                미리보기 초기화
-              </button>
-            </div>
-
-            <div class="stats-row">
-              <div class="status-row">
-                <span class="status-dot"></span>
-                <span id="status-clipboard">클립보드 상태: 대기</span>
-              </div>
-              <div id="status-length">글자 수: 0자 / 줄 수: 0줄</div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  </div>
-
-  <script>
-    (function () {
-      "use strict";
-
-      const STORAGE_KEY = "wic_customer_guide_v1";
-      const VERSION = "1.0";
-
-      /**
-       * 상태 구조 기본값
-       */
-      const defaultState = {
-        version: VERSION,
-        customers: [],
-        selectedCustomerId: null,
-        options: {
-          guideType: "first",
-          tone: "standard",
-          language: "ko",
-          reportKeywords: "",
-          closing:
-            "검토 후 궁금하신 점이나 추가로 필요하신 주제가 있으시면 언제든지 편하게 말씀 부탁드립니다.",
-        },
-        preview: {
-          text: "",
-          subject: "",
-          lastGeneratedAt: null,
-        },
-      };
-
-      let state = clone(defaultState);
-      let filteredCustomers = null;
-
-      function clone(obj) {
-        return JSON.parse(JSON.stringify(obj));
+      function getState() {
+        const s = {};
+        for (const f of fields) {
+          s[f] = $(f).value || "";
+        }
+        return s;
       }
 
-      /**
-       * 안전한 DOM 선택
-       */
-      function $(selector) {
-        return document.querySelector(selector);
+      function setState(s) {
+        for (const f of fields) {
+          if (s && Object.prototype.hasOwnProperty.call(s, f)) {
+            $(f).value = s[f] ?? "";
+          }
+        }
       }
 
-      /**
-       * localStorage 모듈
-       */
-      const Storage = {
-        load() {
-          try {
-            const raw = window.localStorage.getItem(STORAGE_KEY);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            if (!data || typeof data !== "object") return null;
-            if (data.version !== VERSION) {
-              return {
-                ...clone(defaultState),
-                customers: Array.isArray(data.customers) ? data.customers : [],
-              };
+      function saveState(manual = false) {
+        const s = getState();
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+          $("statusSaved").textContent =
+            "저장 상태: 마지막 입력 자동 저장 완료" + (manual ? " (수동 저장)" : "");
+        } catch (e) {
+          $("statusSaved").textContent = "저장 상태: 저장 실패 (localStorage 용량 확인 필요)";
+        }
+      }
+
+      function loadState(showMessage = true) {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            if (showMessage) {
+              $("statusSaved").textContent = "저장 상태: 저장된 입력 없음";
             }
-            return data;
-          } catch (e) {
-            console.warn("Storage load error:", e);
-            return null;
+            return;
           }
-        },
-        save(current) {
-          try {
-            const toSave = {
-              ...current,
-              version: VERSION,
-            };
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-            updateStorageStatus("localStorage · 저장 완료");
-          } catch (e) {
-            console.warn("Storage save error:", e);
-            updateStorageStatus("localStorage · 저장 실패 (용량/권한 확인)");
+          const s = JSON.parse(raw);
+          setState(s);
+          if (showMessage) {
+            $("statusSaved").textContent = "저장 상태: 마지막 입력 불러오기 완료";
           }
-        },
-      };
+        } catch (e) {
+          $("statusSaved").textContent = "저장 상태: 불러오기 오류";
+        }
+      }
 
-      /**
-       * 초기화
-       */
-      document.addEventListener("DOMContentLoaded", () => {
-        initState();
-        bindEvents();
-        renderAll();
+      function fillExample() {
+        $("customerName").value = "KIST 세종 분원 김박사님";
+        $("customerType").value = "natlab";
+        $("reportTitle").value =
+          "2026년 글로벌 반도체용 글라스 서브스트레이트 시장 보고서";
+        $("publisher").value = "Fuji Keizai";
+        $("focus").value = "글라스 서브스트레이트, 반도체 패키징, 첨단 패키지";
+        $("channel").value = "email";
+        $("tone").value = "basic";
+        $("note").value =
+          "최근 문의: 글라스 서브스트레이트 공정, 연구비 약 1,200만 원 규모 추정.";
+        saveState();
+      }
+
+      function clearInputs() {
+        for (const f of fields) {
+          $(f).value = "";
+        }
+        saveState();
+      }
+
+      function humanCustomerType(v) {
+        switch (v) {
+          case "natlab":
+            return "국책연구소";
+          case "rnd":
+            return "기업 R&D / 기술연구소";
+          case "univ":
+            return "대학 연구실";
+          case "company":
+            return "일반 기업 / 구매팀";
+          case "other":
+            return "기타";
+          default:
+            return "-";
+        }
+      }
+
+      function humanChannel(v) {
+        switch (v) {
+          case "email":
+            return "이메일";
+          case "word":
+            return "워드 안내문";
+          case "phone":
+            return "전화 안내 스크립트";
+          default:
+            return "-";
+        }
+      }
+
+      function humanTone(v) {
+        switch (v) {
+          case "basic":
+            return "기본·차분";
+          case "formal":
+            return "공식적·격식";
+          case "simple":
+            return "짧고 간단";
+          default:
+            return "-";
+        }
+      }
+
+      function generateText() {
+        const s = getState();
+
+        if (!s.customerName.trim() || !s.reportTitle.trim() || !s.customerType || !s.channel) {
+          $("output").textContent =
+            "[필수 항목 누락]\n\n"고객 이름/기관명, 고객 유형, 보고서 제목, 안내 채널"은 꼭 채워 주세요.";
+          return;
+        }
+
+        const channelLabel = humanChannel(s.channel);
+        const toneLabel = humanTone(s.tone);
+        const typeLabel = humanCustomerType(s.customerType);
+
+        const publisherPart = s.publisher
+          ? ` (${s.publisher} 발행)`
+          : "";
+
+        const focusPart = s.focus
+          ? `\n\n주요 관심 키워드로는 ${s.focus} 등을 중심으로 정리해 두었습니다.`
+          : "";
+
+        const notePart = s.note
+          ? `\n\n[내부 메모]\n${s.note}`
+          : "";
+
+        let intro;
+        if (s.channel === "email") {
+          intro = `${s.customerName}께,\n\n항상 연구와 업무에 수고가 많으십니다.`;
+        } else if (s.channel === "word") {
+          intro = `${s.customerName} 대상 보고서 안내문 초안입니다.\n`;
+        } else {
+          intro = `${s.customerName} 안내용 전화 스크립트 초안입니다.\n`;
+        }
+
+        let main =
+          `이번에 안내드리는 자료는\n“${s.reportTitle}”${publisherPart} 입니다.\n\n` +
+          `주요 고객군은 ${typeLabel}에 해당하며, ${s.customerName}께서 진행 중이신 연구·사업 방향과도 관련성이 높은 주제입니다.${focusPart}\n`;
+
+        let closing;
+        if (s.channel === "email") {
+          closing =
+            `\n관심이 있으시다면 목차와 개략적인 내용, 견적서를 함께 보내드리겠습니다.\n` +
+            `검토 후 편하신 시간에 연락 주시면 자세히 설명드리겠습니다.\n\n감사합니다.`;
+        } else if (s.channel === "word") {
+          closing =
+            `\n상기 보고서에 대한 보다 자세한 안내(목차, 샘플 페이지, 견적 등)가 필요하시면\n` +
+            `연락처 또는 이메일을 통해 언제든 문의해 주시기 바랍니다.\n`;
+        } else {
+          closing =
+            `\n전화 안내 시, 먼저 현재 진행 중인 연구 주제를 짧게 여쭙고,\n` +
+            `해당 보고서가 어떤 부분에서 도움이 될 수 있는지 1~2가지 포인트만 간단히 설명합니다.\n`;
+        }
+
+        const full =
+          `${intro}\n\n` +
+          `${main}\n` +
+          `${closing}` +
+          `${notePart}`;
+
+        $("output").textContent = full;
+
+        // 태그 갱신
+        const tagRow = $("tagRow");
+        tagRow.innerHTML = "";
+        const makeTag = (text) => {
+          const span = document.createElement("span");
+          span.className = "tag";
+          span.textContent = text;
+          return span;
+        };
+        tagRow.appendChild(makeTag(`채널: ${channelLabel}`));
+        tagRow.appendChild(makeTag(`톤: ${toneLabel || "-"}`));
+        tagRow.appendChild(makeTag(`고객 유형: ${typeLabel}`));
+      }
+
+      function copyOutput() {
+        const text = $("output").textContent || "";
+        if (!text.trim()) return;
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            $("statusSaved").textContent = "복사 완료: 안내 텍스트가 클립보드에 저장되었습니다.";
+          })
+          .catch(() => {
+            $("statusSaved").textContent = "복사 실패: 브라우저 권한을 확인해 주세요.";
+          });
+      }
+
+      // 이벤트 연결
+      $("btn-example").addEventListener("click", () => {
+        fillExample();
+      });
+      $("btn-clear").addEventListener("click", () => {
+        clearInputs();
+        $("output").textContent =
+          "입력을 모두 지웠습니다.\n다시 정보를 채우고 [안내 텍스트 생성] 버튼을 눌러 주세요.";
+      });
+      $("btn-generate").addEventListener("click", () => {
+        generateText();
+        saveState();
+      });
+      $("btn-save").addEventListener("click", () => {
+        saveState(true);
+      });
+      $("btn-load").addEventListener("click", () => {
+        loadState(true);
+      });
+      $("btn-copy").addEventListener("click", () => {
+        copyOutput();
       });
 
-      function initState() {
-        const loaded = Storage.load();
-        if (loaded) {
-          state = {
-            ...clone(defaultState),
-            ...loaded,
-            options: {
-              ...clone(defaultState.options),
-              ...(loaded.options || {}),
-            },
-            preview: {
-              ...clone(defaultState.preview),
-              ...(loaded.preview || {}),
-            },
-          };
-        } else {
-          state = clone(defaultState);
-        }
-        updateStorageStatus("localStorage · 로드 완료");
-      }
-
-      function bindEvents() {
-        const elSearch = $("#customer-search");
-        const elBtnSave = $("#btn-save-customer");
-        const elBtnNew = $("#btn-new-customer");
-        const elBtnDelete = $("#btn-delete-customer");
-        const elGuideType = $("#opt-guide-type");
-        const elTone = $("#opt-tone");
-        const elLanguage = $("#opt-language");
-        const elKeywords = $("#opt-report-keywords");
-        const elClosing = $("#opt-closing");
-        const elBtnGenerate = $("#btn-generate");
-        const elBtnGenerateQuick = $("#btn-generate-quick");
-        const elBtnCopy = $("#btn-copy");
-        const elBtnDownload = $("#btn-download");
-        const elBtnClearPreview = $("#btn-clear-preview");
-
-        if (elSearch) {
-          elSearch.addEventListener("input", onSearchChange);
-        }
-
-        if (elBtnSave) {
-          elBtnSave.addEventListener("click", onSaveCustomer);
-        }
-
-        if (elBtnNew) {
-          elBtnNew.addEventListener("click", onNewCustomer);
-        }
-
-        if (elBtnDelete) {
-          elBtnDelete.addEventListener("click", onDeleteCustomer);
-        }
-
-        if (elGuideType) {
-          elGuideType.addEventListener("change", () => {
-            state.options.guideType = elGuideType.value;
-            onOptionsChanged();
-          });
-        }
-
-        if (elTone) {
-          elTone.addEventListener("change", () => {
-            state.options.tone = elTone.value;
-            onOptionsChanged();
-          });
-        }
-
-        if (elLanguage) {
-          elLanguage.addEventListener("change", () => {
-            state.options.language = elLanguage.value;
-            onOptionsChanged();
-          });
-        }
-
-        if (elKeywords) {
-          elKeywords.addEventListener("input", () => {
-            state.options.reportKeywords = elKeywords.value;
-            onOptionsChanged(false);
-          });
-        }
-
-        if (elClosing) {
-          elClosing.addEventListener("input", () => {
-            state.options.closing = elClosing.value;
-            onOptionsChanged(false);
-          });
-        }
-
-        if (elBtnGenerate) {
-          elBtnGenerate.addEventListener("click", () => {
-            generatePreview(false);
-          });
-        }
-
-        if (elBtnGenerateQuick) {
-          elBtnGenerateQuick.addEventListener("click", () => {
-            generatePreview(true);
-          });
-        }
-
-        if (elBtnCopy) {
-          elBtnCopy.addEventListener("click", copyPreviewToClipboard);
-        }
-
-        if (elBtnDownload) {
-          elBtnDownload.addEventListener("click", downloadPreviewAsTxt);
-        }
-
-        if (elBtnClearPreview) {
-          elBtnClearPreview.addEventListener("click", clearPreview);
-        }
-      }
-
-      /**
-       * 렌더링
-       */
-      function renderAll() {
-        renderCustomers();
-        renderCustomerForm();
-        renderOptions();
-        renderPreview();
-        renderMeta();
-      }
-
-      function renderMeta() {
-        const elVersion = $("#meta-version");
-        if (elVersion) {
-          elVersion.textContent = `v${VERSION} · Local-only · Safe DOM`;
-        }
-      }
-
-      function getVisibleCustomers() {
-        return filteredCustomers !== null ? filteredCustomers : state.customers;
-      }
-
-      function renderCustomers() {
-        const list = $("#customer-list");
-        const label = $("#customer-list-label");
-        const countLabel = $("#customer-list-count");
-        const pillCount = $("#pill-customer-count");
-
-        if (!list) return;
-        list.innerHTML = "";
-
-        const customers = getVisibleCustomers();
-        if (customers.length === 0) {
-          const empty = document.createElement("div");
-          empty.className = "customer-item";
-          empty.innerHTML =
-            '<span class="customer-item-name">등록된 고객이 없습니다.</span><span class="customer-item-sub">아래 입력 칸에 정보를 입력하고 &quot;고객 저장/업데이트&quot;를 눌러 첫 고객을 등록하세요.</span>';
-          list.appendChild(empty);
-        } else {
-          customers.forEach((c) => {
-            const item = document.createElement("div");
-            item.className = "customer-item";
-            if (c.id === state.selectedCustomerId) {
-              item.classList.add("selected");
-            }
-            item.dataset.customerId = c.id;
-
-            const main = document.createElement("div");
-            main.className = "customer-item-main";
-
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "customer-item-name";
-            nameSpan.textContent = c.name || "(이름 없음)";
-
-            const orgSpan = document.createElement("span");
-            orgSpan.className = "customer-item-sub";
-            orgSpan.textContent = c.org || "";
-
-            main.appendChild(nameSpan);
-            main.appendChild(orgSpan);
-
-            const sub = document.createElement("div");
-            sub.className = "customer-item-sub";
-            const interestShort = (c.interest || "").slice(0, 40);
-            const deptText = c.dept ? c.dept + " · " : "";
-            const interestText = interestShort ? " · 관심: " + interestShort : "";
-            sub.textContent = deptText + (c.title || "") + interestText;
-
-            item.appendChild(main);
-            item.appendChild(sub);
-
-            item.addEventListener("click", () => {
-              selectCustomer(c.id);
-            });
-
-            list.appendChild(item);
-          });
-        }
-
-        const totalCount = state.customers.length;
-        const visibleCount = customers.length;
-        if (label) {
-          if (totalCount === 0) {
-            label.textContent = "고객 카드 없음";
-          } else if (visibleCount === totalCount) {
-            label.textContent = `전체 고객 ${totalCount}명`;
-          } else {
-            label.textContent = `검색 결과 ${visibleCount}명 / 전체 ${totalCount}명`;
-          }
-        }
-        if (countLabel) {
-          countLabel.textContent = `${visibleCount}명`;
-        }
-        if (pillCount) {
-          pillCount.textContent = `고객 ${totalCount}명`;
-        }
-
-        const btnDelete = $("#btn-delete-customer");
-        const statusSelected = $("#status-selected");
-        const selected = state.customers.find((c) => c.id === state.selectedCustomerId);
-        if (btnDelete) {
-          btnDelete.disabled = !selected;
-        }
-        if (statusSelected) {
-          if (selected) {
-            statusSelected.textContent = `선택: ${selected.name} (${selected.org || ""})`;
-          } else {
-            statusSelected.textContent = "선택: 없음";
-          }
-        }
-      }
-
-      function renderCustomerForm() {
-        const selected = state.customers.find((c) => c.id === state.selectedCustomerId) || null;
-
-        const setValue = (id, value) => {
-          const el = $(id);
-          if (el) el.value = value || "";
-        };
-
-        setValue("#field-name", selected ? selected.name : "");
-        setValue("#field-title", selected ? selected.title : "");
-        setValue("#field-org", selected ? selected.org : "");
-        setValue("#field-dept", selected ? selected.dept : "");
-        setValue("#field-email", selected ? selected.email : "");
-        setValue("#field-interest", selected ? selected.interest : "");
-        setValue("#field-notes", selected ? selected.notes : "");
-
-        const statusSelected = $("#status-selected");
-        if (statusSelected) {
-          if (selected) {
-            statusSelected.textContent = `선택: ${selected.name} (${selected.org || ""})`;
-          } else {
-            statusSelected.textContent = "선택: 없음";
-          }
-        }
-      }
-
-      function renderOptions() {
-        const { guideType, tone, language, reportKeywords, closing } = state.options;
-        const elGuideType = $("#opt-guide-type");
-        const elTone = $("#opt-tone");
-        const elLanguage = $("#opt-language");
-        const elKeywords = $("#opt-report-keywords");
-        const elClosing = $("#opt-closing");
-        const elBadgeLanguage = $("#badge-language");
-        const elAutoTags = $("#auto-tags");
-        const chipRow = $("#chip-row");
-
-        if (elGuideType) elGuideType.value = guideType;
-        if (elTone) elTone.value = tone;
-        if (elLanguage) elLanguage.value = language;
-        if (elKeywords) elKeywords.value = reportKeywords || "";
-        if (elClosing) elClosing.value = closing || "";
-
-        if (elBadgeLanguage) {
-          elBadgeLanguage.textContent = language === "ko" ? "언어: 한국어" : "언어: 영어";
-        }
-
-        const tags = buildAutoTags();
-        if (elAutoTags) {
-          elAutoTags.textContent = tags.length
-            ? tags.map((t) => `#${t}`).join("  ")
-            : "안내서 유형, 언어, 톤에 따라 태그가 자동으로 표시됩니다.";
-        }
-
-        if (chipRow) {
-          chipRow.innerHTML = "";
-          tags.forEach((t) => {
-            const div = document.createElement("div");
-            div.className = "chip";
-            div.textContent = `#${t}`;
-            chipRow.appendChild(div);
-          });
-        }
-      }
-
-      function buildAutoTags() {
-        const tags = [];
-        const { guideType, tone, language } = state.options;
-
-        if (guideType === "first") tags.push("첫문의");
-        else if (guideType === "followup") tags.push("후속안내");
-        else if (guideType === "quote") tags.push("견적안내");
-        else if (guideType === "thanks") tags.push("납품후감사");
-
-        if (tone === "simple") tags.push("간단버전");
-        else if (tone === "standard") tags.push("표준버전");
-        else if (tone === "detail") tags.push("상세버전");
-
-        if (language === "ko") tags.push("국문");
-        else if (language === "en") tags.push("영문");
-
-        return tags;
-      }
-
-      function renderPreview() {
-        const elPreviewBox = $("#preview-box");
-        const elSubject = $("#preview-subject");
-        const elStatusLength = $("#status-length");
-        const elPillPreview = $("#pill-preview");
-        const elDotPreview = $("#dot-preview");
-        const elLastGenerated = $("#status-last-generated");
-
-        if (!elPreviewBox) return;
-
-        elPreviewBox.innerHTML = "";
-        let text = state.preview.text || "";
-
-        if (!text) {
-          const placeholder = document.createElement("div");
-          placeholder.className = "preview-placeholder";
-          placeholder.innerHTML =
-            "① 왼쪽에서 고객을 선택하거나 새로 저장합니다.<br />" +
-            "② 가운데에서 안내서 옵션과 키워드를 설정합니다.<br />" +
-            "③ 아래 버튼 &quot;안내서 자동 생성&quot;을 누르면 이곳에 본문이 만들어집니다.";
-          elPreviewBox.appendChild(placeholder);
-        } else {
-          const lines = text.split("\n");
-          lines.forEach((line, idx) => {
-            const div = document.createElement("div");
-            div.textContent = line;
-            if (idx < lines.length - 1) {
-              div.appendChild(document.createElement("br"));
-            }
-            elPreviewBox.appendChild(div);
-          });
-        }
-
-        if (elSubject) {
-          elSubject.value =
-            state.preview.subject ||
-            "고객과 옵션을 선택하면 자동으로 제목이 표시됩니다.";
-        }
-
-        const length = text.length;
-        const linesCount = text ? text.split("\n").length : 0;
-        if (elStatusLength) {
-          elStatusLength.textContent = `글자 수: ${length}자 / 줄 수: ${linesCount}줄`;
-        }
-
-        if (elPillPreview && elDotPreview) {
-          if (text) {
-            elPillPreview.textContent = "생성 완료";
-            elDotPreview.style.backgroundColor = "#10b981";
-          } else {
-            elPillPreview.textContent = "미생성";
-            elDotPreview.style.backgroundColor = "#9ca3af";
-          }
-        }
-
-        if (elLastGenerated) {
-          if (state.preview.lastGeneratedAt) {
-            elLastGenerated.textContent = `최근 생성: ${state.preview.lastGeneratedAt}`;
-          } else {
-            elLastGenerated.textContent = "최근 생성: 없음";
-          }
-        }
-      }
-
-      /**
-       * 이벤트 핸들러
-       */
-      function onSearchChange(event) {
-        const value = (event.target.value || "").trim().toLowerCase();
-        if (!value) {
-          filteredCustomers = null;
-        } else {
-          filteredCustomers = state.customers.filter((c) => {
-            const target =
-              (c.name || "") +
-              " " +
-              (c.org || "") +
-              " " +
-              (c.dept || "") +
-              " " +
-              (c.interest || "");
-            return target.toLowerCase().includes(value);
-          });
-        }
-        renderCustomers();
-      }
-
-      function onNewCustomer() {
-        state.selectedCustomerId = null;
-        renderCustomers();
-        renderCustomerForm();
-      }
-
-      function onSaveCustomer() {
-        const name = ($("#field-name") || {}).value || "";
-        const title = ($("#field-title") || {}).value || "";
-        const org = ($("#field-org") || {}).value || "";
-        const dept = ($("#field-dept") || {}).value || "";
-        const email = ($("#field-email") || {}).value || "";
-        const interest = ($("#field-interest") || {}).value || "";
-        const notes = ($("#field-notes") || {}).value || "";
-
-        if (!name.trim() || !org.trim()) {
-          updateStorageStatus("이름과 기관은 필수입니다. (저장 안 됨)");
-          return;
-        }
-
-        const basicEmailOk = !email || email.includes("@");
-        if (!basicEmailOk) {
-          updateStorageStatus("이메일 형식이 올바르지 않습니다. (저장 안 됨)");
-          return;
-        }
-
-        let existing = null;
-        if (state.selectedCustomerId) {
-          existing = state.customers.find((c) => c.id === state.selectedCustomerId) || null;
-        }
-
-        if (existing) {
-          existing.name = name.trim();
-          existing.title = title.trim();
-          existing.org = org.trim();
-          existing.dept = dept.trim();
-          existing.email = email.trim();
-          existing.interest = interest.trim();
-          existing.notes = notes.trim();
-        } else {
-          const id = generateId();
-          const customer = {
-            id,
-            name: name.trim(),
-            title: title.trim(),
-            org: org.trim(),
-            dept: dept.trim(),
-            email: email.trim(),
-            interest: interest.trim(),
-            notes: notes.trim(),
-          };
-          state.customers.push(customer);
-          state.selectedCustomerId = id;
-        }
-
-        Storage.save(state);
-        filteredCustomers = null;
-        const searchInput = $("#customer-search");
-        if (searchInput) searchInput.value = "";
-        updateStorageStatus("고객 정보 저장 완료");
-        renderCustomers();
-        renderCustomerForm();
-      }
-
-      function onDeleteCustomer() {
-        if (!state.selectedCustomerId) return;
-        const id = state.selectedCustomerId;
-        state.customers = state.customers.filter((c) => c.id !== id);
-        state.selectedCustomerId = null;
-        Storage.save(state);
-        filteredCustomers = null;
-        const searchInput = $("#customer-search");
-        if (searchInput) searchInput.value = "";
-        updateStorageStatus("선택 고객 삭제 완료");
-        renderCustomers();
-        renderCustomerForm();
-      }
-
-      function selectCustomer(id) {
-        if (!id) return;
-        state.selectedCustomerId = id;
-        renderCustomers();
-        renderCustomerForm();
-      }
-
-      function onOptionsChanged(saveImmediately = true) {
-        renderOptions();
-        if (saveImmediately) {
-          Storage.save(state);
-        }
-        updateOptionsStatus("옵션 변경: 저장됨");
-      }
-
-      function generateId() {
-        return (
-          Date.now().toString(36) +
-          "-" +
-          Math.random().toString(36).substring(2, 8)
-        );
-      }
-
-      /**
-       * 안내서 생성
-       */
-      function generatePreview(quickMode) {
-        const customer =
-          state.customers.find((c) => c.id === state.selectedCustomerId) || null;
-
-        if (!customer) {
-          updateOptionsStatus("고객을 먼저 선택하거나 저장해야 합니다.");
-          return;
-        }
-
-        const now = new Date();
-        const timestamp =
-          now.getFullYear() +
-          "-" +
-          pad2(now.getMonth() + 1) +
-          "-" +
-          pad2(now.getDate()) +
-          " " +
-          pad2(now.getHours()) +
-          ":" +
-          pad2(now.getMinutes());
-
-        const { guideType, tone, language, reportKeywords, closing } = state.options;
-        const keywordsList = parseKeywords(reportKeywords);
-        const body = buildBody(customer, {
-          guideType,
-          tone,
-          language,
-          keywordsList,
-          closing,
-          quickMode,
-        });
-        const subject = buildSubject(customer, {
-          guideType,
-          language,
-          keywordsList,
-        });
-
-        state.preview.text = body;
-        state.preview.subject = subject;
-        state.preview.lastGeneratedAt = timestamp;
-
-        Storage.save(state);
-        renderPreview();
-        updateOptionsStatus("안내서 생성 완료");
-      }
-
-      function pad2(n) {
-        return n < 10 ? "0" + n : "" + n;
-      }
-
-      function parseKeywords(str) {
-        if (!str) return [];
-        return str
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-
-      function buildBody(customer, ctx) {
-        const { guideType, tone, language, keywordsList, closing, quickMode } = ctx;
-        if (language === "en") {
-          return buildBodyEn(customer, ctx);
-        }
-        return buildBodyKo(customer, {
-          guideType,
-          tone,
-          keywordsList,
-          closing,
-          quickMode,
-        });
-      }
-
-      function buildBodyKo(customer, ctx) {
-        const { guideType, tone, keywordsList, closing, quickMode } = ctx;
-        const lines = [];
-        const name = customer.name || "";
-        const org = customer.org || "";
-        const dept = customer.dept || "";
-        const title = customer.title || "";
-        const interest = customer.interest || "";
-        const notes = customer.notes || "";
-
-        const firstLineName = name ? `${name} ${title || "연구원"}님께` : "담당자님께";
-
-        if (!quickMode) {
-          lines.push(firstLineName);
-          lines.push("");
-        }
-
-        if (guideType === "first") {
-          lines.push(
-            `안녕하세요. 월드산업정보센터입니다.`
-          );
-          if (tone !== "simple") {
-            const orgLine = org
-              ? `${org}${dept ? " " + dept : ""}에서 진행 중이신 연구 및 사업과 관련하여,`
-              : `현재 진행 중이신 연구 및 사업과 관련하여,`;
-            lines.push(
-              `${orgLine} 최근 문의 주셨던 주제와 연관된 해외 시장조사 및 기술자료를 정리하여 안내드립니다.`
-            );
-          }
-        } else if (guideType === "followup") {
-          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
-          lines.push(
-            `지난번에 공유드렸던 자료 관련하여, ${name ? name + "님께" : "담당자님께"} 도움이 되실 수 있는 추가 보고서를 정리해 안내드립니다.`
-          );
-        } else if (guideType === "quote") {
-          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
-          lines.push(
-            `요청 주신 주제에 대한 해외 시장조사 보고서 및 관련 자료의 구성과 예상 비용을 아래와 같이 정리하여 안내드립니다.`
-          );
-        } else if (guideType === "thanks") {
-          lines.push(`안녕하세요. 월드산업정보센터입니다.`);
-          lines.push(
-            `${org || "귀 기관"}에서의 보고서 이용에 감사드리며, 향후 유사 주제에 대해 추가로 도움이 될 수 있는 자료를 함께 안내드립니다.`
-          );
-        }
-
-        if (interest) {
-          lines.push("");
-          lines.push(`● 고객 관심 주제`);
-          lines.push(`- ${interest}`);
-        }
-
-        if (keywordsList.length > 0) {
-          lines.push("");
-          lines.push(`● 제안 보고서/자료 키워드`);
-          keywordsList.forEach((kw, idx) => {
-            lines.push(`- (${idx + 1}) ${kw}`);
-          });
-        }
-
-        if (tone === "detail") {
-          if (notes) {
-            lines.push("");
-            lines.push(`● 추가 메모 / 참고사항`);
-            lines.push(`- ${notes}`);
-          }
-          lines.push("");
-          lines.push(`※ 상기 자료는 귀 기관의 중장기 연구 방향 및 예산 운영에 맞추어 조합 및 조정이 가능합니다.`);
-          lines.push(
-            `※ 필요 시 샘플 목차나 더 구체적인 발행사 정보를 별도로 정리하여 다시 보내드릴 수 있습니다.`
-          );
-        }
-
-        if (guideType === "quote") {
-          lines.push("");
-          lines.push(`● 견적 관련 안내 (예시 형식)`);
-          lines.push(`- 개별 보고서 금액: 발행사/버전별 상이 (문의 시 세부 견적 안내)`);
-          lines.push(`- 납품 형태: PDF / 서적 / 네트워크 패키지 등 (발행사 규정에 따름)`);
-          lines.push(`- 납기: 입금 확인 후 통상 1~3영업일 내 전달`);
-        }
-
-        if (closing && closing.trim()) {
-          lines.push("");
-          lines.push(closing.trim());
-        }
-
-        if (!quickMode) {
-          lines.push("");
-          lines.push(`감사합니다.`);
-          lines.push(``);
-          lines.push(`월드산업정보센터 드림`);
-        }
-
-        return lines.join("\n");
-      }
-
-      function buildBodyEn(customer, ctx) {
-        const { guideType, tone, keywordsList, closing, quickMode } = ctx;
-        const lines = [];
-        const name = customer.name || "";
-        const org = customer.org || "";
-        const dept = customer.dept || "";
-        const interest = customer.interest || "";
-        const notes = customer.notes || "";
-
-        const greetingName = name ? `Dear Dr. ${name},` : "Dear Sir or Madam,";
-
-        if (!quickMode) {
-          lines.push(greetingName);
-          lines.push("");
-        }
-
-        if (guideType === "first") {
-          lines.push("This is World Industrial Information Center.");
-          if (tone !== "simple") {
-            const orgLine = org
-              ? `For your ongoing projects at ${org}${dept ? ", " + dept : ""},`
-              : "For your ongoing research and projects,";
-            lines.push(
-              `${orgLine} we would like to introduce several market research reports and technical materials related to your interests.`
-            );
-          }
-        } else if (guideType === "followup") {
-          lines.push("This is World Industrial Information Center.");
-          lines.push(
-            "Following our previous communication, we have selected additional reports which may be helpful for your work."
-          );
-        } else if (guideType === "quote") {
-          lines.push("This is World Industrial Information Center.");
-          lines.push(
-            "Please find below the outline and approximate cost information for the requested reports."
-          );
-        } else if (guideType === "thanks") {
-          lines.push("This is World Industrial Information Center.");
-          lines.push(
-            `We appreciate your recent purchase${org ? " from " + org : ""}, and would like to suggest related reports that may support your future projects.`
-          );
-        }
-
-        if (interest) {
-          lines.push("");
-          lines.push("● Main topic of interest");
-          lines.push(`- ${interest}`);
-        }
-
-        if (keywordsList.length > 0) {
-          lines.push("");
-          lines.push("● Suggested report / material keywords");
-          keywordsList.forEach((kw, idx) => {
-            lines.push(`- (${idx + 1}) ${kw}`);
-          });
-        }
-
-        if (tone === "detail") {
-          if (notes) {
-            lines.push("");
-            lines.push("● Additional notes");
-            lines.push(`- ${notes}`);
-          }
-          lines.push("");
-          lines.push(
-            "※ The above items can be adjusted according to your budget and project schedule."
-          );
-          lines.push(
-            "※ Sample tables of contents or more detailed publisher information can be provided upon request."
-          );
-        }
-
-        if (guideType === "quote") {
-          lines.push("");
-          lines.push("● Quotation (example format)");
-          lines.push("- Price: depends on publisher and version (detailed quotation upon request)");
-          lines.push("- Delivery format: PDF / Print / Network package (depending on publisher policy)");
-          lines.push("- Lead time: usually 1–3 business days after payment confirmation");
-        }
-
-        if (closing && closing.trim()) {
-          lines.push("");
-          lines.push(
-            closing.trim() +
-              " (If you prefer, we can prepare an English version for the final email as well.)"
-          );
-        }
-
-        if (!quickMode) {
-          lines.push("");
-          lines.push("Best regards,");
-          lines.push("");
-          lines.push("World Industrial Information Center");
-        }
-
-        return lines.join("\n");
-      }
-
-      function buildSubject(customer, ctx) {
-        const { guideType, language, keywordsList } = ctx;
-        const name = customer.name || "";
-        const org = customer.org || "";
-        const firstKeyword = keywordsList[0] || "";
-
-        if (language === "en") {
-          const baseKw = firstKeyword || "market research reports";
-          if (guideType === "first") {
-            return `[WIC] Introduction of ${baseKw} for your projects`;
-          } else if (guideType === "followup") {
-            return `[WIC] Additional reports related to ${baseKw}`;
-          } else if (guideType === "quote") {
-            return `[WIC] Quotation for ${baseKw}`;
-          } else if (guideType === "thanks") {
-            return `[WIC] Thank you and follow-up suggestions (${baseKw})`;
-          }
-          return `[WIC] Report information (${baseKw})`;
-        }
-
-        const baseKw = firstKeyword || "해외 시장조사 보고서";
-        if (guideType === "first") {
-          if (name) {
-            return `[월드산업정보센터] ${name}님 관련 ${baseKw} 안내`;
-          }
-          return `[월드산업정보센터] ${org || "귀 기관"} 관련 ${baseKw} 안내`;
-        } else if (guideType === "followup") {
-          return `[월드산업정보센터] 추가 ${baseKw} 및 후속 안내`;
-        } else if (guideType === "quote") {
-          return `[월드산업정보센터] ${baseKw} 견적 및 구성 안내`;
-        } else if (guideType === "thanks") {
-          return `[월드산업정보센터] 이용 감사 및 관련 ${baseKw} 추가 안내`;
-        }
-        return `[월드산업정보센터] ${baseKw} 자료 안내`;
-      }
-
-      /**
-       * 클립보드 / 다운로드 / 초기화
-       */
-      function copyPreviewToClipboard() {
-        const text = state.preview.text || "";
-        if (!text) {
-          updateClipboardStatus("복사할 본문이 없습니다.");
-          return;
-        }
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(text)
-            .then(() => {
-              updateClipboardStatus("클립보드 복사 완료");
-            })
-            .catch(() => {
-              fallbackCopy(text);
-            });
-        } else {
-          fallbackCopy(text);
-        }
-      }
-
-      function fallbackCopy(text) {
-        try {
-          const temp = document.createElement("textarea");
-          temp.value = text;
-          temp.style.position = "fixed";
-          temp.style.left = "-9999px";
-          document.body.appendChild(temp);
-          temp.focus();
-          temp.select();
-          const ok = document.execCommand("copy");
-          document.body.removeChild(temp);
-          updateClipboardStatus(ok ? "클립보드 복사 완료 (호환 모드)" : "복사 실패 (브라우저 제한)");
-        } catch (e) {
-          updateClipboardStatus("복사 실패 (브라우저 제한)");
-        }
-      }
-
-      function downloadPreviewAsTxt() {
-        const text = state.preview.text || "";
-        if (!text) {
-          updateClipboardStatus("다운로드할 본문이 없습니다.");
-          return;
-        }
-
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        const now = new Date();
-        const stamp =
-          now.getFullYear().toString() +
-          pad2(now.getMonth() + 1) +
-          pad2(now.getDate()) +
-          "_" +
-          pad2(now.getHours()) +
-          pad2(now.getMinutes());
-        a.href = url;
-        a.download = `wic_customer_guide_${stamp}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        updateClipboardStatus("TXT 파일 다운로드 완료");
-      }
-
-      function clearPreview() {
-        state.preview.text = "";
-        state.preview.subject = "";
-        state.preview.lastGeneratedAt = null;
-        Storage.save(state);
-        renderPreview();
-        updateClipboardStatus("미리보기 초기화 완료");
-      }
-
-      /**
-       * 상태 표시
-       */
-      function updateStorageStatus(text) {
-        const el = $("#status-storage");
-        if (el) {
-          el.textContent = text;
-        }
-      }
-
-      function updateOptionsStatus(text) {
-        const el = $("#status-options");
-        if (el) {
-          el.textContent = text;
-        }
-      }
-
-      function updateClipboardStatus(text) {
-        const el = $("#status-clipboard");
-        if (el) {
-          el.textContent = `클립보드 상태: ${text}`;
-        }
-      }
-    })();
-  </script>
+      // 처음 로드 시 마지막 상태 자동 복원
+      loadState(false);
+    </script>
+  </div>
 </body>
 </html>
