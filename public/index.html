@@ -3,37 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <title>1번 도구 · 고객 자동화 안내서</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
-      --bg: #f4f5fb;
+      --bg: #f6f3e9;
       --bg-card: #ffffff;
-      --border-soft: #d3d7e6;
-      --border-strong: #b7bfd6;
-      --text-main: #111827;
-      --text-sub: #6b7280;
-      --accent: #2563eb;
-      --accent-soft: #e0edff;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --radius-sm: 6px;
-      --shadow-soft: 0 6px 20px rgba(15, 23, 42, 0.08);
-      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      --border-soft: #e0d7c7;
+      --border-strong: #c2b59b;
+      --text-main: #2c2415;
+      --text-sub: #6b6046;
+      --accent: #c27b24;
+      --accent-soft: #fbe8c9;
+      --danger: #b91c1c;
+      --success: #166534;
+      --shadow-soft: 0 8px 24px rgba(60, 52, 38, 0.12);
+      --radius-large: 16px;
+      --radius-small: 10px;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       font-family: var(--font-main);
-      background: radial-gradient(circle at top left, #e0edff 0, #f4f5fb 45%, #eef2ff 100%);
+      background: radial-gradient(circle at top left, #fbf7ee, #f1e8d7);
       color: var(--text-main);
     }
 
@@ -43,65 +38,60 @@
       justify-content: center;
     }
 
-    .app {
+    .app-shell {
       width: 100%;
-      max-width: 1160px;
+      max-width: 1150px;
       padding: 18px 12px 32px;
     }
 
-    @media (min-width: 960px) {
-      .app {
-        padding: 24px 0 40px;
-      }
+    @media (min-width: 900px) {
+      .app-shell { padding: 24px 0 40px; }
     }
 
     /* 헤더 */
 
-    .header-card {
-      background: linear-gradient(120deg, #e5efff, #f9fafb);
-      border-radius: 20px;
-      padding: 16px 18px 14px;
-      margin-bottom: 16px;
+    .header {
+      background: linear-gradient(120deg, #fdf6e8, #f4ead7);
+      border-radius: 18px;
+      padding: 14px 16px 14px;
       box-shadow: var(--shadow-soft);
-      border: 1px solid #d5dff5;
+      border: 1px solid #e3d3b8;
+      margin-bottom: 14px;
       display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
       gap: 12px;
     }
 
-    @media (max-width: 820px) {
-      .header-card {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    @media (max-width: 800px) {
+      .header { grid-template-columns: minmax(0, 1fr); }
     }
 
-    .header-title-main {
+    .title-main {
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 4px;
-      color: #111827;
     }
 
-    .header-title-sub {
+    .title-sub {
       font-size: 13px;
       color: var(--text-sub);
       margin-bottom: 8px;
+      line-height: 1.4;
     }
 
-    .header-row-tags {
+    .tag-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 6px;
     }
 
     .tag {
       font-size: 11px;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(37, 99, 235, 0.4);
+      border: 1px solid rgba(194, 123, 36, 0.5);
       background: rgba(255, 255, 255, 0.9);
-      color: #1d4ed8;
+      color: #8c5311;
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -111,18 +101,7 @@
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: #2563eb;
-    }
-
-    .header-meta {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 4px;
-    }
-
-    .meta-strong {
-      font-weight: 600;
-      color: #374151;
+      background: #c27b24;
     }
 
     .header-stats {
@@ -132,21 +111,20 @@
       align-items: center;
     }
 
-    @media (max-width: 820px) {
-      .header-stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+    @media (max-width: 900px) {
+      .header-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     .stat-card {
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.94);
       border-radius: 14px;
       padding: 7px 9px;
       border: 1px solid var(--border-soft);
       display: flex;
       flex-direction: column;
       gap: 2px;
-      min-height: 54px;
+      min-height: 52px;
+      justify-content: center;
     }
 
     .stat-label {
@@ -157,51 +135,41 @@
     .stat-value {
       font-size: 16px;
       font-weight: 700;
-      color: #111827;
     }
 
     .stat-pill {
       font-size: 11px;
       padding: 2px 7px;
       border-radius: 999px;
-      align-self: flex-start;
       background: var(--accent-soft);
-      color: #1d4ed8;
+      color: #8c5311;
+      align-self: flex-start;
     }
 
-    .stat-pill-sub {
+    .stat-meta {
       font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      align-self: flex-start;
-      background: #eef2ff;
-      color: #4b5563;
+      color: var(--text-sub);
+      margin-top: 4px;
     }
 
     /* 레이아웃 */
 
     .layout-main {
       display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.2fr);
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.2fr);
       gap: 12px;
     }
 
-    @media (max-width: 1040px) {
-      .layout-main {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    @media (max-width: 980px) {
+      .layout-main { grid-template-columns: minmax(0, 1fr); }
     }
 
     .card {
       background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      padding: 12px 13px 15px;
+      border-radius: var(--radius-large);
+      padding: 12px 12px 14px;
       border: 1px solid var(--border-soft);
       box-shadow: var(--shadow-soft);
-    }
-
-    .card + .card {
-      margin-top: 8px;
     }
 
     .card-header {
@@ -213,14 +181,14 @@
     }
 
     .card-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
-      color: #111827;
     }
 
     .card-subtitle {
       font-size: 12px;
       color: var(--text-sub);
+      margin-top: 2px;
     }
 
     .badge {
@@ -228,27 +196,9 @@
       padding: 3px 9px;
       border-radius: 999px;
       border: 1px solid var(--border-soft);
-      background: #f9fafb;
+      background: #fdfaf5;
       color: var(--text-sub);
       white-space: nowrap;
-    }
-
-    .badge-status-ok {
-      background: #dcfce7;
-      color: #166534;
-      border-color: #bbf7d0;
-    }
-
-    .badge-status-warn {
-      background: #fef3c7;
-      color: #92400e;
-      border-color: #fde68a;
-    }
-
-    .badge-status-idle {
-      background: #e5e7eb;
-      color: #374151;
-      border-color: #d1d5db;
     }
 
     .section-body {
@@ -257,29 +207,26 @@
       gap: 8px;
     }
 
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     .field-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 8px;
     }
 
     @media (max-width: 720px) {
-      .field-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      .field-row { grid-template-columns: minmax(0, 1fr); }
     }
 
     .field-label-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 4px;
     }
 
     .field-label {
@@ -288,92 +235,93 @@
     }
 
     .field-hint {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-sub);
     }
 
     input[type="text"],
-    input[type="email"],
-    input[type="date"],
     textarea,
-    select {
+    select,
+    input[type="date"] {
       width: 100%;
-      padding: 6px 7px;
-      font-size: 12px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-small);
       border: 1px solid var(--border-soft);
-      background: #f9fafb;
-      color: var(--text-main);
+      padding: 6px 8px;
+      font-size: 12px;
       font-family: var(--font-main);
-      outline: none;
-      transition: border-color 0.12s ease, box-shadow 0.12s ease,
-        background 0.12s ease;
+      background: #fdfaf5;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+      max-height: 220px;
     }
 
     input:focus,
     textarea:focus,
     select:focus {
+      outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+      box-shadow: 0 0 0 1px rgba(194, 123, 36, 0.25);
       background: #ffffff;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-      max-height: 210px;
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid var(--border-soft);
+      background: #fbf5ea;
+      color: var(--text-sub);
+      gap: 4px;
+    }
+
+    .status-pill.ok {
+      background: #e0f6e9;
+      color: var(--success);
+      border-color: #bbf7d0;
+    }
+
+    .status-pill.warn {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+
+    .status-pill.error {
+      background: #fee2e2;
+      color: var(--danger);
+      border-color: #fecaca;
     }
 
     .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
-    button {
+    .btn {
       border-radius: 999px;
       border: 1px solid var(--border-soft);
-      background: #ffffff;
-      padding: 6px 12px;
+      background: #fdfaf5;
+      padding: 6px 11px;
       font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.12s ease, box-shadow 0.12s ease,
-        transform 0.06s ease;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
       white-space: nowrap;
     }
 
-    button:hover {
-      background: #eef2ff;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
-      transform: translateY(-1px);
-    }
-
-    button:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
-    }
-
     .btn-primary {
-      background: var(--accent);
+      background: linear-gradient(120deg, #c27b24, #d49232);
       color: #ffffff;
-      border-color: #1d4ed8;
-    }
-
-    .btn-primary:hover {
-      background: #1d4ed8;
-      color: #ffffff;
+      border-color: #aa6310;
     }
 
     .btn-ghost {
@@ -385,1145 +333,1081 @@
       line-height: 0;
     }
 
-    .note {
-      font-size: 11px;
-      color: var(--text-sub);
+    .btn:hover {
+      box-shadow: 0 6px 16px rgba(60, 52, 38, 0.18);
+      transform: translateY(-1px);
     }
 
-    .note-strong {
-      font-weight: 500;
-      color: #4b5563;
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
     }
 
-    /* 미리보기 */
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
 
-    .preview-header-row {
+    .pill-strip {
       display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+      margin-top: 2px;
+    }
+
+    .pill-small {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #f7efe1;
+      color: var(--text-sub);
+      border: 1px solid var(--border-soft);
+    }
+
+    .pill-small.em {
+      background: #e0f2fe;
+      color: #075985;
+      border-color: #bae6fd;
+    }
+
+    .preview-header {
+      display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
       margin-bottom: 4px;
     }
 
-    .preview-mode-toggle {
+    .toggle-group {
       display: inline-flex;
       border-radius: 999px;
       border: 1px solid var(--border-soft);
-      background: #f3f4ff;
       overflow: hidden;
-      font-size: 11px;
+      background: #fdfaf5;
     }
 
-    .preview-mode-btn {
+    .toggle-btn {
+      padding: 4px 9px;
+      font-size: 11px;
       border: none;
-      padding: 4px 8px;
       background: transparent;
       cursor: pointer;
-      font-size: 11px;
-      color: #4b5563;
+      color: var(--text-sub);
     }
 
-    .preview-mode-btn.active {
-      background: #ffffff;
-      color: #1d4ed8;
+    .toggle-btn.active {
+      background: #fbe8c9;
+      color: #8c5311;
       font-weight: 600;
     }
 
     .preview-box {
       border-radius: 12px;
       border: 1px solid var(--border-soft);
-      background: #f9fafb;
+      background: #fffdf8;
       padding: 8px 9px;
-      min-height: 140px;
-      max-height: 280px;
-      overflow: auto;
       font-size: 12px;
+      min-height: 130px;
+      max-height: 260px;
+      overflow-y: auto;
       white-space: pre-wrap;
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     .preview-empty {
       font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .preview-status {
-      margin-top: 4px;
-      font-size: 11px;
       color: var(--text-sub);
     }
 
-    .preview-status span {
-      font-weight: 600;
+    .note {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 4px;
     }
 
-    /* 후속조치 */
-
-    .follow-grid {
+    .grid-two {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 10px;
     }
 
-    @media (max-width: 720px) {
-      .follow-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    @media (max-width: 820px) {
+      .grid-two { grid-template-columns: minmax(0, 1fr); }
     }
 
     .summary-box {
       border-radius: 10px;
       border: 1px dashed var(--border-strong);
-      background: #f9fafb;
-      padding: 6px 7px;
+      padding: 7px 8px;
+      background: #fdf9f0;
       font-size: 12px;
-      min-height: 48px;
+      min-height: 60px;
+      white-space: pre-wrap;
     }
 
-    .summary-empty {
-      color: #9ca3af;
-      font-size: 12px;
-    }
-
-    .footer-global {
-      margin-top: 10px;
-      font-size: 10px;
+    .footer-note {
+      font-size: 11px;
       color: var(--text-sub);
+      margin-top: 8px;
       text-align: right;
     }
 
-    .footer-global span {
-      font-weight: 500;
-      color: #4b5563;
+    .error-text {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 2px;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- 헤더 -->
-    <section class="header-card" aria-label="도구 정보">
-      <div>
-        <div class="header-title-main">1번 도구 · 고객 자동화 안내서</div>
-        <div class="header-title-sub">
-          연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인
-          워드/메일용 안내서 초안과 후속 조치 체크리스트를 한 화면에서 관리합니다.
-        </div>
-        <div class="header-row-tags">
-          <span class="tag"><span class="tag-dot"></span> Local-only · Safe DOM · v1.0</span>
-          <span class="tag"><span class="tag-dot"></span> 화면에 보이는 기능만 동작</span>
-          <span class="tag"><span class="tag-dot"></span> Word/메일 안내서용 텍스트 생성</span>
-        </div>
-        <div class="header-meta">
-          <span class="meta-strong">초기 상태:</span>
-          <span id="headerStateText">아직 저장 없음</span> · 저장 위치:
-          <span class="meta-strong">localStorage · wic_tool1_state_v1</span>
-        </div>
+<div class="app-shell">
+  <!-- 헤더 -->
+  <header class="header">
+    <div>
+      <div class="title-main">1번 도구 · 고객 자동화 안내서</div>
+      <div class="title-sub">
+        연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인 워드/메일용 안내서 초안과
+        후속 조치 체크리스트를 한 화면에서 관리합니다.
       </div>
-      <div class="header-stats">
-        <div class="stat-card">
-          <div class="stat-label">누적 안내서 생성</div>
-          <div class="stat-value" id="statTotalCount">0</div>
-          <div class="stat-pill">Generate count</div>
+      <div class="tag-row">
+        <div class="tag"><span class="tag-dot"></span> Local-only · Safe DOM · v1.0</div>
+        <div class="tag"><span class="tag-dot"></span> 화면에 보이는 기능만 동작</div>
+        <div class="tag"><span class="tag-dot"></span> Word/메일 안내서용 텍스트 생성</div>
+      </div>
+      <div class="stat-meta" id="stateLine">초기 상태: 아직 저장 없음 · 저장 위치: localStorage · wic_tool1_state_v1</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-card">
+        <div class="stat-label">누적 안내서 생성</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-pill">Generate count</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">오늘 만든 안내서</div>
+        <div class="stat-value" id="statToday">0</div>
+        <div class="stat-pill">Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">마지막 생성 시각</div>
+        <div class="stat-value" style="font-size:13px;" id="statLast">-</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 레이아웃 -->
+  <main class="layout-main">
+    <!-- 좌측: A + B -->
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">A. 고객 기본 정보</div>
+          <div class="card-subtitle">
+            엑셀 고객DB에서 옮겨 적는 기준으로, 안내서에 필수로 들어가는 기본 필드입니다. 이름 또는 기관 중 1개 이상은 꼭 적어야 합니다.
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">오늘 만든 안내서</div>
-          <div class="stat-value" id="statTodayCount">0</div>
-          <div class="stat-pill">Today</div>
+        <span class="status-pill" id="basicStatus">기본 정보 상태: 대기 중</span>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputName">고객 이름</label>
+              <span class="field-hint">예: 홍길동</span>
+            </div>
+            <input type="text" id="inputName" placeholder="예: 홍길동" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputTitle">직함 / 직위</label>
+              <span class="field-hint">예: 박사 / 책임연구원</span>
+            </div>
+            <input type="text" id="inputTitle" placeholder="예: 박사 / 책임연구원" />
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">마지막 생성 시각</div>
-          <div class="stat-value" style="font-size:13px;" id="statLastTime">-</div>
-          <div class="stat-pill-sub">Local-only 기록</div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputOrg">기관 / 회사</label>
+              <span class="field-hint">예: KIST / KITECH</span>
+            </div>
+            <input type="text" id="inputOrg" placeholder="예: KIST / KITECH" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputDept">부서 / 연구실</label>
+              <span class="field-hint">예: 소재부품연구부</span>
+            </div>
+            <input type="text" id="inputDept" placeholder="예: 소재부품연구부" />
+          </div>
         </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputField">연구 / 관심 분야</label>
+              <span class="field-hint">예: 반도체 패키징 접착제</span>
+            </div>
+            <input type="text" id="inputField" placeholder="예: 반도체 패키징 접착제" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputBudget">예상 예산 / 연구비</label>
+              <span class="field-hint">예: 연 1,200만원</span>
+            </div>
+            <input type="text" id="inputBudget" placeholder="예: 연 1,200만원" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputEmail">이메일 (선택)</label>
+              <span class="field-hint">예: example@org.re.kr</span>
+            </div>
+            <input type="text" id="inputEmail" placeholder="예: example@org.re.kr" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputShortMemo">내 메모 (짧게)</label>
+              <span class="field-hint">예: 기존 고객 / 예산 있음</span>
+            </div>
+            <input type="text" id="inputShortMemo" placeholder="예: 기존 고객 / 예산 있음" />
+          </div>
+        </div>
+        <div class="note">· 이름·기관·연구분야는 안내서 인사말, 본문 요약에 자동 반영됩니다.</div>
+      </div>
+
+      <hr style="border:none;border-top:1px dashed var(--border-soft);margin:10px 0;" />
+
+      <div class="card-header">
+        <div>
+          <div class="card-title">B. 안내서 옵션 · 보고서 목록</div>
+          <div class="card-subtitle">
+            신규 문의 / 기존 고객 / 재문의 상황에 따라, 템플릿 구조와 톤이 달라집니다.
+          </div>
+        </div>
+        <span class="status-pill" id="optionStatus">옵션 상태: 기본값 사용 중</span>
+      </div>
+
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectType">안내서 유형</label>
+              <span class="field-hint">상황 선택</span>
+            </div>
+            <select id="selectType">
+              <option value="new">신규 문의 / 첫 안내</option>
+              <option value="existing">기존 고객 / 추가 안내</option>
+              <option value="revisit">재문의 / 업데이트 안내</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectTone">문체 / 톤</label>
+              <span class="field-hint">예: 연구자 대상 존댓말</span>
+            </div>
+            <select id="selectTone">
+              <option value="research-polite">연구자용 정중한 톤 (기본)</option>
+              <option value="business-polite">비즈니스 정중 톤</option>
+              <option value="simple-polite">간단·단문 존댓말</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputKeywords">핵심 키워드 (콤마 구분)</label>
+              <span class="field-hint">예: 글라스 서브스트레이트, 접착제</span>
+            </div>
+            <input type="text" id="inputKeywords" placeholder="키워드1, 키워드2, ..." />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectChannel">예상 사용 채널</label>
+              <span class="field-hint">메일 / 워드 / PDF</span>
+            </div>
+            <select id="selectChannel">
+              <option value="email">이메일 본문용</option>
+              <option value="word">Word 문서용</option>
+              <option value="pdf">PDF 안내서용</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="textareaReports">보고서 / 자료 목록</label>
+            <span class="field-hint">한 줄당 1개 · 제목만 적으면 번호 매김</span>
+          </div>
+          <textarea id="textareaReports" placeholder="예시)
+Glass Substrate for Advanced Packaging 2025
+Semiconductor Packaging Adhesives: Global Market 2024
+고기능 접착제·실란트 세계시장 2023"></textarea>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="textareaDetailMemo">고객 상세 메모 (안내서 본문 반영)</label>
+            <span class="field-hint">전화 내용, 예산, 원하는 포인트 등 자유 입력</span>
+          </div>
+          <textarea id="textareaDetailMemo" placeholder="예)
+- 최근 패키징용 유리기판 관련 중장기 로드맵 수립 중
+- 국내·해외 업체 동향, 공정별 기술 포인트, 비용·투자 규모 데이터 필요
+- 기한: 다음 달 예산 집행 전까지"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnGenerate"><span class="btn-icon">⚙️</span> 자동 안내서 초안 생성</button>
+          <button class="btn" id="btnAppendMemo"><span class="btn-icon">➕</span> 메모를 안내서에 덧붙이기</button>
+          <button class="btn btn-ghost" id="btnClearInputs"><span class="btn-icon">🧹</span> 입력 내용 초기화</button>
+        </div>
+        <div id="optionError" class="error-text" style="display:none;"></div>
       </div>
     </section>
 
-    <main class="layout-main">
-      <!-- 왼쪽: 고객 정보 + 옵션 -->
-      <div>
-        <!-- A. 고객 기본 정보 -->
-        <section class="card" aria-label="고객 기본 정보">
-          <div class="card-header">
-            <div>
-              <div class="card-title">A. 고객 기본 정보</div>
-              <div class="card-subtitle">
-                엑셀 고객DB에서 옮겨 적는 기준으로, 안내서에 필수로 들어가는 기본 필드입니다.
-                <span class="note-strong">이름 또는 기관 중 1개 이상</span>은 꼭 적어야 합니다.
-              </div>
-            </div>
-            <span class="badge badge-status-idle" id="basicStatusBadge">기본 정보 상태: 대기 중</span>
+    <!-- 우측: C + D -->
+    <section class="card">
+      <!-- C. 미리보기 -->
+      <div class="card-header">
+        <div>
+          <div class="card-title">C. 자동 안내서 미리보기</div>
+          <div class="card-subtitle">
+            인사·소개·맞춤 제안·후속 안내까지 한 번에 붙여 넣을 수 있는 구조로 보여줍니다.
           </div>
-          <div class="section-body">
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="nameInput" class="field-label">고객 이름</label>
-                  <span class="field-hint">예: 홍길동</span>
-                </div>
-                <input id="nameInput" type="text" placeholder="예: 홍길동" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="titleInput" class="field-label">직함 / 직위</label>
-                  <span class="field-hint">예: 박사 / 책임연구원</span>
-                </div>
-                <input id="titleInput" type="text" placeholder="예: 박사 / 책임연구원" />
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="orgInput" class="field-label">기관 / 회사</label>
-                  <span class="field-hint">예: KIST / KITECH</span>
-                </div>
-                <input id="orgInput" type="text" placeholder="예: KIST / KITECH" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="deptInput" class="field-label">부서 / 연구실</label>
-                  <span class="field-hint">예: 소재부품연구부</span>
-                </div>
-                <input id="deptInput" type="text" placeholder="예: 소재부품연구부" />
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="fieldInput" class="field-label">연구 / 관심 분야</label>
-                  <span class="field-hint">예: 반도체 패키징 접착제</span>
-                </div>
-                <input id="fieldInput" type="text" placeholder="예: 반도체 패키징 접착제" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="budgetInput" class="field-label">예상 예산 / 연구비</label>
-                  <span class="field-hint">예: 연 1,200만원</span>
-                </div>
-                <input id="budgetInput" type="text" placeholder="예: 연 1,200만원" />
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="emailInput" class="field-label">이메일 (선택)</label>
-                  <span class="field-hint">예: example@org.re.kr</span>
-                </div>
-                <input id="emailInput" type="email" placeholder="예: example@org.re.kr" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="shortMemoInput" class="field-label">내 메모 (짧게)</label>
-                  <span class="field-hint">예: 기존 고객 / 예산 있음</span>
-                </div>
-                <input id="shortMemoInput" type="text" placeholder="예: 기존 고객 / 예산 있음" />
-              </div>
-            </div>
-
-            <div class="note">
-              · <span class="note-strong">이름·기관·연구분야</span>는 안내서 인사말, 본문 요약에 자동 반영됩니다.
-            </div>
-          </div>
-        </section>
-
-        <!-- B. 안내서 옵션 -->
-        <section class="card" aria-label="안내서 옵션 및 보고서 목록">
-          <div class="card-header">
-            <div>
-              <div class="card-title">B. 안내서 옵션 · 보고서 목록</div>
-              <div class="card-subtitle">
-                신규 문의 / 기존 고객 / 재문의 상황에 따라, 템플릿 구조와 톤이 달라집니다.
-              </div>
-            </div>
-            <span class="badge badge-status-idle" id="optionStatusBadge">옵션 상태: 기본값 사용 중</span>
-          </div>
-          <div class="section-body">
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="typeSelect" class="field-label">안내서 유형</label>
-                  <span class="field-hint">상황 선택</span>
-                </div>
-                <select id="typeSelect">
-                  <option value="new">신규 문의 / 첫 안내</option>
-                  <option value="existing">기존 고객 추가 제안</option>
-                  <option value="revisit">재문의 / 후속 안내</option>
-                </select>
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="toneSelect" class="field-label">문체 / 톤</label>
-                  <span class="field-hint">예: 연구자 대상 존댓말</span>
-                </div>
-                <select id="toneSelect">
-                  <option value="researcher">연구자용 정중한 톤 (기본)</option>
-                  <option value="simple">간단·직관 톤</option>
-                  <option value="formal">매우 형식적인 톤</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="keywordInput" class="field-label">핵심 키워드 (콤마 구분)</label>
-                  <span class="field-hint">예: 글라스 서브스트레이트, 접착제</span>
-                </div>
-                <input
-                  id="keywordInput"
-                  type="text"
-                  placeholder="키워드1, 키워드2, ..."
-                />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="channelSelect" class="field-label">예상 사용 채널</label>
-                  <span class="field-hint">메일 / 워드 / PDF</span>
-                </div>
-                <select id="channelSelect">
-                  <option value="email">이메일 본문용</option>
-                  <option value="word">워드 파일용</option>
-                  <option value="pdf">PDF 안내서용</option>
-                  <option value="mix">이메일 + 워드 병행</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="reportListInput" class="field-label">보고서 / 자료 목록</label>
-                <span class="field-hint">한 줄당 1개 · 제목만 적으면 번호 매김</span>
-              </div>
-              <textarea
-                id="reportListInput"
-                placeholder="예시)
-Glass Substrate for Advanced Packaging 2025
-Semiconductor Packaging Adhesives: Global Market 2024
-고기능 접착제·실란트 세계시장 2023"
-              ></textarea>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="detailMemoInput" class="field-label">고객 상세 메모 (안내서 본문 반영)</label>
-                <span class="field-hint">전화 내용, 예산, 원하는 포인트 등 자유 입력</span>
-              </div>
-              <textarea
-                id="detailMemoInput"
-                placeholder="예)
-- 최근 패키징용 유리기판 관련 중장기 로드맵 수립 중
-- 국내·해외 업체 동향, 공정별 기술 포인트, 비용·투자 규모 데이터 필요
-- 기한: 다음 달 예산 집행 전까지"
-              ></textarea>
-            </div>
-
-            <div class="btn-row">
-              <button type="button" class="btn-primary" id="btnGenerate">
-                <span class="btn-icon">⚙️</span> 자동 안내서 초안 생성
-              </button>
-              <button type="button" class="btn" id="btnAppendMemo">
-                <span class="btn-icon">➕</span> 메모를 안내서에 덧붙이기
-              </button>
-              <button type="button" class="btn btn-ghost" id="btnClearInputs">
-                <span class="btn-icon">🧹</span> 입력 내용 초기화
-              </button>
-            </div>
-
-            <div class="note">
-              · 안내서 생성 후에도 옵션을 바꿔 다시 생성할 수 있습니다.
-            </div>
-          </div>
-        </section>
+        </div>
+        <span class="status-pill" id="previewStatus">안내서 상태: 아직 생성되지 않았습니다.</span>
       </div>
 
-      <!-- 오른쪽: 미리보기 + 후속 조치 -->
-      <div>
-        <!-- C. 자동 안내서 미리보기 -->
-        <section class="card" aria-label="자동 안내서 미리보기">
-          <div class="card-header">
-            <div>
-              <div class="card-title">C. 자동 안내서 미리보기</div>
-              <div class="card-subtitle">
-                인사·소개·맞춤 제안·후속 안내까지 한 번에 붙여 넣을 수 있는 구조로 보여줍니다.
-              </div>
-            </div>
-            <span class="badge badge-status-idle" id="previewStatusBadge">
-              안내서 상태: 아직 생성되지 않았습니다.
-            </span>
+      <div class="section-body">
+        <div class="preview-header">
+          <div class="toggle-group" aria-label="보기 모드 선택">
+            <button type="button" class="toggle-btn active" id="btnModeFormatted">📄 안내서 형식</button>
+            <button type="button" class="toggle-btn" id="btnModePlain">📋 순수 텍스트</button>
           </div>
-          <div class="section-body">
-            <div class="preview-header-row">
-              <div class="preview-mode-toggle" role="group" aria-label="미리보기 모드">
-                <button
-                  type="button"
-                  class="preview-mode-btn active"
-                  id="btnModeStructured"
-                >
-                  📄 안내서 형식
-                </button>
-                <button
-                  type="button"
-                  class="preview-mode-btn"
-                  id="btnModePlain"
-                >
-                  📋 순수 텍스트
-                </button>
-              </div>
-              <div class="btn-row" style="margin-top:0;">
-                <button type="button" class="btn" id="btnCopy">
-                  <span class="btn-icon">📎</span> 복사
-                </button>
-                <button type="button" class="btn btn-ghost" id="btnAddDivider">
-                  <span class="btn-icon">📝</span> 워드 구분선
-                </button>
-              </div>
-            </div>
-            <div id="previewBox" class="preview-box preview-empty">
-              아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
-              「자동 안내서 초안 생성」 버튼을 눌러 주세요.
-            </div>
-            <div class="preview-status" id="previewStatusText">
-              · 이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다.
-              (Word 잠금은 별도 템플릿에서 처리)
-            </div>
+          <div class="btn-row" style="margin-top:0;">
+            <button class="btn" id="btnCopy"><span class="btn-icon">📎</span> 복사</button>
+            <button class="btn btn-ghost" id="btnAddSeparator"><span class="btn-icon">📝</span> 워드 구분선</button>
           </div>
-        </section>
-
-        <!-- D. 후속 조치 -->
-        <section class="card" aria-label="후속 조치 체크리스트">
-          <div class="card-header">
-            <div>
-              <div class="card-title">D. 후속 조치 · Follow-up 체크리스트</div>
-              <div class="card-subtitle">
-                안내서와 연결된 전화 / 메일 / 견적 / 입찰 등 후속 행동을 로컬에서 관리합니다.
-              </div>
-            </div>
-            <span class="badge badge-status-idle" id="followStatusBadge">
-              후속 조치 상태: 미저장
-            </span>
+        </div>
+        <div id="previewBox" class="preview-box">
+          <div class="preview-empty">
+            아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
+            「자동 안내서 초안 생성」 버튼을 눌러 주세요.
           </div>
-          <div class="section-body">
-            <div class="follow-grid">
-              <div class="field">
-                <div class="field-label-row">
-                  <span class="field-label">전화 상담 예정</span>
-                  <span class="field-hint">연도-월-일</span>
-                </div>
-                <input id="callDateInput" type="date" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <span class="field-label">안내 메일 발송 / 회신 대기</span>
-                  <span class="field-hint">연도-월-일</span>
-                </div>
-                <input id="mailDateInput" type="date" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <span class="field-label">공식 견적서 / 인보이스 발송</span>
-                  <span class="field-hint">연도-월-일</span>
-                </div>
-                <input id="quoteDateInput" type="date" />
-              </div>
-              <div class="field">
-                <div class="field-label-row">
-                  <span class="field-label">입찰 / 조달 등록 준비</span>
-                  <span class="field-hint">연도-월-일</span>
-                </div>
-                <input id="bidDateInput" type="date" />
-              </div>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <label for="followMemoInput" class="field-label">추가 메모 (후속 조치용)</label>
-                <span class="field-hint">예: 입찰 마감일 / 내부 결재 일정</span>
-              </div>
-              <textarea
-                id="followMemoInput"
-                placeholder="예)
-- KISTI 조달 등록 필요 여부 확인
-- 내부 결재라인: 팀장 → 본부장
-- 예산 집행 기한: 1월 말까지"
-              ></textarea>
-            </div>
-
-            <div class="field">
-              <div class="field-label-row">
-                <span class="field-label">다음 할 일 요약</span>
-                <span class="field-hint">체크리스트 값으로 자동 정리</span>
-              </div>
-              <div id="followSummaryBox" class="summary-box">
-                <span class="summary-empty" id="followSummaryEmptyText">
-                  아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.
-                </span>
-              </div>
-            </div>
-
-            <div class="btn-row">
-              <button type="button" class="btn" id="btnFollowSave">
-                <span class="btn-icon">💾</span> 후속 조치 상태 저장
-              </button>
-              <button type="button" class="btn btn-ghost" id="btnFollowRecalc">
-                <span class="btn-icon">🔄</span> 요약 다시 계산
-              </button>
-              <button type="button" class="btn btn-ghost" id="btnFollowReset">
-                <span class="btn-icon">♻️</span> 체크리스트 초기화
-              </button>
-            </div>
-
-            <div class="note">
-              · 체크리스트와 메모는 이 브라우저의 <span class="note-strong">localStorage</span>에만 저장됩니다.
-            </div>
-          </div>
-        </section>
-
-        <div class="footer-global">
-          <span>Local-only / Static</span> · public/index.html · 고객 자동화 안내서 v1.0
+        </div>
+        <div class="note">
+          · 이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다. (Word 잠금은 별도 템플릿에서 처리)
         </div>
       </div>
-    </main>
-  </div>
-
-  <script>
-    (function () {
-      "use strict";
-
-      const STORAGE_KEY = "wic_tool1_state_v1";
-
-      const $ = (id) => document.getElementById(id);
-
-      const nameInput = $("nameInput");
-      const titleInput = $("titleInput");
-      const orgInput = $("orgInput");
-      const deptInput = $("deptInput");
-      const fieldInput = $("fieldInput");
-      const budgetInput = $("budgetInput");
-      const emailInput = $("emailInput");
-      const shortMemoInput = $("shortMemoInput");
-
-      const typeSelect = $("typeSelect");
-      const toneSelect = $("toneSelect");
-      const keywordInput = $("keywordInput");
-      const channelSelect = $("channelSelect");
-      const reportListInput = $("reportListInput");
-      const detailMemoInput = $("detailMemoInput");
-
-      const basicStatusBadge = $("basicStatusBadge");
-      const optionStatusBadge = $("optionStatusBadge");
-      const previewStatusBadge = $("previewStatusBadge");
-      const previewStatusText = $("previewStatusText");
-      const followStatusBadge = $("followStatusBadge");
-
-      const btnGenerate = $("btnGenerate");
-      const btnAppendMemo = $("btnAppendMemo");
-      const btnClearInputs = $("btnClearInputs");
-
-      const btnModeStructured = $("btnModeStructured");
-      const btnModePlain = $("btnModePlain");
-      const previewBox = $("previewBox");
-      const btnCopy = $("btnCopy");
-      const btnAddDivider = $("btnAddDivider");
-
-      const callDateInput = $("callDateInput");
-      const mailDateInput = $("mailDateInput");
-      const quoteDateInput = $("quoteDateInput");
-      const bidDateInput = $("bidDateInput");
-      const followMemoInput = $("followMemoInput");
-      const followSummaryBox = $("followSummaryBox");
-      const followSummaryEmptyText = $("followSummaryEmptyText");
-      const btnFollowSave = $("btnFollowSave");
-      const btnFollowRecalc = $("btnFollowRecalc");
-      const btnFollowReset = $("btnFollowReset");
-
-      const statTotalCount = $("statTotalCount");
-      const statTodayCount = $("statTodayCount");
-      const statLastTime = $("statLastTime");
-      const headerStateText = $("headerStateText");
-
-      let currentPreviewMode = "structured"; // 'structured' | 'plain'
-      let currentLetterText = "";
-
-      function safeJSONParse(text, fallback) {
-        try {
-          if (!text) return fallback;
-          const parsed = JSON.parse(text);
-          return parsed;
-        } catch (e) {
-          return fallback;
-        }
-      }
-
-      function getTodayKey() {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${y}-${m}-${day}`;
-      }
-
-      function formatDateTime(d) {
-        if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "-";
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const h = String(d.getHours()).padStart(2, "0");
-        const mi = String(d.getMinutes()).padStart(2, "0");
-        return `${y}-${m}-${day} ${h}:${mi}`;
-      }
-
-      function setBadge(badgeEl, status, text) {
-        badgeEl.textContent = text;
-        badgeEl.classList.remove(
-          "badge-status-ok",
-          "badge-status-warn",
-          "badge-status-idle"
-        );
-        if (status === "ok") {
-          badgeEl.classList.add("badge-status-ok");
-        } else if (status === "warn") {
-          badgeEl.classList.add("badge-status-warn");
-        } else {
-          badgeEl.classList.add("badge-status-idle");
-        }
-      }
-
-      function readStateFromUI() {
-        return {
-          basic: {
-            name: nameInput.value || "",
-            title: titleInput.value || "",
-            org: orgInput.value || "",
-            dept: deptInput.value || "",
-            field: fieldInput.value || "",
-            budget: budgetInput.value || "",
-            email: emailInput.value || "",
-            shortMemo: shortMemoInput.value || "",
-          },
-          options: {
-            type: typeSelect.value,
-            tone: toneSelect.value,
-            keywords: keywordInput.value || "",
-            channel: channelSelect.value,
-            reportList: reportListInput.value || "",
-            detailMemo: detailMemoInput.value || "",
-          },
-          preview: {
-            letter: currentLetterText || "",
-            mode: currentPreviewMode,
-          },
-          follow: {
-            callDate: callDateInput.value || "",
-            mailDate: mailDateInput.value || "",
-            quoteDate: quoteDateInput.value || "",
-            bidDate: bidDateInput.value || "",
-            memo: followMemoInput.value || "",
-            summary: followSummaryBox.textContent || "",
-          },
-          stats: {
-            totalCount: parseInt(statTotalCount.textContent || "0", 10) || 0,
-            todayCount: parseInt(statTodayCount.textContent || "0", 10) || 0,
-            lastDateKey: getTodayKey(), // 갱신 시점 기준
-            lastTime: new Date().toISOString(),
-          },
-        };
-      }
-
-      function applyStateToUI(state) {
-        if (!state) return;
-
-        if (state.basic) {
-          nameInput.value = state.basic.name || "";
-          titleInput.value = state.basic.title || "";
-          orgInput.value = state.basic.org || "";
-          deptInput.value = state.basic.dept || "";
-          fieldInput.value = state.basic.field || "";
-          budgetInput.value = state.basic.budget || "";
-          emailInput.value = state.basic.email || "";
-          shortMemoInput.value = state.basic.shortMemo || "";
-        }
-        if (state.options) {
-          if (state.options.type) typeSelect.value = state.options.type;
-          if (state.options.tone) toneSelect.value = state.options.tone;
-          keywordInput.value = state.options.keywords || "";
-          if (state.options.channel) channelSelect.value = state.options.channel;
-          reportListInput.value = state.options.reportList || "";
-          detailMemoInput.value = state.options.detailMemo || "";
-        }
-
-        if (state.preview) {
-          currentLetterText = state.preview.letter || "";
-          currentPreviewMode = state.preview.mode || "structured";
-          updatePreviewBox();
-        }
-
-        if (state.follow) {
-          callDateInput.value = state.follow.callDate || "";
-          mailDateInput.value = state.follow.mailDate || "";
-          quoteDateInput.value = state.follow.quoteDate || "";
-          bidDateInput.value = state.follow.bidDate || "";
-          followMemoInput.value = state.follow.memo || "";
-
-          if (state.follow.summary && state.follow.summary.trim()) {
-            followSummaryBox.textContent = state.follow.summary;
-            followSummaryEmptyText.style.display = "none";
-          } else {
-            followSummaryBox.textContent = "";
-            followSummaryEmptyText.style.display = "";
-          }
-        }
-
-        if (state.stats) {
-          const total = state.stats.totalCount || 0;
-          const todayCount = state.stats.todayCount || 0;
-          statTotalCount.textContent = String(total);
-          statTodayCount.textContent = String(todayCount);
-
-          if (state.stats.lastTime) {
-            const d = new Date(state.stats.lastTime);
-            statLastTime.textContent = formatDateTime(d);
-          } else {
-            statLastTime.textContent = "-";
-          }
-
-          if (total > 0) {
-            headerStateText.textContent = "이전에 저장된 안내서가 있습니다.";
-          } else {
-            headerStateText.textContent = "아직 저장 없음";
-          }
-        }
-      }
-
-      function saveState() {
-        const state = readStateFromUI();
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          if (state.stats && state.stats.totalCount > 0) {
-            headerStateText.textContent = "저장됨 · 최근 안내서 존재";
-          }
-        } catch (e) {
-          // 저장 실패 시 조용히 무시
-        }
-      }
-
-      function loadState() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const state = safeJSONParse(raw, null);
-        applyStateToUI(state);
-      }
-
-      function buildLetterText() {
-        const name = (nameInput.value || "").trim();
-        const title = (titleInput.value || "").trim();
-        const org = (orgInput.value || "").trim();
-        const dept = (deptInput.value || "").trim();
-        const field = (fieldInput.value || "").trim();
-        const budget = (budgetInput.value || "").trim();
-        const shortMemo = (shortMemoInput.value || "").trim();
-        const type = typeSelect.value;
-        const tone = toneSelect.value;
-        const keywords = (keywordInput.value || "").trim();
-        const channel = channelSelect.value;
-        const reportLines = (reportListInput.value || "")
-          .split(/\r?\n/)
-          .map((l) => l.trim())
-          .filter((l) => l.length > 0);
-        const detailMemo = (detailMemoInput.value || "").trim();
-
-        if (!name && !org) {
-          alert("이름 또는 기관 중 하나는 반드시 입력해야 안내서를 만들 수 있습니다.");
-          return "";
-        }
-
-        // 인사말
-        let greetingName = "";
-        if (org && name) {
-          greetingName = `${org} ${dept ? dept + " " : ""}${name}${title ? " " + title : ""} 귀하`;
-        } else if (org) {
-          greetingName = `${org} ${dept ? dept + " " : ""}담당자 귀하`;
-        } else {
-          greetingName = `${name}${title ? " " + title : ""} 귀하`;
-        }
-
-        const todayKey = getTodayKey().replace(/-/g, ".");
-        let introLine = "";
-
-        if (type === "new") {
-          introLine = `항상 귀 연구소의 발전을 기원합니다. 월드산업정보센터에서 ${field || "귀하의 연구 분야"} 관련 자료를 담당하고 있는 담당자입니다.`;
-        } else if (type === "existing") {
-          introLine = `항상 저희 자료를 이용해 주셔서 감사드립니다. 이전에 제공해 드린 자료 이후, 최근 동향을 반영한 추가 제안 안내를 드리고자 합니다.`;
-        } else {
-          introLine = `이전에 문의 주셨던 내용과 연계하여, 최신 자료 구성을 포함한 후속 안내를 드립니다.`;
-        }
-
-        let toneLine = "";
-        if (tone === "researcher") {
-          toneLine =
-            "본 안내서는 연구자 입장에서 바로 비교·검토하실 수 있도록, 핵심 데이터와 구조를 중심으로 간단 명료하게 정리하였습니다.";
-        } else if (tone === "simple") {
-          toneLine =
-            "내용을 최대한 간단하게 정리하여, 바로 읽고 검토하시기 쉽도록 구성했습니다.";
-        } else {
-          toneLine =
-            "다소 형식적인 표현을 사용하여 내부 결재 및 공식 문서로도 바로 활용하실 수 있도록 구성하였습니다.";
-        }
-
-        let keywordLine = "";
-        if (keywords) {
-          keywordLine = `이번 안내의 핵심 키워드는 다음과 같습니다: ${keywords}.`;
-        }
-
-        let fieldLine = "";
-        if (field) {
-          fieldLine = `특히 ${field}와(과) 관련된 기술 동향 및 시장 데이터를 중심으로 구성하였습니다.`;
-        }
-
-        let budgetLine = "";
-        if (budget) {
-          budgetLine = `예상하신 예산 규모(${budget}) 내에서, 필요 데이터를 최대한 포괄할 수 있는 구성을 우선적으로 검토했습니다.`;
-        }
-
-        let channelLine = "";
-        if (channel === "email") {
-          channelLine =
-            "아래 안내 내용은 이메일 본문에 바로 붙여 넣어 사용하실 수 있도록 문단 단위로 나누어 두었습니다.";
-        } else if (channel === "word") {
-          channelLine =
-            "아래 안내 내용은 Word 파일로 옮겨, 내부 결재 용도로 바로 활용하실 수 있는 형식을 기준으로 작성하였습니다.";
-        } else if (channel === "pdf") {
-          channelLine =
-            "아래 안내 내용은 PDF 안내서로 변환하여 보관·공유하시기 편리하도록 구성하였습니다.";
-        } else {
-          channelLine =
-            "이메일 본문과 Word 파일 두 가지 용도로 모두 활용하실 수 있도록, 문단 배열과 구분선을 고려하여 작성하였습니다.";
-        }
-
-        let reportBlock = "";
-        if (reportLines.length > 0) {
-          reportBlock += "1. 제안 자료 목록\n";
-          reportLines.forEach((title, idx) => {
-            reportBlock += `   ${idx + 1}) ${title}\n`;
-          });
-          reportBlock +=
-            "   위 자료들은 상호 보완적으로 구성되어, 기술 동향·시장 규모·경쟁사 분석 등을 단계적으로 확인하실 수 있도록 하였습니다.\n";
-        }
-
-        let memoBlock = "";
-        if (detailMemo) {
-          memoBlock += "2. 고객 요청 및 참고 메모 요약\n";
-          memoBlock += detailMemo + "\n";
-        }
-
-        if (shortMemo) {
-          if (!memoBlock) {
-            memoBlock += "2. 고객 요청 및 참고 메모 요약\n";
-          }
-          memoBlock += `- 내부 메모: ${shortMemo}\n`;
-        }
-
-        if (!reportBlock) {
-          reportBlock =
-            "1. 제안 자료 목록\n   (아직 구체적인 보고서 제목이 입력되지 않았습니다. 엑셀 DB 또는 고객 메모를 참고하여 제목을 추가해 주시면 안내서가 더 풍부해집니다.)\n";
-        }
-
-        if (!memoBlock) {
-          memoBlock =
-            "2. 고객 요청 및 참고 메모 요약\n   (현재 전화/메일 메모가 입력되지 않았습니다. 상담 내용이 생기면 이 구역에 추가해 주시면 다음 안내서에 자동 반영됩니다.)\n";
-        }
-
-        const followIntro =
-          "3. 후속 안내 및 제안 방향\n" +
-          "- 안내 메일 발송 후 1~2일 내 전화 또는 메일로 간단한 피드백을 요청드릴 것을 권장드립니다.\n" +
-          "- 자료 검토 후, 추가로 필요하신 항목(예: 특정 공정, 특정 업체, 세부 수치 등)을 알려주시면 맞춤 재구성을 도와드리겠습니다.\n";
-
-        const closing =
-          "\n마지막으로, 내부 검토 과정에서 필요한 형식(서식, PDF, 인쇄용 등)이 따로 있으시면 언제든 말씀해 주시면 반영하여 재전송 드리겠습니다.\n\n" +
-          `감사합니다.\n` +
-          `월드산업정보센터 드림 (${todayKey})`;
-
-        const letter =
-          `${greetingName}\n\n` +
-          `${introLine}\n` +
-          `${toneLine}\n` +
-          (keywordLine ? keywordLine + "\n" : "") +
-          (fieldLine ? fieldLine + "\n" : "") +
-          (budgetLine ? budgetLine + "\n" : "") +
-          (channelLine ? "\n" + channelLine + "\n" : "\n") +
-          "\n" +
-          reportBlock +
-          "\n" +
-          memoBlock +
-          "\n" +
-          followIntro +
-          closing;
-
-        return letter;
-      }
-
-      function updatePreviewBox() {
-        previewBox.classList.remove("preview-empty");
-        if (!currentLetterText) {
-          previewBox.textContent =
-            "아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤 「자동 안내서 초안 생성」 버튼을 눌러 주세요.";
-          previewBox.classList.add("preview-empty");
-          setBadge(
-            previewStatusBadge,
-            "idle",
-            "안내서 상태: 아직 생성되지 않았습니다."
-          );
-          return;
-        }
-
-        if (currentPreviewMode === "structured") {
-          previewBox.textContent = currentLetterText;
-        } else {
-          let plain = currentLetterText.replace(/\n{2,}/g, "\n");
-          previewBox.textContent = plain;
-        }
-
-        setBadge(previewStatusBadge, "ok", "안내서 상태: 생성됨");
-      }
-
-      function onGenerateClick() {
-        const letter = buildLetterText();
-        if (!letter) return;
-
-        currentLetterText = letter;
-        updatePreviewBox();
-
-        const todayKey = getTodayKey();
-        const now = new Date();
-        const nowText = formatDateTime(now);
-
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const prev = safeJSONParse(raw, {});
-        const prevStats = prev.stats || {};
-        const prevTotal = prevStats.totalCount || 0;
-        const prevTodayKey = prevStats.lastDateKey || "";
-
-        let newTotal = prevTotal + 1;
-        let newTodayCount = 1;
-        if (prevTodayKey === todayKey) {
-          const prevToday = prevStats.todayCount || 0;
-          newTodayCount = prevToday + 1;
-        }
-
-        statTotalCount.textContent = String(newTotal);
-        statTodayCount.textContent = String(newTodayCount);
-        statLastTime.textContent = nowText;
-
-        setBadge(basicStatusBadge, "ok", "기본 정보 상태: 안내서에 반영됨");
-        setBadge(optionStatusBadge, "ok", "옵션 상태: 안내서에 반영됨");
-
-        saveState();
-      }
-
-      function onAppendMemoClick() {
-        const extra = (detailMemoInput.value || "").trim();
-        if (!currentLetterText) {
-          alert("먼저 안내서를 한 번 생성한 뒤 메모를 덧붙일 수 있습니다.");
-          return;
-        }
-        if (!extra) {
-          alert("덧붙일 메모가 비어 있습니다.");
-          return;
-        }
-        currentLetterText =
-          currentLetterText.trim() +
-          "\n\n[추가 메모]\n" +
-          extra +
-          "\n";
-        updatePreviewBox();
-        saveState();
-      }
-
-      function onClearInputsClick() {
-        if (
-          !confirm(
-            "고객 기본 정보와 안내서 옵션 입력 내용을 모두 지우겠습니까?\n(미리보기와 후속 조치는 그대로 남습니다.)"
-          )
-        ) {
-          return;
-        }
-        nameInput.value = "";
-        titleInput.value = "";
-        orgInput.value = "";
-        deptInput.value = "";
-        fieldInput.value = "";
-        budgetInput.value = "";
-        emailInput.value = "";
-        shortMemoInput.value = "";
-
-        typeSelect.value = "new";
-        toneSelect.value = "researcher";
-        keywordInput.value = "";
-        channelSelect.value = "email";
-        reportListInput.value = "";
-        detailMemoInput.value = "";
-
-        setBadge(basicStatusBadge, "idle", "기본 정보 상태: 대기 중");
-        setBadge(optionStatusBadge, "idle", "옵션 상태: 기본값 사용 중");
-        saveState();
-      }
-
-      function onPreviewModeChange(mode) {
-        currentPreviewMode = mode;
-        btnModeStructured.classList.toggle("active", mode === "structured");
-        btnModePlain.classList.toggle("active", mode === "plain");
-        updatePreviewBox();
-        saveState();
-      }
-
-      function onCopyClick() {
-        if (!currentLetterText) {
-          alert("복사할 안내서가 없습니다. 먼저 안내서를 생성해 주세요.");
-          return;
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(currentLetterText)
-            .then(() => {
-              previewStatusText.textContent =
-                "· 안내서 텍스트를 클립보드에 복사했습니다. 메일 또는 Word에 붙여 넣어 사용하실 수 있습니다.";
-            })
-            .catch(() => {
-              alert("복사 기능을 사용할 수 없습니다. 텍스트를 직접 드래그해서 복사해 주세요.");
-            });
-        } else {
-          alert("복사 기능을 사용할 수 없습니다. 텍스트를 직접 드래그해서 복사해 주세요.");
-        }
-      }
-
-      function onAddDividerClick() {
-        if (!currentLetterText) {
-          alert("먼저 안내서를 한 번 생성한 뒤 구분선을 추가할 수 있습니다.");
-          return;
-        }
-        const divider = "\n----------------------------------------\n";
-        currentLetterText = currentLetterText.trimEnd() + divider;
-        updatePreviewBox();
-        saveState();
-      }
-
-      function buildFollowSummary() {
-        const lines = [];
-        const callDate = callDateInput.value;
-        const mailDate = mailDateInput.value;
-        const quoteDate = quoteDateInput.value;
-        const bidDate = bidDateInput.value;
-
-        if (callDate) {
-          lines.push(`- ${callDate} : 전화 상담 예정`);
-        }
-        if (mailDate) {
-          lines.push(`- ${mailDate} : 안내 메일 발송 / 회신 확인`);
-        }
-        if (quoteDate) {
-          lines.push(`- ${quoteDate} : 공식 견적서 / 인보이스 발송`);
-        }
-        if (bidDate) {
-          lines.push(`- ${bidDate} : 입찰 / 조달 등록 준비`);
-        }
-
-        if (followMemoInput.value.trim()) {
-          lines.push(`- 메모: ${followMemoInput.value.trim()}`);
-        }
-
-        return lines.join("\n");
-      }
-
-      function onFollowRecalcClick() {
-        const summary = buildFollowSummary();
-        if (!summary) {
-          followSummaryBox.textContent = "";
-          followSummaryEmptyText.style.display = "";
-        } else {
-          followSummaryBox.textContent = summary;
-          followSummaryEmptyText.style.display = "none";
-        }
-        saveState();
-      }
-
-      function onFollowSaveClick() {
-        onFollowRecalcClick();
-        setBadge(followStatusBadge, "ok", "후속 조치 상태: 저장됨");
-        saveState();
-      }
-
-      function onFollowResetClick() {
-        if (
-          !confirm(
-            "후속 조치 날짜·메모·요약을 모두 초기화하시겠습니까?"
-          )
-        ) {
-          return;
-        }
-        callDateInput.value = "";
-        mailDateInput.value = "";
-        quoteDateInput.value = "";
-        bidDateInput.value = "";
-        followMemoInput.value = "";
-        followSummaryBox.textContent = "";
-        followSummaryEmptyText.style.display = "";
-        setBadge(followStatusBadge, "idle", "후속 조치 상태: 미저장");
-        saveState();
-      }
-
-      function initEvents() {
-        btnGenerate.addEventListener("click", onGenerateClick);
-        btnAppendMemo.addEventListener("click", onAppendMemoClick);
-        btnClearInputs.addEventListener("click", onClearInputsClick);
-
-        btnModeStructured.addEventListener("click", () =>
-          onPreviewModeChange("structured")
-        );
-        btnModePlain.addEventListener("click", () =>
-          onPreviewModeChange("plain")
-        );
-        btnCopy.addEventListener("click", onCopyClick);
-        btnAddDivider.addEventListener("click", onAddDividerClick);
-
-        btnFollowRecalc.addEventListener("click", onFollowRecalcClick);
-        btnFollowSave.addEventListener("click", onFollowSaveClick);
-        btnFollowReset.addEventListener("click", onFollowResetClick);
-
-        const inputsToSave = [
-          nameInput,
-          titleInput,
-          orgInput,
-          deptInput,
-          fieldInput,
-          budgetInput,
-          emailInput,
-          shortMemoInput,
-          typeSelect,
-          toneSelect,
-          keywordInput,
-          channelSelect,
-          reportListInput,
-          detailMemoInput,
-          callDateInput,
-          mailDateInput,
-          quoteDateInput,
-          bidDateInput,
-          followMemoInput,
-        ];
-        inputsToSave.forEach((el) => {
-          el.addEventListener("input", () => saveState());
-          el.addEventListener("change", () => saveState());
-        });
-      }
-
-      function init() {
-        loadState();
-        updatePreviewBox();
-        initEvents();
-      }
-
-      document.addEventListener("DOMContentLoaded", init);
-    })();
-  </script>
+
+      <hr style="border:none;border-top:1px dashed var(--border-soft);margin:10px 0;" />
+
+      <!-- D. 후속 조치 -->
+      <div class="card-header">
+        <div>
+          <div class="card-title">D. 후속 조치 · Follow-up 체크리스트</div>
+          <div class="card-subtitle">
+            안내서와 연결된 전화 / 메일 / 견적 / 입찰 등 후속 행동을 로컬에서 관리합니다.
+          </div>
+        </div>
+        <span class="status-pill" id="followStatus">후속 조치 상태: 미저장</span>
+      </div>
+
+      <div class="section-body">
+        <div class="pill-strip">
+          <span class="pill-small">고객 단위 로컬 체크리스트</span>
+          <span class="pill-small em" id="nextTodoBadge">다음 할 일 요약: 없음</span>
+        </div>
+
+        <div class="grid-two">
+          <div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="datePhone">전화 상담 예정</label>
+                <span class="field-hint">연도-월-일</span>
+              </div>
+              <input type="date" id="datePhone" />
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="dateMail">안내 메일 발송 / 회신 대기</label>
+                <span class="field-hint">연도-월-일</span>
+              </div>
+              <input type="date" id="dateMail" />
+            </div>
+          </div>
+          <div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="dateQuote">공식 견적서 / 인보이스 발송</label>
+                <span class="field-hint">연도-월-일</span>
+              </div>
+              <input type="date" id="dateQuote" />
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="dateBid">입찰 / 조달 등록 준비</label>
+                <span class="field-hint">연도-월-일</span>
+              </div>
+              <input type="date" id="dateBid" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="textareaFollowMemo">추가 메모 (후속 조치용)</label>
+            <span class="field-hint">예: 입찰 마감일 / 내부 결재 일정</span>
+          </div>
+          <textarea id="textareaFollowMemo" placeholder="예)
+- KISTI 조달 등록 필요 여부 확인
+- 내부 결재라인: 팀장 → 본부장
+- 예산 집행 기한: 1월 말까지"></textarea>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label">다음 할 일 요약</label>
+            <span class="field-hint">체크리스트 값으로 자동 정리</span>
+          </div>
+          <div id="followSummary" class="summary-box">
+아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" id="btnSaveFollow"><span class="btn-icon">💾</span> 후속 조치 상태 저장</button>
+          <button class="btn btn-ghost" id="btnRecalcFollow"><span class="btn-icon">🔄</span> 요약 다시 계산</button>
+          <button class="btn btn-ghost" id="btnClearFollow"><span class="btn-icon">♻️</span> 체크리스트 초기화</button>
+        </div>
+      </div>
+
+      <div class="footer-note">Local-only / Static · public/index.html · 고객 자동화 안내서 v1.0</div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const STATE_KEY = "wic_tool1_state_v1";
+
+  const $ = (id) => document.getElementById(id);
+
+  // 기본 정보
+  const inputName = $("inputName");
+  const inputTitle = $("inputTitle");
+  const inputOrg = $("inputOrg");
+  const inputDept = $("inputDept");
+  const inputField = $("inputField");
+  const inputBudget = $("inputBudget");
+  const inputEmail = $("inputEmail");
+  const inputShortMemo = $("inputShortMemo");
+
+  const basicStatus = $("basicStatus");
+  const optionStatus = $("optionStatus");
+  const previewStatus = $("previewStatus");
+  const followStatus = $("followStatus");
+  const stateLine = $("stateLine");
+  const optionError = $("optionError");
+
+  // 옵션·보고서
+  const selectType = $("selectType");
+  const selectTone = $("selectTone");
+  const inputKeywords = $("inputKeywords");
+  const selectChannel = $("selectChannel");
+  const textareaReports = $("textareaReports");
+  const textareaDetailMemo = $("textareaDetailMemo");
+
+  // 버튼
+  const btnGenerate = $("btnGenerate");
+  const btnAppendMemo = $("btnAppendMemo");
+  const btnClearInputs = $("btnClearInputs");
+
+  // 미리보기
+  const btnModeFormatted = $("btnModeFormatted");
+  const btnModePlain = $("btnModePlain");
+  const previewBox = $("previewBox");
+  const btnCopy = $("btnCopy");
+  const btnAddSeparator = $("btnAddSeparator");
+
+  // 통계
+  const statTotal = $("statTotal");
+  const statToday = $("statToday");
+  const statLast = $("statLast");
+
+  // 후속 조치
+  const datePhone = $("datePhone");
+  const dateMail = $("dateMail");
+  const dateQuote = $("dateQuote");
+  const dateBid = $("dateBid");
+  const textareaFollowMemo = $("textareaFollowMemo");
+  const followSummary = $("followSummary");
+  const nextTodoBadge = $("nextTodoBadge");
+  const btnSaveFollow = $("btnSaveFollow");
+  const btnRecalcFollow = $("btnRecalcFollow");
+  const btnClearFollow = $("btnClearFollow");
+
+  // 내부 상태
+  let mode = "formatted"; // "formatted" | "plain"
+  let formattedText = "";
+  let plainText = "";
+  let stats = {
+    total: 0,
+    todayCount: 0,
+    todayDate: null,
+    lastTime: null,
+  };
+
+  function safeLoadState() {
+    try {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function safeSaveState(state) {
+    try {
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      stateLine.textContent =
+        "현재 상태: localStorage에 저장됨 · key: " + STATE_KEY;
+    } catch (e) {
+      stateLine.textContent = "상태 저장 실패 (localStorage 제한 가능성)";
+    }
+  }
+
+  function formatDateTime(dt) {
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const d = String(dt.getDate()).padStart(2, "0");
+    const hh = String(dt.getHours()).padStart(2, "0");
+    const mm = String(dt.getMinutes()).padStart(2, "0");
+    return `${y}-${m}-${d} ${hh}:${mm}`;
+  }
+
+  function todayKey(dt) {
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const d = String(dt.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function updateBasicStatus() {
+    const name = inputName.value.trim();
+    const org = inputOrg.value.trim();
+    const field = inputField.value.trim();
+    const hasCore = name || org || field;
+    basicStatus.className = "status-pill" + (hasCore ? " ok" : "");
+    basicStatus.textContent = hasCore
+      ? "기본 정보 상태: OK (핵심 필드 채워짐)"
+      : "기본 정보 상태: 대기 중";
+  }
+
+  function updateOptionStatus() {
+    optionStatus.className = "status-pill ok";
+    optionStatus.textContent = "옵션 상태: 설정 완료";
+  }
+
+  function setPreviewEmpty() {
+    previewBox.textContent =
+      "아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤 「자동 안내서 초안 생성」 버튼을 눌러 주세요.";
+    previewStatus.className = "status-pill";
+    previewStatus.textContent = "안내서 상태: 아직 생성되지 않았습니다.";
+  }
+
+  function renderPreview() {
+    if (!formattedText && !plainText) {
+      setPreviewEmpty();
+      return;
+    }
+    previewStatus.className = "status-pill ok";
+    previewStatus.textContent = "안내서 상태: 생성 완료";
+    previewBox.textContent = mode === "formatted" ? formattedText : plainText;
+  }
+
+  function setMode(newMode) {
+    mode = newMode;
+    if (mode === "formatted") {
+      btnModeFormatted.classList.add("active");
+      btnModePlain.classList.remove("active");
+    } else {
+      btnModeFormatted.classList.remove("active");
+      btnModePlain.classList.add("active");
+    }
+    renderPreview();
+  }
+
+  function requiredCheck() {
+    const name = inputName.value.trim();
+    const org = inputOrg.value.trim();
+    const field = inputField.value.trim();
+
+    if (!name && !org) {
+      return "이름 또는 기관 중 1개 이상은 반드시 입력해야 합니다.";
+    }
+    if (!field) {
+      return "연구 / 관심 분야는 안내서 본문에 꼭 필요합니다.";
+    }
+    return "";
+  }
+
+  function buildGuideText() {
+    const name = inputName.value.trim();
+    const org = inputOrg.value.trim();
+    const dept = inputDept.value.trim();
+    const title = inputTitle.value.trim();
+    const field = inputField.value.trim();
+    const budget = inputBudget.value.trim();
+    const email = inputEmail.value.trim();
+    const shortMemo = inputShortMemo.value.trim();
+
+    const type = selectType.value;
+    const tone = selectTone.value;
+    const keywords = inputKeywords.value.trim();
+    const channel = selectChannel.value;
+    const reportsRaw = textareaReports.value;
+    const detailMemo = textareaDetailMemo.value.trim();
+
+    // 인사말
+    let greetLine = "안녕하세요.";
+    if (org && dept && name && title) {
+      greetLine = `안녕하세요, ${org} ${dept}에서 ${field} 관련 연구를 진행하시는 ${title} ${name}님.`;
+    } else if (org && name) {
+      greetLine = `안녕하세요, ${org}에서 ${field}를 연구하시는 ${name}님.`;
+    } else if (name) {
+      greetLine = `안녕하세요, ${field} 연구를 진행 중이신 ${name}님.`;
+    } else if (org) {
+      greetLine = `안녕하세요, ${org}에서 ${field}를 담당하고 계신 연구자분께 드리는 안내입니다.`;
+    }
+
+    // 상황별 한 줄
+    let situationLine = "";
+    if (type === "new") {
+      situationLine =
+        "월드산업정보센터에서 관련 시장·기술 자료를 처음으로 안내드립니다.";
+    } else if (type === "existing") {
+      situationLine =
+        "이전에 안내드린 자료와 연계하여, 추가로 참고하실 수 있는 최신 보고서를 정리해 드립니다.";
+    } else if (type === "revisit") {
+      situationLine =
+        "기존에 검토하셨던 주제에 대해, 업데이트된 자료와 함께 다시 한 번 정리해서 안내드립니다.";
+    }
+
+    // 톤 / 채널 한 줄
+    let toneChannelLine = "";
+    if (tone === "research-polite") {
+      toneChannelLine =
+        "연구에 바로 활용하실 수 있도록, 연구자 분들께 맞춘 정중하고 단문 위주의 안내 형식으로 구성했습니다.";
+    } else if (tone === "business-polite") {
+      toneChannelLine =
+        "내부 결재 및 협의용으로 활용하실 수 있도록, 비즈니스 문맥에 맞게 정리된 문장 구조를 사용했습니다.";
+    } else {
+      toneChannelLine =
+        "읽기 부담이 적도록, 핵심만 짧게 정리한 존댓말 문체로 구성했습니다.";
+    }
+
+    if (channel === "email") {
+      toneChannelLine += " 본문은 메일에 그대로 붙여 넣어 사용하실 수 있습니다.";
+    } else if (channel === "word") {
+      toneChannelLine +=
+        " 본문은 Word 파일에 붙여 넣은 뒤, 내부 양식에 맞게 편집하시면 됩니다.";
+    } else {
+      toneChannelLine +=
+        " 본문은 PDF 안내 자료로 변환하여 내부 공유용으로 활용하실 수 있습니다.";
+    }
+
+    // 키워드
+    let keywordLine = "";
+    if (keywords) {
+      keywordLine = `주요 키워드는 ${keywords} 입니다.`;
+    }
+
+    // 예산
+    let budgetLine = "";
+    if (budget) {
+      budgetLine = `예상 예산 규모는 ${budget} 수준으로 이해하고 있습니다.`;
+    }
+
+    // 보고서 목록
+    const reportLines = reportsRaw
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    let reportsBlock = "";
+    if (reportLines.length > 0) {
+      const numbered = reportLines.map((t, idx) => `${idx + 1}. ${t}`);
+      reportsBlock =
+        "■ 관련 보고서 / 자료 목록\n" + numbered.join("\n");
+    }
+
+    // 상세 메모
+    let memoBlock = "";
+    if (detailMemo) {
+      memoBlock =
+        "■ 고객 요청 / 배경 메모\n" + detailMemo;
+    }
+
+    // 마무리
+    let closing = "상기 자료들이 현재 진행 중이신 연구 및 과제 기획에 실질적인 도움이 되기를 바랍니다.";
+    if (email) {
+      closing += `\n추가로 필요하신 사항이 있으면 언제든지 ${email} 주소로 회신 주시면 됩니다.`;
+    } else {
+      closing += "\n추가로 필요하신 사항이 있으면 언제든지 회신 또는 전화로 말씀해 주시면 됩니다.";
+    }
+
+    if (shortMemo) {
+      closing += `\n(내부 메모: ${shortMemo})`;
+    }
+
+    // 포맷 버전
+    const partsFormatted = [];
+    partsFormatted.push("■ 인사 및 안내 배경");
+    partsFormatted.push(greetLine);
+    if (situationLine) partsFormatted.push(situationLine);
+    if (toneChannelLine) partsFormatted.push(toneChannelLine);
+    if (keywordLine) partsFormatted.push(keywordLine);
+    if (budgetLine) partsFormatted.push(budgetLine);
+
+    partsFormatted.push("");
+    if (reportsBlock) {
+      partsFormatted.push(reportsBlock);
+      partsFormatted.push("");
+    }
+    if (memoBlock) {
+      partsFormatted.push(memoBlock);
+      partsFormatted.push("");
+    }
+
+    partsFormatted.push("■ 후속 안내");
+    partsFormatted.push(
+      "필요하시면 견적서, 샘플 목차, 추가 발행사 자료 등도 함께 정리해서 보내 드리겠습니다."
+    );
+    partsFormatted.push(closing);
+
+    const formatted = partsFormatted.join("\n");
+
+    // 순수 텍스트 버전은 같은 내용이지만, 섹션 표시 줄을 조금 단순화
+    const plain = formatted;
+
+    formattedText = formatted;
+    plainText = plain;
+  }
+
+  function updateStatsAfterGenerate() {
+    const now = new Date();
+    const tKey = todayKey(now);
+    stats.total = (stats.total || 0) + 1;
+    if (stats.todayDate === tKey) {
+      stats.todayCount = (stats.todayCount || 0) + 1;
+    } else {
+      stats.todayDate = tKey;
+      stats.todayCount = 1;
+    }
+    stats.lastTime = now.toISOString();
+
+    statTotal.textContent = String(stats.total || 0);
+    statToday.textContent = String(stats.todayCount || 0);
+    statLast.textContent = formatDateTime(now);
+  }
+
+  function refreshStatsFromState(state) {
+    if (state && state.stats) {
+      stats = state.stats;
+    }
+    statTotal.textContent = String(stats.total || 0);
+    statToday.textContent = String(stats.todayCount || 0);
+    statLast.textContent = stats.lastTime
+      ? formatDateTime(new Date(stats.lastTime))
+      : "-";
+  }
+
+  function loadFromState() {
+    const state = safeLoadState();
+    if (!state) {
+      stateLine.textContent =
+        "초기 상태: 아직 저장 없음 · 저장 위치: localStorage · " + STATE_KEY;
+      setPreviewEmpty();
+      return;
+    }
+
+    // 기본 정보
+    if (state.customer) {
+      inputName.value = state.customer.name || "";
+      inputTitle.value = state.customer.title || "";
+      inputOrg.value = state.customer.org || "";
+      inputDept.value = state.customer.dept || "";
+      inputField.value = state.customer.field || "";
+      inputBudget.value = state.customer.budget || "";
+      inputEmail.value = state.customer.email || "";
+      inputShortMemo.value = state.customer.shortMemo || "";
+    }
+
+    // 옵션
+    if (state.options) {
+      selectType.value = state.options.type || "new";
+      selectTone.value = state.options.tone || "research-polite";
+      inputKeywords.value = state.options.keywords || "";
+      selectChannel.value = state.options.channel || "email";
+      textareaReports.value = state.options.reports || "";
+      textareaDetailMemo.value = state.options.detailMemo || "";
+    }
+
+    // 안내서
+    formattedText = state.guideFormatted || "";
+    plainText = state.guidePlain || "";
+    mode = state.mode || "formatted";
+    if (mode === "formatted") {
+      btnModeFormatted.classList.add("active");
+      btnModePlain.classList.remove("active");
+    } else {
+      btnModeFormatted.classList.remove("active");
+      btnModePlain.classList.add("active");
+    }
+
+    // 통계
+    refreshStatsFromState(state);
+
+    // 후속 조치
+    if (state.follow) {
+      datePhone.value = state.follow.phone || "";
+      dateMail.value = state.follow.mail || "";
+      dateQuote.value = state.follow.quote || "";
+      dateBid.value = state.follow.bid || "";
+      textareaFollowMemo.value = state.follow.memo || "";
+      followSummary.textContent =
+        state.follow.summary ||
+        "아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.";
+      followStatus.className = "status-pill ok";
+      followStatus.textContent = "후속 조치 상태: 저장됨";
+      nextTodoBadge.textContent =
+        state.follow.next || "다음 할 일 요약: 없음";
+    }
+
+    updateBasicStatus();
+    renderPreview();
+    stateLine.textContent =
+      "현재 상태: localStorage에서 불러옴 · key: " + STATE_KEY;
+  }
+
+  function buildFollowSummary() {
+    const phone = datePhone.value;
+    const mail = dateMail.value;
+    const quote = dateQuote.value;
+    const bid = dateBid.value;
+    const memo = textareaFollowMemo.value.trim();
+
+    const lines = [];
+    if (phone) lines.push(`전화 상담 예정: ${phone}`);
+    if (mail) lines.push(`안내 메일 발송 / 회신 대기: ${mail}`);
+    if (quote) lines.push(`공식 견적서 / 인보이스 발송: ${quote}`);
+    if (bid) lines.push(`입찰 / 조달 등록 준비: ${bid}`);
+    if (memo) {
+      lines.push("");
+      lines.push("추가 메모:");
+      lines.push(memo);
+    }
+
+    const summary =
+      lines.length > 0
+        ? lines.join("\n")
+        : "아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.";
+
+    followSummary.textContent = summary;
+
+    // 가장 빠른 날짜 찾기
+    const dates = [phone, mail, quote, bid].filter(Boolean).sort();
+    let nextLine = "다음 할 일 요약: 없음";
+    if (dates.length > 0) {
+      nextLine = `다음 할 일 요약: 가장 가까운 일정은 ${dates[0]} 입니다.`;
+    }
+    nextTodoBadge.textContent = nextLine;
+
+    return { summary, next: nextLine };
+  }
+
+  function saveAllState() {
+    const customer = {
+      name: inputName.value.trim(),
+      title: inputTitle.value.trim(),
+      org: inputOrg.value.trim(),
+      dept: inputDept.value.trim(),
+      field: inputField.value.trim(),
+      budget: inputBudget.value.trim(),
+      email: inputEmail.value.trim(),
+      shortMemo: inputShortMemo.value.trim(),
+    };
+
+    const options = {
+      type: selectType.value,
+      tone: selectTone.value,
+      keywords: inputKeywords.value.trim(),
+      channel: selectChannel.value,
+      reports: textareaReports.value,
+      detailMemo: textareaDetailMemo.value,
+    };
+
+    const follow = {
+      phone: datePhone.value,
+      mail: dateMail.value,
+      quote: dateQuote.value,
+      bid: dateBid.value,
+      memo: textareaFollowMemo.value,
+      summary: followSummary.textContent,
+      next: nextTodoBadge.textContent,
+    };
+
+    const state = {
+      customer,
+      options,
+      guideFormatted: formattedText,
+      guidePlain: plainText,
+      mode,
+      stats,
+      follow,
+      savedAt: new Date().toISOString(),
+    };
+
+    safeSaveState(state);
+  }
+
+  // 이벤트
+
+  btnGenerate.addEventListener("click", function () {
+    optionError.style.display = "none";
+    optionError.textContent = "";
+
+    const err = requiredCheck();
+    if (err) {
+      optionError.style.display = "block";
+      optionError.textContent = err;
+      basicStatus.className = "status-pill error";
+      basicStatus.textContent = "기본 정보 상태: 필수 항목 누락";
+      return;
+    }
+
+    buildGuideText();
+    updateStatsAfterGenerate();
+    updateBasicStatus();
+    updateOptionStatus();
+    renderPreview();
+    saveAllState();
+  });
+
+  btnAppendMemo.addEventListener("click", function () {
+    const memo = textareaDetailMemo.value.trim();
+    if (!memo) return;
+    if (!formattedText && !plainText) {
+      buildGuideText();
+    } else {
+      formattedText += "\n\n[추가 메모]\n" + memo;
+      plainText += "\n\n[추가 메모]\n" + memo;
+    }
+    renderPreview();
+    saveAllState();
+  });
+
+  btnClearInputs.addEventListener("click", function () {
+    inputName.value = "";
+    inputTitle.value = "";
+    inputOrg.value = "";
+    inputDept.value = "";
+    inputField.value = "";
+    inputBudget.value = "";
+    inputEmail.value = "";
+    inputShortMemo.value = "";
+    textareaReports.value = "";
+    textareaDetailMemo.value = "";
+    optionError.style.display = "none";
+    optionError.textContent = "";
+    basicStatus.className = "status-pill";
+    basicStatus.textContent = "기본 정보 상태: 대기 중";
+    optionStatus.className = "status-pill";
+    optionStatus.textContent = "옵션 상태: 기본값 사용 중";
+    formattedText = "";
+    plainText = "";
+    setPreviewEmpty();
+    saveAllState();
+  });
+
+  [inputName, inputOrg, inputField].forEach((el) => {
+    el.addEventListener("input", updateBasicStatus);
+  });
+
+  btnModeFormatted.addEventListener("click", function () {
+    setMode("formatted");
+  });
+
+  btnModePlain.addEventListener("click", function () {
+    setMode("plain");
+  });
+
+  btnCopy.addEventListener("click", function () {
+    const textToCopy = mode === "formatted" ? formattedText : plainText;
+    if (!textToCopy) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).catch(function () {});
+    } else {
+      // fallback
+      const temp = document.createElement("textarea");
+      temp.value = textToCopy;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+    }
+  });
+
+  btnAddSeparator.addEventListener("click", function () {
+    const sep = "\n------------------------------\n";
+    formattedText = (formattedText || "") + sep;
+    plainText = (plainText || "") + sep;
+    renderPreview();
+    saveAllState();
+  });
+
+  btnRecalcFollow.addEventListener("click", function () {
+    const out = buildFollowSummary();
+    followStatus.className = "status-pill";
+    followStatus.textContent = "후속 조치 상태: 미저장 (요약만 업데이트)";
+    saveAllState();
+  });
+
+  btnSaveFollow.addEventListener("click", function () {
+    const out = buildFollowSummary();
+    followStatus.className = "status-pill ok";
+    followStatus.textContent = "후속 조치 상태: 저장됨";
+    saveAllState();
+  });
+
+  btnClearFollow.addEventListener("click", function () {
+    datePhone.value = "";
+    dateMail.value = "";
+    dateQuote.value = "";
+    dateBid.value = "";
+    textareaFollowMemo.value = "";
+    followSummary.textContent =
+      "아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.";
+    followStatus.className = "status-pill";
+    followStatus.textContent = "후속 조치 상태: 미저장";
+    nextTodoBadge.textContent = "다음 할 일 요약: 없음";
+    saveAllState();
+  });
+
+  // 초기 로드
+  loadFromState();
+
+})();
+</script>
 </body>
 </html>
