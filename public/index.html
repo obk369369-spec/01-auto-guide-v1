@@ -2,40 +2,42 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>1번 도구 · 고객 자동화 안내서 v1.0</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1번 도구 · 고객 자동화 안내서</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
       --bg: #0f172a;
       --bg-soft: #020617;
       --card: #020617;
-      --border: #1e293b;
-      --border-soft: #1f2937;
+      --card-soft: #020617;
+      --border: #1f2937;
+      --border-soft: #111827;
       --accent: #38bdf8;
-      --accent-soft: #0ea5e9;
-      --accent-soft-bg: rgba(56, 189, 248, 0.15);
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-strong: #0ea5e9;
       --danger: #f97373;
-      --success: #22c55e;
+      --warning: #facc15;
+      --success: #4ade80;
       --text-main: #e5e7eb;
       --text-sub: #9ca3af;
+      --text-muted: #6b7280;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --radius-lg: 16px;
-      --radius-md: 10px;
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
-      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at top left, #1e293b, #020617 50%);
-      font-family: var(--font-main);
+      background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #000 100%);
       color: var(--text-main);
+      font-family: var(--font-main);
     }
 
     body {
@@ -44,32 +46,32 @@
       justify-content: center;
     }
 
-    .app-shell {
+    .app {
       width: 100%;
-      max-width: 1160px;
-      padding: 20px 12px 28px;
+      max-width: 1180px;
+      padding: 18px 12px 28px;
     }
 
-    @media (min-width: 960px) {
-      .app-shell {
-        padding: 28px 0 36px;
+    @media (min-width: 900px) {
+      .app {
+        padding: 24px 0 32px;
       }
     }
 
-    header.app-header {
-      background: radial-gradient(circle at top left, #0b1120, #020617 55%);
-      border-radius: 22px;
-      padding: 16px 18px 18px;
+    header {
+      background: radial-gradient(circle at top left, #0f172a, #020617 55%, #000 100%);
+      border-radius: 20px;
+      padding: 16px 18px;
       margin-bottom: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.4);
       box-shadow: var(--shadow-soft);
       display: grid;
-      grid-template-columns: minmax(0, 3.2fr) minmax(0, 2.1fr);
-      gap: 10px;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr);
+      gap: 14px;
     }
 
-    @media (max-width: 820px) {
-      header.app-header {
+    @media (max-width: 860px) {
+      header {
         grid-template-columns: minmax(0, 1fr);
       }
     }
@@ -78,55 +80,89 @@
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--accent);
     }
 
     .title-sub {
       font-size: 13px;
       color: var(--text-sub);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .tag-row {
+    .meta-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .tag {
+    .meta-badge {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 8px;
+      padding: 3px 9px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      background: rgba(15, 23, 42, 0.8);
-      font-size: 11px;
-      color: var(--text-sub);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      background: rgba(15, 23, 42, 0.9);
     }
 
-    .tag-dot {
+    .dot {
       width: 7px;
       height: 7px;
       border-radius: 999px;
-      background: var(--accent-soft);
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
     }
 
-    .stats-grid {
+    .header-stats {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 520px) {
+      .header-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     .stat-card {
-      background: linear-gradient(145deg, #020617, #020617);
+      background: radial-gradient(circle at top, #020617, #020617 55%, #000 100%);
       border-radius: 14px;
-      padding: 8px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
+      padding: 8px 9px;
+      border: 1px solid rgba(30, 64, 175, 0.6);
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      min-height: 60px;
-      justify-content: center;
+      gap: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .stat-inner {
+      position: relative;
+      z-index: 1;
     }
 
     .stat-label {
@@ -135,24 +171,26 @@
     }
 
     .stat-value {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 700;
+      margin-top: 2px;
     }
 
     .stat-pill {
-      margin-top: 2px;
-      align-self: flex-start;
       font-size: 11px;
+      margin-top: 3px;
       padding: 2px 7px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       color: var(--text-sub);
     }
 
     .layout-main {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
       gap: 12px;
     }
 
@@ -163,15 +201,11 @@
     }
 
     .card {
-      background: radial-gradient(
-        circle at top left,
-        rgba(15, 23, 42, 0.95),
-        #020617 60%
-      );
+      background: radial-gradient(circle at top, #020617, #020617 60%, #000 100%);
       border-radius: var(--radius-lg);
-      padding: 12px 14px 14px;
+      padding: 12px 12px 14px;
       border: 1px solid var(--border);
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.8);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.8);
     }
 
     .card-header {
@@ -179,15 +213,18 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 8px;
-      margin-bottom: 9px;
+      margin-bottom: 8px;
     }
 
     .card-title {
       font-size: 14px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .card-subtitle {
+    .card-kicker {
       font-size: 11px;
       color: var(--text-sub);
     }
@@ -196,798 +233,1423 @@
       font-size: 11px;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid var(--border-soft);
       background: rgba(15, 23, 42, 0.9);
       color: var(--text-sub);
       white-space: nowrap;
     }
 
-    .badge-accent {
-      border-color: rgba(56, 189, 248, 0.7);
-      color: var(--accent);
+    .badge-pill {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-sub);
+    }
+
+    .badge-pill.state-ok {
+      border-color: rgba(74, 222, 128, 0.7);
+      color: #bbf7d0;
+    }
+    .badge-pill.state-warn {
+      border-color: rgba(234, 179, 8, 0.9);
+      color: #facc15;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .field-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
     .field-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
       margin-bottom: 8px;
-    }
-
-    .field-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .field {
-      flex: 1 1 120px;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
     }
 
     .field-label-row {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      gap: 4px;
+      align-items: center;
+      gap: 6px;
     }
 
     .field-label {
       font-size: 11px;
       font-weight: 500;
+      color: var(--text-main);
     }
 
     .field-hint {
       font-size: 10px;
-      color: var(--text-sub);
+      color: var(--text-muted);
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 500;
     }
 
     input[type="text"],
-    input[type="email"],
-    input[type="number"],
-    input[type="date"],
+    textarea,
     select,
-    textarea {
+    input[type="date"] {
       width: 100%;
-      border-radius: var(--radius-md);
+      padding: 7px 9px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border-soft);
       background: rgba(15, 23, 42, 0.9);
       color: var(--text-main);
-      padding: 6px 8px;
       font-size: 12px;
       font-family: var(--font-main);
       outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease,
-        background 0.15s ease;
-    }
-
-    textarea {
-      min-height: 74px;
-      max-height: 180px;
-      resize: vertical;
-      line-height: 1.4;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
 
     input::placeholder,
     textarea::placeholder {
-      color: #6b7280;
-      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      max-height: 180px;
     }
 
     input:focus,
     textarea:focus,
     select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
       background: rgba(15, 23, 42, 0.95);
+    }
+
+    select {
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #64748b 50%),
+        linear-gradient(135deg, #64748b 50%, transparent 50%);
+      background-position: right 8px top 9px, right 4px top 9px;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 24px;
     }
 
     .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 3px;
+      margin-top: 4px;
     }
 
     button {
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
       color: var(--text-main);
       padding: 6px 12px;
       font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      transition: background 0.15s ease, box-shadow 0.15s ease,
-        transform 0.05s ease;
+      gap: 6px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease, border-color 0.15s;
       white-space: nowrap;
     }
 
-    button .icon {
-      font-size: 13px;
-      line-height: 0;
-    }
-
     button:hover {
-      background: rgba(30, 64, 175, 0.9);
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 1);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
       transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.8);
     }
 
     button:active {
       transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.8);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
       box-shadow: none;
+      border-color: var(--border);
     }
 
-    .btn-primary {
-      border-color: rgba(56, 189, 248, 0.9);
-      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    .btn-main {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      border-color: rgba(56, 189, 248, 0.85);
+      color: #0b1120;
     }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+    .btn-main:hover {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
     }
 
     .btn-ghost {
       background: transparent;
       border-style: dashed;
+      border-color: rgba(75, 85, 99, 0.9);
     }
 
-    .btn-danger {
-      border-color: rgba(248, 113, 113, 0.9);
-      background: rgba(127, 29, 29, 0.8);
+    .btn-icon {
+      font-size: 14px;
+      line-height: 0;
     }
 
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-sub);
-    }
-
-    .status-pill.ok {
-      border-color: rgba(34, 197, 94, 0.9);
-      color: var(--success);
-    }
-
-    .status-pill.warn {
-      border-color: rgba(251, 191, 36, 0.9);
-      color: #facc15;
-    }
-
-    .status-pill.error {
-      border-color: rgba(248, 113, 113, 0.9);
-      color: var(--danger);
-    }
-
-    .status-pill-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: var(--text-sub);
-    }
-
-    .status-pill.ok .status-pill-dot {
-      background: var(--success);
-    }
-
-    .status-pill.warn .status-pill-dot {
-      background: #facc15;
-    }
-
-    .status-pill.error .status-pill-dot {
-      background: var(--danger);
-    }
-
-    .hint-footer {
-      font-size: 10px;
-      color: var(--text-sub);
+    .status-text {
+      font-size: 11px;
+      color: var(--text-muted);
       margin-top: 2px;
     }
 
-    .tabs-row {
+    .status-text strong {
+      color: var(--accent-strong);
+    }
+
+    .section-caption {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .preview-tabs {
       display: inline-flex;
       border-radius: 999px;
-      padding: 2px;
+      border: 1px solid var(--border-soft);
       background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.6);
+      padding: 2px;
+      gap: 2px;
     }
 
     .tab-btn {
       border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
       border: none;
       background: transparent;
-      padding: 3px 9px;
-      font-size: 11px;
       color: var(--text-sub);
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
     }
 
     .tab-btn.active {
-      background: var(--accent-soft-bg);
-      color: var(--accent);
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--accent-strong);
     }
 
-    .preview-box {
-      border-radius: 12px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      background: radial-gradient(
-        circle at top left,
-        rgba(15, 23, 42, 0.9),
-        #020617
-      );
-      min-height: 160px;
-      max-height: 280px;
-      padding: 8px 9px;
+    .preview-shell {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      background: radial-gradient(circle at top, #020617, #020617 55%, #000 100%);
+      min-height: 140px;
+      max-height: 260px;
       overflow-y: auto;
+      padding: 9px 10px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.55;
+      position: relative;
+    }
+
+    .preview-empty {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 10px 6px;
+    }
+
+    .preview-text {
       white-space: pre-wrap;
     }
 
-    .preview-placeholder {
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
     .preview-meta {
-      margin-top: 4px;
       font-size: 10px;
-      color: var(--text-sub);
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: right;
     }
 
-    .grid-two {
+    .follow-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
+      margin-top: 4px;
     }
 
-    @media (max-width: 820px) {
-      .grid-two {
+    @media (max-width: 720px) {
+      .follow-grid {
         grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .checklist-grid {
-      display: grid;
-      grid-template-columns: 24px minmax(0, 1.4fr) minmax(0, 1fr);
-      gap: 4px;
-      align-items: center;
-      font-size: 11px;
-    }
-
-    .checklist-grid + .checklist-grid {
-      margin-top: 4px;
-    }
-
-    .check-label {
-      color: var(--text-sub);
-    }
-
-    .summary-box {
-      border-radius: 10px;
-      border: 1px dashed rgba(148, 163, 184, 0.9);
+    .follow-block {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      padding: 8px 8px 9px;
       background: rgba(15, 23, 42, 0.9);
-      padding: 6px 8px;
+    }
+
+    .follow-title {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .follow-inline {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .follow-inline label {
       font-size: 11px;
-      min-height: 40px;
-      white-space: pre-wrap;
-    }
-
-    .small-textarea {
-      min-height: 60px;
-      max-height: 140px;
-    }
-
-    .section-caption {
-      font-size: 10px;
       color: var(--text-sub);
-      margin-top: 4px;
     }
 
-    .error-text {
-      font-size: 11px;
-      color: var(--danger);
-      margin-top: 2px;
+    .follow-inline input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15, 23, 42, 0.9);
     }
 
-    .success-text {
+    .follow-inline input[type="date"] {
+      max-width: 140px;
       font-size: 11px;
-      color: var(--success);
-      margin-top: 2px;
+      padding: 4px 7px;
+    }
+
+    .next-summary {
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(75, 85, 99, 0.9);
+      padding: 7px 8px;
+      font-size: 12px;
+      margin-top: 6px;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .next-summary span {
+      color: var(--accent-strong);
+    }
+
+    .footer-note {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .footer-note code {
+      font-size: 10px;
+      color: var(--accent-strong);
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="app-header">
+  <div class="app">
+    <header>
       <div>
-        <div class="title-main">1번 도구 · 고객 자동화 안내서</div>
-        <div class="title-sub">
-          연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인
-          <strong>워드/메일용 안내서 초안</strong>과
-          <strong>후속 조치 체크리스트</strong>를 한 화면에서 관리합니다.
+        <div class="title-main">
+          1번 도구 · 고객 자동화 안내서
+          <span class="title-pill">Local-only · Safe DOM · v1.0</span>
         </div>
-        <div class="tag-row">
-          <div class="tag">
-            <span class="tag-dot"></span>
-            Local-only · Safe DOM · v1.0
+        <div class="title-sub">
+          연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인 워드/메일용 안내서 초안과
+          후속 조치 체크리스트를 한 화면에서 관리합니다.
+        </div>
+        <div class="meta-row">
+          <div class="meta-badge">
+            <span class="dot"></span>
+            <span id="metaReadyText">이 브라우저에서만 동작 · 서버/타이머 없음</span>
           </div>
-          <div class="tag">
-            <span class="tag-dot"></span>
-            저장: 이 브라우저의 localStorage만 사용
-          </div>
-          <div class="tag">
-            <span class="tag-dot"></span>
-            화면에 보이는 기능만 동작 (서버/타이머 없음)
+          <div class="meta-badge">
+            저장 위치: <code>localStorage · wic_tool1_state_v1</code>
           </div>
         </div>
       </div>
-      <div class="stats-grid">
+      <div class="header-stats">
         <div class="stat-card">
-          <div class="stat-label">누적 안내서 생성</div>
-          <div class="stat-value" id="statTotalCount">0</div>
-          <div class="stat-pill">Generate count</div>
+          <div class="stat-inner">
+            <div class="stat-label">누적 안내서 생성</div>
+            <div class="stat-value" id="statTotalCount">0</div>
+            <div class="stat-pill">
+              <span>Generate count</span>
+            </div>
+          </div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">오늘 만든 안내서</div>
-          <div class="stat-value" id="statTodayCount">0</div>
-          <div class="stat-pill">Today</div>
+          <div class="stat-inner">
+            <div class="stat-label">오늘 만든 안내서</div>
+            <div class="stat-value" id="statTodayCount">0</div>
+            <div class="stat-pill">
+              <span>Today</span>
+            </div>
+          </div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">마지막 생성 시각</div>
-          <div class="stat-value" style="font-size: 13px" id="statLastTime">
-            -
+          <div class="stat-inner">
+            <div class="stat-label">마지막 생성 시각</div>
+            <div class="stat-value" id="statLastTime">-</div>
+            <div class="stat-pill">
+              <span>Local-only 기록</span>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
     <main class="layout-main">
-      <!-- 왼쪽: A+B -->
+      <!-- 왼쪽: A + B 입력 -->
       <section class="card" aria-label="고객 정보 및 옵션">
         <div class="card-header">
           <div>
             <div class="card-title">A. 고객 기본 정보</div>
-            <div class="card-subtitle">
-              엑셀 고객DB에서 <strong>옮겨 적는 기준</strong>으로, 안내서에 필수로 들어가는
-              기본 필드입니다.
-            </div>
+            <div class="card-kicker">엑셀 고객DB에서 옮겨 적는 기준으로, 안내서에 필수로 들어가는 기본 필드입니다.</div>
           </div>
-          <div class="status-pill" id="basicStatusPill">
-            <span class="status-pill-dot"></span> 기본 정보 상태: 대기 중
+          <div class="badge-pill" id="basicInfoState">기본 정보 상태: 대기 중</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputName">고객 이름</label>
+              <div class="field-hint">예: 홍길동</div>
+            </div>
+            <input id="inputName" type="text" placeholder="예: 홍길동" autocomplete="off" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputTitle">직함 / 직위</label>
+              <div class="field-hint">예: 박사 / 책임연구원</div>
+            </div>
+            <input id="inputTitle" type="text" placeholder="예: 박사 / 책임연구원" autocomplete="off" />
           </div>
         </div>
 
-        <!-- 기본 정보 -->
-        <div class="field-group">
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputName">고객 이름</label>
-                <div class="field-hint">예: 홍길동</div>
-              </div>
-              <input id="inputName" type="text" placeholder="예: 홍길동" />
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputOrg">기관 / 회사</label>
+              <div class="field-hint">예: KIST / KITECH</div>
             </div>
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputTitle">직함 / 직위</label>
-                <div class="field-hint">예: 박사 / 책임연구원</div>
-              </div>
-              <input
-                id="inputTitle"
-                type="text"
-                placeholder="예: 박사 / 책임연구원"
-              />
-            </div>
+            <input id="inputOrg" type="text" placeholder="예: KIST / KITECH" autocomplete="off" />
           </div>
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputOrg">기관 / 회사</label>
-                <div class="field-hint">예: KIST / KITECH</div>
-              </div>
-              <input
-                id="inputOrg"
-                type="text"
-                placeholder="예: KIST / KITECH"
-              />
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputDept">부서 / 연구실</label>
+              <div class="field-hint">예: 소재부품연구부</div>
             </div>
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputDept">부서 / 연구실</label>
-                <div class="field-hint">예: 소재부품연구부</div>
-              </div>
-              <input
-                id="inputDept"
-                type="text"
-                placeholder="예: 소재부품연구부"
-              />
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputField">연구 / 관심 분야</label>
-                <div class="field-hint">예: 반도체 패키징 접착제</div>
-              </div>
-              <input
-                id="inputField"
-                type="text"
-                placeholder="예: 반도체 패키징 접착제"
-              />
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputBudget">
-                  예상 예산 / 연구비
-                </label>
-                <div class="field-hint">예: 연 1,200만원</div>
-              </div>
-              <input
-                id="inputBudget"
-                type="text"
-                placeholder="예: 연 1,200만원"
-              />
-            </div>
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputEmail">이메일 (선택)</label>
-                <div class="field-hint">example@org.re.kr</div>
-              </div>
-              <input
-                id="inputEmail"
-                type="email"
-                placeholder="example@org.re.kr"
-              />
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputShortNote">
-                  내 메모 (짧게)
-                </label>
-                <div class="field-hint">예: 기존 고객 / 예산 있음</div>
-              </div>
-              <input
-                id="inputShortNote"
-                type="text"
-                placeholder="예: 기존 고객 / 예산 있음"
-              />
-            </div>
-          </div>
-          <div class="hint-footer">
-            · 이름·기관·연구분야는 안내서 인사말, 본문 요약에 자동 반영됩니다.
+            <input id="inputDept" type="text" placeholder="예: 소재부품연구부" autocomplete="off" />
           </div>
         </div>
 
-        <hr
-          style="
-            border: none;
-            border-top: 1px solid rgba(31, 41, 55, 0.9);
-            margin: 10px 0 8px;
-          "
-        />
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputField">연구 / 관심 분야</label>
+              <div class="field-hint">예: 반도체 패키징 접착제</div>
+            </div>
+            <input id="inputField" type="text" placeholder="예: 반도체 패키징 접착제" autocomplete="off" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputBudget">예상 예산 / 연구비</label>
+              <div class="field-hint">예: 연 1,200만원</div>
+            </div>
+            <input id="inputBudget" type="text" placeholder="예: 연 1,200만원" autocomplete="off" />
+          </div>
+        </div>
 
-        <!-- 안내서 옵션 -->
-        <div class="card-header" style="padding: 0; margin-bottom: 6px">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputEmail">이메일 (선택)</label>
+              <div class="field-hint">예: example@org.re.kr</div>
+            </div>
+            <input id="inputEmail" type="text" placeholder="example@org.re.kr" autocomplete="off" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputShortMemo">내 메모 (짧게)</label>
+              <div class="field-hint">예: 기존 고객 / 예산 있음</div>
+            </div>
+            <input id="inputShortMemo" type="text" placeholder="예: 기존 고객 / 예산 있음" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="status-text">
+          · <strong>이름·기관·연구분야</strong>는 안내서 인사말, 본문 요약에 자동 반영됩니다.
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed #1f2937; margin: 10px 0;" />
+
+        <div class="card-header" style="margin-top: 2px;">
           <div>
             <div class="card-title">B. 안내서 옵션 · 보고서 목록</div>
-            <div class="card-subtitle">
-              신규 문의 / 기존 고객 / 재문의 상황에 따라, 템플릿 구조와 톤이 달라집니다.
-            </div>
+            <div class="card-kicker">신규 문의 / 기존 고객 / 재문의 상황에 따라, 템플릿 구조와 톤이 달라집니다.</div>
           </div>
-          <div class="badge badge-accent" id="optionStatusBadge">
-            옵션 상태: 기본값 사용 중
+          <div class="badge-pill" id="optionState">옵션 상태: 기본값 사용 중</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectType">안내서 유형</label>
+              <div class="field-hint">상황 선택</div>
+            </div>
+            <select id="selectType">
+              <option value="new">신규 문의 / 첫 안내</option>
+              <option value="existing">기존 고객 / 추가 안내</option>
+              <option value="revisit">재문의 / 업데이트 안내</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectTone">문체 / 톤</label>
+              <div class="field-hint">예: 연구자 대상 존댓말</div>
+            </div>
+            <select id="selectTone">
+              <option value="researcher_polite">연구자용 정중한 톤 (기본)</option>
+              <option value="business_formal">사업/조달 담당자용 격식 톤</option>
+              <option value="light_polite">조금 가벼운 존댓말 톤</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="inputKeywords">핵심 키워드 (콤마 구분)</label>
+              <div class="field-hint">예: 글라스 서브스트레이트, 접착제</div>
+            </div>
+            <input id="inputKeywords" type="text" placeholder="키워드1, 키워드2, ..." autocomplete="off" />
+          </div>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="selectChannel">예상 사용 채널</label>
+              <div class="field-hint">메일 / 워드 / PDF</div>
+            </div>
+            <select id="selectChannel">
+              <option value="email">이메일 본문용</option>
+              <option value="word">워드 파일용 (문단형)</option>
+              <option value="both">이메일 + 워드 겸용</option>
+            </select>
           </div>
         </div>
 
         <div class="field-group">
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="selectType">안내서 유형</label>
-                <div class="field-hint">상황 선택</div>
-              </div>
-              <select id="selectType">
-                <option value="new">신규 문의 / 첫 안내</option>
-                <option value="existing">기존 고객 / 추가 제안</option>
-                <option value="revisit">재문의 / 추적 안내</option>
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="selectTone">문체 / 톤</label>
-                <div class="field-hint">예: 연구자 대상 존댓말</div>
-              </div>
-              <select id="selectTone">
-                <option value="researcher">
-                  연구자용 정중한 톤 (기본)
-                </option>
-                <option value="simple">간단하고 짧은 톤</option>
-                <option value="detail">
-                  자세한 설명 중심 톤
-                </option>
-              </select>
-            </div>
+          <div class="field-label-row">
+            <label class="field-label" for="textareaReports">보고서 / 자료 목록</label>
+            <div class="field-hint">한 줄당 1개 · 제목만 적으면 번호 매김</div>
           </div>
-
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="inputKeywords">
-                  핵심 키워드 (콤마 구분)
-                </label>
-                <div class="field-hint">
-                  예: 글라스 서브스트레이트, 접착제
-                </div>
-              </div>
-              <input
-                id="inputKeywords"
-                type="text"
-                placeholder="키워드1, 키워드2, ..."
-              />
-            </div>
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label" for="selectChannel">
-                  예상 사용 채널
-                </label>
-                <div class="field-hint">메일 / 워드 / PDF</div>
-              </div>
-              <select id="selectChannel">
-                <option value="email">이메일 본문용</option>
-                <option value="word">워드 안내서용</option>
-                <option value="pdf">PDF 안내서용</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="field-label-row">
-              <label class="field-label" for="textareaReports">
-                보고서 / 자료 목록
-              </label>
-              <div class="field-hint">
-                한 줄당 1개 · 제목만 적으면 번호 매김
-              </div>
-            </div>
-            <textarea
-              id="textareaReports"
-              placeholder="예시)
+          <textarea id="textareaReports" placeholder="예시)
 Glass Substrate for Advanced Packaging 2025
 Semiconductor Packaging Adhesives: Global Market 2024
-고기능 접착제·실란트 세계시장 2023"
-            ></textarea>
-          </div>
+고기능 접착제·실란트 세계시장 2023"></textarea>
+        </div>
 
-          <div class="field">
-            <div class="field-label-row">
-              <label class="field-label" for="textareaDetailMemo">
-                고객 상세 메모 (안내서 본문 반영)
-              </label>
-              <div class="field-hint">
-                전화 내용, 예산, 원하는 포인트 등 자유 입력
-              </div>
-            </div>
-            <textarea
-              id="textareaDetailMemo"
-              placeholder="예)
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="textareaDetailMemo">고객 상세 메모 (안내서 본문 반영)</label>
+            <div class="field-hint">전화 내용, 예산, 원하는 포인트 등 자유 입력</div>
+          </div>
+          <textarea id="textareaDetailMemo" placeholder="예)
 - 최근 패키징용 유리기판 관련 중장기 로드맵 수립 중
 - 국내·해외 업체 동향, 공정별 기술 포인트, 비용·투자 규모 데이터 필요
-- 기한: 다음 달 예산 집행 전까지"
-            ></textarea>
-          </div>
+- 기한: 다음 달 예산 집행 전까지"></textarea>
+        </div>
 
-          <div class="btn-row">
-            <button type="button" class="btn-primary" id="btnGenerate">
-              <span class="icon">⚙️</span> 자동 안내서 초안 생성
-            </button>
-            <button type="button" id="btnAddMemo">
-              <span class="icon">➕</span> 메모를 안내서에 덧붙이기
-            </button>
-            <button type="button" class="btn-ghost" id="btnResetInputs">
-              <span class="icon">🧹</span> 입력 내용 초기화
-            </button>
-          </div>
+        <div class="btn-row">
+          <button type="button" class="btn-main" id="btnGenerate">
+            <span class="btn-icon">⚙️</span>
+            자동 안내서 초안 생성
+          </button>
+          <button type="button" id="btnAppendMemo">
+            <span class="btn-icon">➕</span>
+            메모를 안내서에 덧붙이기
+          </button>
+          <button type="button" class="btn-ghost" id="btnClearInputs">
+            <span class="btn-icon">🧹</span>
+            입력 내용 초기화
+          </button>
+        </div>
 
-          <div class="hint-footer">
-            · 안내서 생성 후에도 옵션을 바꿔 다시 생성할 수 있습니다.
-          </div>
-          <div id="generateError" class="error-text" style="display: none"></div>
-          <div id="generateSuccess" class="success-text" style="display: none"></div>
+        <div class="status-text">
+          · 안내서 생성 후에도 옵션을 바꿔 다시 생성할 수 있습니다.
         </div>
       </section>
 
-      <!-- 오른쪽: C+D -->
+      <!-- 오른쪽: C 미리보기 + D 후속 조치 -->
       <section class="card" aria-label="안내서 미리보기 및 후속 조치">
         <div class="card-header">
           <div>
             <div class="card-title">C. 자동 안내서 미리보기</div>
-            <div class="card-subtitle">
-              인사·소개·맞춤 제안·후속 안내까지
-              <strong>한 번에 붙여 넣을 수 있는 구조</strong>로 보여줍니다.
-            </div>
+            <div class="card-kicker">인사·소개·맞춤 제안·후속 안내까지 한 번에 붙여 넣을 수 있는 구조로 보여줍니다.</div>
           </div>
-          <div class="tabs-row" aria-label="미리보기 모드">
-            <button
-              type="button"
-              class="tab-btn active"
-              id="tabWordMode"
-            >
-              📄 안내서 형식 보기
+          <div class="badge-pill" id="previewState">안내서 상태: 아직 생성되지 않았습니다.</div>
+        </div>
+
+        <div class="preview-header">
+          <div class="preview-tabs" aria-label="미리보기 모드 전환">
+            <button type="button" class="tab-btn active" id="tabFormatted">📄 안내서 형식</button>
+            <button type="button" class="tab-btn" id="tabPlain">📋 순수 텍스트</button>
+          </div>
+          <div class="btn-row" style="margin-top:0;">
+            <button type="button" id="btnCopy" title="클립보드 복사">
+              <span class="btn-icon">📎</span>
+              복사
             </button>
-            <button
-              type="button"
-              class="tab-btn"
-              id="tabPlainMode"
-            >
-              📋 순수 텍스트 보기
+            <button type="button" id="btnAddSeparator" title="워드 구분선 추가">
+              <span class="btn-icon">📝</span>
+              워드 구분선
             </button>
           </div>
         </div>
 
-        <div class="btn-row" style="margin-bottom: 6px">
-          <button type="button" id="btnCopyClipboard">
-            <span class="icon">📎</span> 클립보드 복사
-          </button>
-          <button type="button" id="btnAddSeparator">
-            <span class="icon">📝</span> 워드 구분선 추가
-          </button>
-        </div>
-
-        <div id="previewBox" class="preview-box" aria-label="안내서 미리보기">
-          <div class="preview-placeholder" id="previewPlaceholder">
+        <div class="preview-shell" id="previewShell">
+          <div id="previewEmpty" class="preview-empty">
             아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
             <strong>「자동 안내서 초안 생성」</strong> 버튼을 눌러 주세요.
           </div>
+          <div id="previewFormatted" class="preview-text" style="display:none;"></div>
+          <textarea id="previewPlain" style="display:none; width:100%; border:none; background:transparent; color:inherit; resize:none; min-height:160px; font-size:12px; line-height:1.55;"></textarea>
         </div>
         <div class="preview-meta" id="previewMeta">
-          안내서 상태: 아직 생성되지 않았습니다.
-        </div>
-        <div class="section-caption">
-          · 이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다.
-          (Word 잠금은 별도 템플릿에서 처리)
+          이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다. (Word 잠금은 별도 템플릿에서 처리)
         </div>
 
-        <hr
-          style="
-            border: none;
-            border-top: 1px solid rgba(31, 41, 55, 0.9);
-            margin: 10px 0 8px;
-          "
-        />
+        <hr style="border: none; border-top: 1px dashed #1f2937; margin: 10px 0;" />
 
-        <div class="card-header" style="padding: 0; margin-bottom: 6px">
+        <div class="card-header" style="margin-top: 2px;">
           <div>
             <div class="card-title">D. 후속 조치 · Follow-up 체크리스트</div>
-            <div class="card-subtitle">
-              안내서와 연결된 전화 / 메일 / 견적 / 입찰 등
-              <strong>후속 행동을 로컬에서 관리</strong>합니다.
-            </div>
+            <div class="card-kicker">안내서와 연결된 전화 / 메일 / 견적 / 입찰 등 후속 행동을 로컬에서 관리합니다.</div>
           </div>
-          <div class="status-pill" id="followStatusPill">
-            <span class="status-pill-dot"></span> 후속 조치 상태: 미저장
-          </div>
+          <div class="badge-pill" id="followState">후속 조치 상태: 미저장</div>
         </div>
 
-        <div class="grid-two">
-          <div>
-            <div class="field-label" style="font-size: 11px; margin-bottom: 4px">
-              고객 단위 로컬 체크리스트
+        <div class="follow-grid">
+          <div class="follow-block">
+            <div class="follow-title">고객 단위 로컬 체크리스트</div>
+
+            <div class="follow-inline">
+              <input type="checkbox" id="chkCall" />
+              <label for="chkCall">전화 상담 예정</label>
+              <input type="date" id="dateCall" />
             </div>
 
-            <div class="checklist-grid">
-              <div>
-                <input type="checkbox" id="checkCall" />
-              </div>
-              <div class="check-label">
-                전화 상담 예정
-              </div>
-              <div>
-                <input id="dateCall" type="date" />
-              </div>
+            <div class="follow-inline">
+              <input type="checkbox" id="chkMail" />
+              <label for="chkMail">안내 메일 발송 / 회신 대기</label>
+              <input type="date" id="dateMail" />
             </div>
 
-            <div class="checklist-grid">
-              <div>
-                <input type="checkbox" id="checkMail" />
-              </div>
-              <div class="check-label">
-                안내 메일 발송 / 회신 대기
-              </div>
-              <div>
-                <input id="dateMail" type="date" />
-              </div>
+            <div class="follow-inline">
+              <input type="checkbox" id="chkQuote" />
+              <label for="chkQuote">공식 견적서 / 인보이스 발송</label>
+              <input type="date" id="dateQuote" />
             </div>
 
-            <div class="checklist-grid">
-              <div>
-                <input type="checkbox" id="checkQuote" />
-              </div>
-              <div class="check-label">
-                공식 견적서 / 인보이스 발송
-              </div>
-              <div>
-                <input id="dateQuote" type="date" />
-              </div>
-            </div>
-
-            <div class="checklist-grid">
-              <div>
-                <input type="checkbox" id="checkBid" />
-              </div>
-              <div class="check-label">
-                입찰 / 조달 등록 준비
-              </div>
-              <div>
-                <input id="dateBid" type="date" />
-              </div>
+            <div class="follow-inline">
+              <input type="checkbox" id="chkBid" />
+              <label for="chkBid">입찰 / 조달 등록 준비</label>
+              <input type="date" id="dateBid" />
             </div>
           </div>
 
-          <div>
-            <div class="field">
+          <div class="follow-block">
+            <div class="field-group">
               <div class="field-label-row">
-                <label class="field-label" for="textareaFollowMemo">
-                  추가 메모 (후속 조치용)
-                </label>
-                <div class="field-hint">
-                  예: 입찰 마감일 / 내부 결재 일정
-                </div>
+                <label class="field-label" for="textareaFollowMemo">추가 메모 (후속 조치용)</label>
+                <div class="field-hint">예: 입찰 마감일 / 내부 결재 일정</div>
               </div>
-              <textarea
-                id="textareaFollowMemo"
-                class="small-textarea"
-                placeholder="예)
+              <textarea id="textareaFollowMemo" placeholder="예)
 - KISTI 조달 등록 필요 여부 확인
 - 내부 결재라인: 팀장 → 본부장
-- 예산 집행 기한: 1월 말까지"
-              ></textarea>
+- 예산 집행 기한: 1월 말까지"></textarea>
             </div>
 
-            <div class="field">
-              <div class="field-label-row">
-                <label class="field-label">다음 할 일 요약</label>
-                <div class="field-hint">
-                  체크리스트를 선택하면 여기 한 줄로 정리됩니다.
-                </div>
-              </div>
-              <div id="summaryNextAction" class="summary-box">
-                아직 요약이 없습니다. 체크리스트 선택 후
-                <strong>「요약 다시 계산」</strong>을 눌러 주세요.
-              </div>
+            <div class="next-summary" id="nextSummary">
+              <strong>다음 할 일 요약</strong><br />
+              <span>아직 요약이 없습니다.</span> 체크리스트 선택 후 「요약 다시 계산」을 눌러 주세요.
+            </div>
+
+            <div class="btn-row" style="margin-top:6px;">
+              <button type="button" id="btnSaveFollow">
+                <span class="btn-icon">💾</span>
+                후속 조치 상태 저장
+              </button>
+              <button type="button" id="btnRecalcFollow">
+                <span class="btn-icon">🔄</span>
+                요약 다시 계산
+              </button>
+              <button type="button" class="btn-ghost" id="btnClearFollow">
+                <span class="btn-icon">♻️</span>
+                체크리스트 초기화
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="btn-row" style="margin-top: 8px">
-          <button type="button" id="btnSaveFollow">
-            <span class="icon">💾</span> 후속 조치 상태 저장
-          </button>
-          <button type="button" id="btnRecalcFollow">
-            <span class="icon">🔄</span> 요약 다시 계산
-          </button>
-          <button type="button" class="btn-ghost btn-danger" id="btnResetFollow">
-            <span class="icon">♻️</span> 체크리스트 초기화
-          </button>
-        </div>
-        <div class="section-caption">
-          · 체크리스트와 메모는 이 브라우저의 localStorage에만 저장됩니다.
+        <div class="footer-note">
+          · 체크리스트와 메모는 이 브라우저의 <code>localStorage</code>에만 저장됩니다.
         </div>
       </section>
     </main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "wic_tool1_state_v1";
+
+      const $ = (id) => document.getElementById(id);
+
+      // 헤더/상태
+      const metaReadyText = $("metaReadyText");
+      const statTotalCount = $("statTotalCount");
+      const statTodayCount = $("statTodayCount");
+      const statLastTime = $("statLastTime");
+
+      // A. 기본 정보
+      const inputName = $("inputName");
+      const inputTitle = $("inputTitle");
+      const inputOrg = $("inputOrg");
+      const inputDept = $("inputDept");
+      const inputField = $("inputField");
+      const inputBudget = $("inputBudget");
+      const inputEmail = $("inputEmail");
+      const inputShortMemo = $("inputShortMemo");
+      const basicInfoState = $("basicInfoState");
+
+      // B. 옵션
+      const selectType = $("selectType");
+      const selectTone = $("selectTone");
+      const inputKeywords = $("inputKeywords");
+      const selectChannel = $("selectChannel");
+      const textareaReports = $("textareaReports");
+      const textareaDetailMemo = $("textareaDetailMemo");
+      const optionState = $("optionState");
+
+      const btnGenerate = $("btnGenerate");
+      const btnAppendMemo = $("btnAppendMemo");
+      const btnClearInputs = $("btnClearInputs");
+
+      // C. 미리보기
+      const tabFormatted = $("tabFormatted");
+      const tabPlain = $("tabPlain");
+      const previewShell = $("previewShell");
+      const previewEmpty = $("previewEmpty");
+      const previewFormatted = $("previewFormatted");
+      const previewPlain = $("previewPlain");
+      const previewMeta = $("previewMeta");
+      const previewState = $("previewState");
+      const btnCopy = $("btnCopy");
+      const btnAddSeparator = $("btnAddSeparator");
+
+      // D. 후속 조치
+      const followState = $("followState");
+      const chkCall = $("chkCall");
+      const chkMail = $("chkMail");
+      const chkQuote = $("chkQuote");
+      const chkBid = $("chkBid");
+      const dateCall = $("dateCall");
+      const dateMail = $("dateMail");
+      const dateQuote = $("dateQuote");
+      const dateBid = $("dateBid");
+      const textareaFollowMemo = $("textareaFollowMemo");
+      const nextSummary = $("nextSummary");
+      const btnSaveFollow = $("btnSaveFollow");
+      const btnRecalcFollow = $("btnRecalcFollow");
+      const btnClearFollow = $("btnClearFollow");
+
+      function safeParse(json, fallback) {
+        try {
+          if (!json) return fallback;
+          const parsed = JSON.parse(json);
+          return parsed ?? fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const state = safeParse(raw, null);
+        if (!state) {
+          updateMetaReady("초기 상태 · 아직 저장 없음");
+          return;
+        }
+
+        const s = state;
+
+        // 헤더
+        statTotalCount.textContent = String(s.totalCount || 0);
+        statTodayCount.textContent = String(s.todayCount || 0);
+        statLastTime.textContent = s.lastGeneratedAtText || "-";
+
+        // A
+        inputName.value = s.name || "";
+        inputTitle.value = s.title || "";
+        inputOrg.value = s.org || "";
+        inputDept.value = s.dept || "";
+        inputField.value = s.field || "";
+        inputBudget.value = s.budget || "";
+        inputEmail.value = s.email || "";
+        inputShortMemo.value = s.shortMemo || "";
+
+        setBasicInfoState();
+
+        // B
+        if (s.type) selectType.value = s.type;
+        if (s.tone) selectTone.value = s.tone;
+        if (s.keywords) inputKeywords.value = s.keywords;
+        if (s.channel) selectChannel.value = s.channel;
+        if (s.reports) textareaReports.value = s.reports;
+        if (s.detailMemo) textareaDetailMemo.value = s.detailMemo;
+
+        optionState.textContent = "옵션 상태: 저장된 설정 불러옴";
+
+        // C
+        if (s.previewRaw) {
+          applyPreviewText(s.previewRaw);
+          previewState.textContent = "안내서 상태: 저장된 안내서가 있습니다.";
+        }
+
+        // D
+        chkCall.checked = !!s.followCall;
+        chkMail.checked = !!s.followMail;
+        chkQuote.checked = !!s.followQuote;
+        chkBid.checked = !!s.followBid;
+        if (s.dateCall) dateCall.value = s.dateCall;
+        if (s.dateMail) dateMail.value = s.dateMail;
+        if (s.dateQuote) dateQuote.value = s.dateQuote;
+        if (s.dateBid) dateBid.value = s.dateBid;
+        textareaFollowMemo.value = s.followMemo || "";
+
+        if (s.followSummary) {
+          nextSummary.innerHTML =
+            "<strong>다음 할 일 요약</strong><br /><span>" +
+            escapeHtml(s.followSummary) +
+            "</span>";
+          followState.textContent = "후속 조치 상태: 저장됨";
+        }
+
+        updateMetaReady("이전에 저장된 상태를 불러왔습니다.");
+      }
+
+      function saveState(extra) {
+        const now = new Date();
+        const todayKey =
+          now.getFullYear() +
+          "-" +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(now.getDate()).padStart(2, "0");
+
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const prev = safeParse(raw, {}) || {};
+
+        const base = {
+          name: inputName.value || "",
+          title: inputTitle.value || "",
+          org: inputOrg.value || "",
+          dept: inputDept.value || "",
+          field: inputField.value || "",
+          budget: inputBudget.value || "",
+          email: inputEmail.value || "",
+          shortMemo: inputShortMemo.value || "",
+          type: selectType.value,
+          tone: selectTone.value,
+          keywords: inputKeywords.value || "",
+          channel: selectChannel.value,
+          reports: textareaReports.value || "",
+          detailMemo: textareaDetailMemo.value || "",
+          // 헤더 카운트
+          totalCount: prev.totalCount || 0,
+          todayCount: prev.todayCount || 0,
+          lastGeneratedAtText: prev.lastGeneratedAtText || "-",
+          lastGeneratedDateKey: prev.lastGeneratedDateKey || "",
+          // 미리보기 raw는 extra에서 설정
+          previewRaw: prev.previewRaw || "",
+          // 후속 조치
+          followCall: chkCall.checked,
+          followMail: chkMail.checked,
+          followQuote: chkQuote.checked,
+          followBid: chkBid.checked,
+          dateCall: dateCall.value || "",
+          dateMail: dateMail.value || "",
+          dateQuote: dateQuote.value || "",
+          dateBid: dateBid.value || "",
+          followMemo: textareaFollowMemo.value || "",
+          followSummary: prev.followSummary || "",
+          updatedAt: now.toISOString(),
+          todayKey: todayKey,
+        };
+
+        const merged = Object.assign({}, base, extra || {});
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      }
+
+      function updateMetaReady(text) {
+        metaReadyText.textContent = text;
+      }
+
+      function setBasicInfoState() {
+        const hasMain =
+          (inputName.value || "").trim() ||
+          (inputOrg.value || "").trim() ||
+          (inputField.value || "").trim();
+
+        basicInfoState.textContent = hasMain
+          ? "기본 정보 상태: 안내서에 반영 가능"
+          : "기본 정보 상태: 대기 중";
+
+        basicInfoState.className = "badge-pill " + (hasMain ? "state-ok" : "");
+      }
+
+      function escapeHtml(str) {
+        return (str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function formatDateTime(date) {
+        const pad = (n) => String(n).padStart(2, "0");
+        return (
+          date.getFullYear() +
+          "-" +
+          pad(date.getMonth() + 1) +
+          "-" +
+          pad(date.getDate()) +
+          " " +
+          pad(date.getHours()) +
+          ":" +
+          pad(date.getMinutes())
+        );
+      }
+
+      function buildGreeting(tone, name, title, org, dept) {
+        const lines = [];
+        const namePart = name ? name + (title ? " " + title : "") : "";
+        const orgPart = org || "";
+        const deptPart = dept || "";
+
+        const fullLine = [orgPart, deptPart, namePart].filter(Boolean).join(" ");
+
+        if (tone === "business_formal") {
+          if (fullLine) {
+            lines.push(fullLine + " 귀중");
+            lines.push("");
+          }
+          lines.push("안녕하십니까. 월드산업정보센터입니다.");
+        } else if (tone === "light_polite") {
+          if (name) {
+            lines.push(name + " 연구자님,");
+          } else if (org) {
+            lines.push(org + " 담당자님께,");
+          }
+          lines.push("");
+          lines.push("월드산업정보센터에서 인사드립니다.");
+        } else {
+          if (fullLine) {
+            lines.push(fullLine + " 귀하");
+            lines.push("");
+          }
+          lines.push("안녕하십니까. 월드산업정보센터입니다.");
+        }
+        return lines.join("\n");
+      }
+
+      function buildIntro(type, field, budget, keywords) {
+        const lines = [];
+        const fieldText = field ? field : "관심 분야";
+        const keywordList = (keywords || "")
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean);
+
+        if (type === "existing") {
+          lines.push(
+            "항상 저희 월드산업정보센터를 이용해 주셔서 진심으로 감사드립니다."
+          );
+          lines.push(
+            "이전에 안내드린 자료에 이어, 아래와 같이 추가로 참고하실 수 있는 시장·기술자료를 정리해 안내드립니다."
+          );
+        } else if (type === "revisit") {
+          lines.push(
+            "이전에 문의 주셨던 내용과 관련하여, 최신 자료와 업데이트된 정보를 중심으로 다시 한번 정리해 안내드립니다."
+          );
+        } else {
+          lines.push(
+            "귀하의 " +
+              fieldText +
+              " 관련 검토 및 연구에 도움이 될 수 있는 시장·기술자료를 아래와 같이 제안드립니다."
+          );
+        }
+
+        if (budget || keywordList.length) {
+          lines.push("");
+          if (budget) {
+            lines.push("· 예상 예산/연구비: " + budget);
+          }
+          if (keywordList.length) {
+            lines.push("· 핵심 키워드: " + keywordList.join(", "));
+          }
+        }
+
+        return lines.join("\n");
+      }
+
+      function buildReportList(rawReports) {
+        const lines = [];
+        const items = (rawReports || "")
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+
+        if (!items.length) {
+          return "";
+        }
+
+        lines.push("");
+        lines.push("[제안 드리는 주요 보고서/자료 목록]");
+        items.forEach((item, idx) => {
+          lines.push(String(idx + 1) + ". " + item);
+        });
+
+        return lines.join("\n");
+      }
+
+      function buildDetailMemo(detailMemo) {
+        if (!detailMemo || !detailMemo.trim()) return "";
+        const lines = [];
+        lines.push("");
+        lines.push("[고객 요청 및 메모 요약]");
+        lines.push(detailMemo.trim());
+        return lines.join("\n");
+      }
+
+      function buildClosing(channel) {
+        const lines = [];
+        lines.push("");
+        lines.push("상기 자료 외에도 추가로 필요하신 주제가 있으시면 언제든지 연락 주시면 감사하겠습니다.");
+
+        if (channel === "email") {
+          lines.push(
+            "검토 후 회신 주시면, 귀 기관의 검토·구매 절차에 맞추어 견적서 및 관련 서류를 신속히 전달드리겠습니다."
+          );
+        } else if (channel === "word") {
+          lines.push(
+            "내부 결재용 자료나 추가 서면 안내가 필요하신 경우, 별도의 워드/인쇄용 안내문도 함께 제공해 드리겠습니다."
+          );
+        } else {
+          lines.push(
+            "이메일 및 워드 파일 양식으로 모두 제공 가능하오니, 선호하시는 방식으로 알려 주시면 즉시 준비하겠습니다."
+          );
+        }
+
+        lines.push("");
+        lines.push("감사합니다.");
+        lines.push("");
+        lines.push("월드산업정보센터 드림");
+
+        return lines.join("\n");
+      }
+
+      function buildFullLetter() {
+        const name = inputName.value.trim();
+        const title = inputTitle.value.trim();
+        const org = inputOrg.value.trim();
+        const dept = inputDept.value.trim();
+        const field = inputField.value.trim();
+        const budget = inputBudget.value.trim();
+        const email = inputEmail.value.trim();
+        const shortMemo = inputShortMemo.value.trim();
+        const type = selectType.value;
+        const tone = selectTone.value;
+        const keywords = inputKeywords.value.trim();
+        const channel = selectChannel.value;
+        const reports = textareaReports.value;
+        const detailMemo = textareaDetailMemo.value;
+
+        const hasBasic =
+          name || org || field || email || shortMemo || reports || detailMemo;
+
+        if (!hasBasic) {
+          alert("최소한 이름·기관·연구분야 또는 보고서 목록 중 1개 이상은 입력해야 안내서를 만들 수 있습니다.");
+          return null;
+        }
+
+        const parts = [];
+
+        parts.push(buildGreeting(tone, name, title, org, dept));
+        parts.push("");
+        parts.push(buildIntro(type, field, budget, keywords));
+        parts.push(buildReportList(reports));
+        parts.push(buildDetailMemo(detailMemo || shortMemo));
+        parts.push(buildClosing(channel));
+
+        const letter = parts.join("\n").replace(/\n{3,}/g, "\n\n");
+        return {
+          letter,
+          meta: {
+            name,
+            title,
+            org,
+            field,
+            channel,
+          },
+        };
+      }
+
+      function applyPreviewText(rawText) {
+        if (!rawText) {
+          previewEmpty.style.display = "block";
+          previewFormatted.style.display = "none";
+          previewPlain.style.display = "none";
+          previewPlain.value = "";
+          return;
+        }
+
+        previewEmpty.style.display = "none";
+        previewFormatted.style.display = "block";
+        previewPlain.style.display = "none";
+
+        const safe = escapeHtml(rawText);
+        const paragraphs = safe.split(/\n{2,}/).map((p) => p.trim());
+        previewFormatted.innerHTML = paragraphs
+          .map((p) => "<p style='margin:0 0 8px;'>" + p.replace(/\n/g, "<br />") + "</p>")
+          .join("");
+
+        previewPlain.value = rawText;
+      }
+
+      function updatePreviewState(has) {
+        previewState.textContent = has
+          ? "안내서 상태: 생성됨"
+          : "안내서 상태: 아직 생성되지 않았습니다.";
+      }
+
+      function switchPreviewTab(mode) {
+        if (mode === "formatted") {
+          tabFormatted.classList.add("active");
+          tabPlain.classList.remove("active");
+          if (previewPlain.value.trim()) {
+            const safe = escapeHtml(previewPlain.value);
+            const paragraphs = safe.split(/\n{2,}/).map((p) => p.trim());
+            previewFormatted.innerHTML = paragraphs
+              .map(
+                (p) => "<p style='margin:0 0 8px;'>" + p.replace(/\n/g, "<br />") + "</p>"
+              )
+              .join("");
+          }
+          previewFormatted.style.display = previewEmpty.style.display === "block" ? "none" : "block";
+          previewPlain.style.display = "none";
+        } else {
+          tabPlain.classList.add("active");
+          tabFormatted.classList.remove("active");
+          if (previewPlain.value.trim()) {
+            previewPlain.style.display = "block";
+            previewFormatted.style.display = "none";
+          } else if (previewFormatted.innerHTML.trim()) {
+            // 포맷 → 텍스트 역변환은 간단 처리 (innerText 사용)
+            previewPlain.value = previewFormatted.innerText.trim();
+            previewPlain.style.display = "block";
+            previewFormatted.style.display = "none";
+          } else {
+            previewPlain.style.display = "none";
+          }
+        }
+      }
+
+      function recalcCountsOnGenerate() {
+        const now = new Date();
+        const todayKey =
+          now.getFullYear() +
+          "-" +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(now.getDate()).padStart(2, "0");
+
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const prev = safeParse(raw, {}) || {};
+        let total = prev.totalCount || 0;
+        let today = prev.todayCount || 0;
+        const lastDateKey = prev.lastGeneratedDateKey || "";
+
+        total += 1;
+        if (lastDateKey === todayKey) {
+          today += 1;
+        } else {
+          today = 1;
+        }
+
+        const lastText = formatDateTime(now);
+        statTotalCount.textContent = String(total);
+        statTodayCount.textContent = String(today);
+        statLastTime.textContent = lastText;
+
+        return {
+          totalCount: total,
+          todayCount: today,
+          lastGeneratedAtText: lastText,
+          lastGeneratedDateKey: todayKey,
+        };
+      }
+
+      function onGenerateClick() {
+        const result = buildFullLetter();
+        if (!result) return;
+
+        applyPreviewText(result.letter);
+        updatePreviewState(true);
+        switchPreviewTab("formatted");
+
+        const countInfo = recalcCountsOnGenerate();
+        saveState(
+          Object.assign({}, countInfo, {
+            previewRaw: result.letter,
+          })
+        );
+      }
+
+      function onAppendMemo() {
+        const memo = textareaDetailMemo.value.trim() || inputShortMemo.value.trim();
+        if (!memo) {
+          alert("덧붙일 메모가 없습니다. 상세 메모 또는 짧은 메모를 먼저 입력해 주세요.");
+          return;
+        }
+
+        let current = previewPlain.value.trim();
+        if (!current) {
+          alert("먼저 안내서를 생성한 뒤에 메모를 덧붙이는 것이 좋습니다.");
+          return;
+        }
+
+        current += "\n\n[추가 메모]\n" + memo;
+        previewPlain.value = current;
+        applyPreviewText(current);
+        switchPreviewTab("formatted");
+
+        saveState({
+          previewRaw: current,
+        });
+      }
+
+      function onClearInputs() {
+        if (!window.confirm("고객 기본 정보와 옵션 입력 내용을 모두 지우시겠습니까?")) {
+          return;
+        }
+        inputName.value = "";
+        inputTitle.value = "";
+        inputOrg.value = "";
+        inputDept.value = "";
+        inputField.value = "";
+        inputBudget.value = "";
+        inputEmail.value = "";
+        inputShortMemo.value = "";
+        selectType.value = "new";
+        selectTone.value = "researcher_polite";
+        inputKeywords.value = "";
+        selectChannel.value = "email";
+        textareaReports.value = "";
+        textareaDetailMemo.value = "";
+        setBasicInfoState();
+        optionState.textContent = "옵션 상태: 기본값 사용 중";
+
+        saveState();
+      }
+
+      function onCopy() {
+        const text = previewPlain.value.trim();
+        if (!text) {
+          alert("복사할 안내서가 없습니다. 먼저 안내서를 생성해 주세요.");
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              previewMeta.textContent =
+                "클립보드에 복사되었습니다. 이메일/워드에 바로 붙여 넣을 수 있습니다.";
+            })
+            .catch(() => {
+              alert("복사 중 문제가 발생했습니다. 필요하면 직접 드래그해서 복사해 주세요.");
+            });
+        } else {
+          alert("이 브라우저에서는 자동 복사가 지원되지 않을 수 있습니다. 필요하면 직접 복사해 주세요.");
+        }
+      }
+
+      function onAddSeparator() {
+        const text = previewPlain.value.trim();
+        const sep = "\n\n------------------------------\n";
+        const next = text ? text + sep : "------------------------------\n";
+        previewPlain.value = next;
+        applyPreviewText(next);
+        switchPreviewTab("formatted");
+        saveState({
+          previewRaw: next,
+        });
+      }
+
+      function calcNextSummary() {
+        const actions = [];
+
+        if (chkCall.checked) {
+          const d = dateCall.value ? " (" + dateCall.value + ")" : "";
+          actions.push("전화 상담 예정" + d);
+        }
+        if (chkMail.checked) {
+          const d = dateMail.value ? " (" + dateMail.value + ")" : "";
+          actions.push("안내 메일 발송/회신 대기" + d);
+        }
+        if (chkQuote.checked) {
+          const d = dateQuote.value ? " (" + dateQuote.value + ")" : "";
+          actions.push("공식 견적서/인보이스 발송" + d);
+        }
+        if (chkBid.checked) {
+          const d = dateBid.value ? " (" + dateBid.value + ")" : "";
+          actions.push("입찰/조달 등록 준비" + d);
+        }
+
+        if (!actions.length) {
+          return "체크된 후속 조치가 없습니다.";
+        }
+        return actions.join(" → ");
+      }
+
+      function onRecalcFollow() {
+        const summary = calcNextSummary();
+        nextSummary.innerHTML =
+          "<strong>다음 할 일 요약</strong><br /><span>" +
+          escapeHtml(summary) +
+          "</span>";
+      }
+
+      function onSaveFollow() {
+        const summary = calcNextSummary();
+
+        nextSummary.innerHTML =
+          "<strong>다음 할 일 요약</strong><br /><span>" +
+          escapeHtml(summary) +
+          "</span>";
+        followState.textContent = "후속 조치 상태: 저장됨";
+
+        saveState({
+          followSummary: summary,
+        });
+      }
+
+      function onClearFollow() {
+        if (!window.confirm("후속 조치 체크리스트와 메모를 모두 초기화하시겠습니까?")) {
+          return;
+        }
+        chkCall.checked = false;
+        chkMail.checked = false;
+        chkQuote.checked = false;
+        chkBid.checked = false;
+        dateCall.value = "";
+        dateMail.value = "";
+        dateQuote.value = "";
+        dateBid.value = "";
+        textareaFollowMemo.value = "";
+        nextSummary.innerHTML =
+          "<strong>다음 할 일 요약</strong><br /><span>아직 요약이 없습니다.</span> 체크리스트 선택 후 「요약 다시 계산」을 눌러 주세요.";
+        followState.textContent = "후속 조치 상태: 미저장";
+
+        saveState({
+          followSummary: "",
+        });
+      }
+
+      function init() {
+        updateMetaReady("로컬 상태를 준비하는 중입니다...");
+        loadState();
+        setBasicInfoState();
+      }
+
+      // 이벤트
+      [inputName, inputOrg, inputField].forEach((el) => {
+        el.addEventListener("input", () => {
+          setBasicInfoState();
+          saveState();
+        });
+      });
+
+      [
+        inputTitle,
+        inputBudget,
+        inputEmail,
+        inputShortMemo,
+        inputKeywords,
+        textareaReports,
+        textareaDetailMemo,
+      ].forEach((el) => {
+        el.addEventListener("input", () => {
+          saveState();
+        });
+      });
+
+      selectType.addEventListener("change", () => {
+        optionState.textContent = "옵션 상태: 사용자 지정";
+        saveState();
+      });
+      selectTone.addEventListener("change", () => {
+        optionState.textContent = "옵션 상태: 사용자 지정";
+        saveState();
+      });
+      selectChannel.addEventListener("change", () => {
+        optionState.textContent = "옵션 상태: 사용자 지정";
+        saveState();
+      });
+
+      btnGenerate.addEventListener("click", onGenerateClick);
+      btnAppendMemo.addEventListener("click", onAppendMemo);
+      btnClearInputs.addEventListener("click", onClearInputs);
+
+      tabFormatted.addEventListener("click", () => switchPreviewTab("formatted"));
+      tabPlain.addEventListener("click", () => switchPreviewTab("plain"));
+
+      btnCopy.addEventListener("click", onCopy);
+      btnAddSeparator.addEventListener("click", onAddSeparator);
+
+      [chkCall, chkMail, chkQuote, chkBid, dateCall, dateMail, dateQuote, dateBid].forEach(
+        (el) => {
+          el.addEventListener("change", () => {
+            saveState();
+          });
+        }
+      );
+      textareaFollowMemo.addEventListener("input", () => saveState());
+
+      btnRecalcFollow.addEventListener("click", onRecalcFollow);
+      btnSaveFollow.addEventListener("click", onSaveFollow);
+      btnClearFollow.addEventListener("click", onClearFollow);
+
+      document.addEventListener("DOMContentLoaded", init);
+    })();
+  </script>
+</body>
+</html>
