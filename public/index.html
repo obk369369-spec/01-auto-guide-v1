@@ -1,598 +1,267 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>1번 도구 · 고객 자동화 안내서 (v2.0 기능우선)</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; padding: 12px; background:#0b1220; color:#e5e7eb; }
-    .top { position: sticky; top: 0; z-index: 10; background:#0b1220; padding: 8px 0 10px; }
-    .badges { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .badge { border:1px solid #2a3857; background:#111a2e; padding:6px 10px; border-radius:999px; font-size:12px; }
-    .badge strong { color:#c7d2fe; font-weight:600; }
-    .wrap { display:grid; grid-template-columns: 1fr; gap: 10px; max-width: 1200px; margin: 0 auto; }
-    @media (min-width: 980px){ .wrap { grid-template-columns: 1fr 1fr; } }
-    .card { border:1px solid #223150; background:#0f1930; border-radius:12px; padding:12px; }
-    .card h2 { margin:0 0 8px; font-size:14px; color:#cbd5e1; }
-    label { display:block; font-size:12px; color:#a7b3c7; margin:8px 0 4px; }
-    input, textarea, select, button {
-      width:100%; box-sizing:border-box; border-radius:10px;
-      border:1px solid #2a3857; background:#0b1326; color:#e5e7eb;
-      padding:10px; font-size:13px;
-    }
-    textarea { min-height: 96px; resize: vertical; }
-    .row { display:grid; grid-template-columns: 1fr; gap:8px; }
-    @media (min-width: 980px){ .row2 { grid-template-columns: 1fr 1fr; } }
-    .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-    .btns button { width:auto; padding:10px 12px; cursor:pointer; }
-    .btn-primary { border-color:#4657ff; background:#1a2aa8; }
-    .btn-warn { border-color:#ff7a7a; background:#3a1220; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .small { font-size:12px; color:#a7b3c7; }
-    .split { display:grid; grid-template-columns: 1fr; gap:10px; }
-    @media (min-width: 980px){ .split { grid-template-columns: 1fr 1fr; } }
-    .out { white-space: pre-wrap; word-break: break-word; min-height: 220px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1번 도구 · 고객 자동화 안내서</title>
+
+<style>
+/* 눈 피로 완화 컬러 */
+:root{
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --line:#d8dde6;
+  --text:#1f2937;
+  --sub:#6b7280;
+  --accent:#4f46e5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:12px;
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+}
+.badges{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  margin-bottom:10px;
+}
+.badge{
+  background:#eef2ff;
+  border:1px solid var(--line);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+@media(min-width:900px){
+  .container{grid-template-columns:1fr 1fr;}
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+}
+h2{margin:0 0 8px;font-size:15px}
+label{font-size:12px;color:var(--sub)}
+input,textarea,select,button{
+  width:100%;
+  margin-top:4px;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--line);
+  font-size:13px;
+}
+textarea{min-height:90px}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+button{cursor:pointer;background:#fff}
+.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.small{font-size:12px;color:var(--sub);margin-top:4px}
+.out{
+  white-space:pre-wrap;
+  min-height:220px;
+  border:1px dashed var(--line);
+  padding:8px;
+  border-radius:8px;
+  background:#fafafa;
+}
+.flash{
+  animation:flash 0.25s ease;
+}
+@keyframes flash{
+  from{background:#e0e7ff}
+  to{background:var(--card)}
+}
+</style>
 </head>
+
 <body>
-  <div class="top">
-    <div class="badges" aria-label="runtime badges">
-      <div class="badge"><strong>JS</strong>: <span id="b_js">BOOT</span></div>
-      <div class="badge"><strong>BUILD ID</strong>: <span id="b_build" class="mono"></span></div>
-      <div class="badge"><strong>STATE KEY</strong>: <span id="b_key" class="mono"></span></div>
-      <div class="badge"><strong>LAST ACTION</strong>: <span id="b_last" class="mono">—</span></div>
-      <div class="badge"><strong>AUTO SAVE</strong>: <span id="b_saved" class="mono">—</span></div>
-      <div style="margin-left:auto; display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="btn_export" type="button">상태 내보내기(JSON)</button>
-        <button id="btn_wipe_key" class="btn-warn" type="button">localStorage 키 삭제</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap">
-    <!-- A -->
-    <section class="card">
-      <h2>A · 입력</h2>
-      <div class="row row2">
-        <div>
-          <label>고객/기관</label>
-          <input id="a_customer" placeholder="예: KISTI / 홍길동" />
-        </div>
-        <div>
-          <label>주제/키워드</label>
-          <input id="a_topic" placeholder="예: 배터리, 반도체, 접착제" />
-        </div>
-      </div>
-
-      <div class="row row2">
-        <div>
-          <label>예산/금액(선택)</label>
-          <input id="a_budget" placeholder="예: 1,200만원 / 10,000,000원" />
-        </div>
-        <div>
-          <label>연락처(선택)</label>
-          <input id="a_contact" placeholder="예: email / 전화" />
-        </div>
-      </div>
-
-      <label>요청/상황(원문)</label>
-      <textarea id="a_context" placeholder="고객 문의 내용, 상황, 요구사항 등을 붙여 넣기"></textarea>
-
-      <div class="btns">
-        <button id="c_generate" type="button" class="btn-primary">C 생성 → 미리보기 채우기</button>
-        <button id="c_toggle_mode" type="button">C 모드 전환</button>
-        <button id="c_copy" type="button">C 복사</button>
-      </div>
-      <div class="small">미리보기는 <span class="mono">textContent</span>로만 갱신합니다.</div>
-    </section>
-
-    <!-- C -->
-    <section class="card">
-      <h2>C · 안내서 미리보기</h2>
-      <label>모드</label>
-      <select id="c_mode">
-        <option value="short">짧게(요약형)</option>
-        <option value="full">길게(상세형)</option>
-      </select>
-      <label>미리보기 출력</label>
-      <div id="c_preview" class="out mono" role="status" aria-live="polite">아직 생성되지 않았습니다.</div>
-      <div class="small">복사 버튼으로 전체 텍스트를 클립보드에 복사합니다.</div>
-    </section>
-
-    <!-- B -->
-    <section class="card">
-      <h2>B · 붙여넣기 기반 추출 (fetch 금지)</h2>
-      <label>복사한 텍스트/HTML 붙여넣기</label>
-      <textarea id="b_paste" placeholder="외부 사이트/메일/문서에서 복사한 텍스트를 붙여넣기"></textarea>
-      <div class="btns">
-        <button id="b_extract" type="button" class="btn-primary">추출 → B 메모 삽입</button>
-        <button id="b_clear_paste" type="button">붙여넣기 지우기</button>
-      </div>
-      <label>B 메모(추출 결과/보관)</label>
-      <textarea id="b_memo" placeholder="추출된 이메일/전화/금액/예산/키워드 문장들이 여기에 추가됩니다."></textarea>
-      <div class="small">추출: 이메일/전화/금액/예산 관련 문장 + 키워드 라인(기본 규칙).</div>
-    </section>
-
-    <!-- D -->
-    <section class="card">
-      <h2>D · 후속조치(저장/불러오기/요약/초기화)</h2>
-
-      <div class="row row2">
-        <div>
-          <label>후속조치 ID</label>
-          <input id="d_id" placeholder="예: 2025-12-12_KISTI_홍길동" />
-        </div>
-        <div>
-          <label>상태</label>
-          <select id="d_status">
-            <option value="todo">TODO</option>
-            <option value="doing">DOING</option>
-            <option value="waiting">WAITING</option>
-            <option value="done">DONE</option>
-          </select>
-        </div>
-      </div>
-
-      <label>후속조치 내용</label>
-      <textarea id="d_note" placeholder="예: 견적 발송 / 발행사 확인 / 2차 전화"></textarea>
-
-      <div class="row row2">
-        <div>
-          <label>다음 연락일(선택)</label>
-          <input id="d_next" placeholder="예: 2025-12-15" />
-        </div>
-        <div>
-          <label>태그(쉼표)</label>
-          <input id="d_tags" placeholder="예: 예산,긴급,반도체" />
-        </div>
-      </div>
-
-      <div class="btns">
-        <button id="d_save" type="button" class="btn-primary">D 저장</button>
-        <button id="d_load" type="button">D 불러오기</button>
-        <button id="d_summary" type="button">D 요약</button>
-        <button id="d_reset" type="button" class="btn-warn">D 초기화</button>
-      </div>
-
-      <label>D 요약 출력</label>
-      <div id="d_out" class="out mono" role="status" aria-live="polite">—</div>
-      <div class="small">저장/불러오기/새로고침 후 유지(localStorage) 동작이 핵심입니다.</div>
-    </section>
-  </div>
-
-  <script>
-    (function(){
-      "use strict";
-
-      // ======= BUILD/STATE =======
-      const BUILD_ID = "WIC-TOOL01-" + new Date().toISOString().replace(/[-:]/g,"").slice(0,15);
-      const STATE_KEY = "wic_tool_01_state_v2";
-
-      // ======= DOM =======
-      const $ = (id)=>document.getElementById(id);
-
-      const b_js = $("b_js");
-      const b_build = $("b_build");
-      const b_key = $("b_key");
-      const b_last = $("b_last");
-      const b_saved = $("b_saved");
-
-      const a_customer = $("a_customer");
-      const a_topic = $("a_topic");
-      const a_budget = $("a_budget");
-      const a_contact = $("a_contact");
-      const a_context = $("a_context");
-
-      const c_mode = $("c_mode");
-      const c_preview = $("c_preview");
-
-      const b_paste = $("b_paste");
-      const b_memo = $("b_memo");
-
-      const d_id = $("d_id");
-      const d_status = $("d_status");
-      const d_note = $("d_note");
-      const d_next = $("d_next");
-      const d_tags = $("d_tags");
-      const d_out = $("d_out");
-
-      // ======= helpers =======
-      function nowKST(){
-        // Asia/Seoul fixed offset +09:00 for display
-        const d = new Date();
-        const tz = 9 * 60;
-        const local = new Date(d.getTime() + (tz + d.getTimezoneOffset())*60000);
-        return local.toISOString().replace("T"," ").slice(0,19) + " KST";
-      }
-
-      function setLast(action){
-        b_last.textContent = action;
-      }
-
-      function markSaved(){
-        b_saved.textContent = nowKST();
-      }
-
-      function safeText(v){ return (v ?? "").toString(); }
-
-      function loadState(){
-        try{
-          const raw = localStorage.getItem(STATE_KEY);
-          if(!raw) return null;
-          return JSON.parse(raw);
-        }catch(e){
-          return null;
-        }
-      }
-
-      function saveState(state){
-        localStorage.setItem(STATE_KEY, JSON.stringify(state));
-        markSaved();
-      }
-
-      function getStateFromUI(){
-        return {
-          meta: {
-            build_id: BUILD_ID,
-            state_key: STATE_KEY,
-            last_saved: nowKST()
-          },
-          A: {
-            customer: safeText(a_customer.value).trim(),
-            topic: safeText(a_topic.value).trim(),
-            budget: safeText(a_budget.value).trim(),
-            contact: safeText(a_contact.value).trim(),
-            context: safeText(a_context.value)
-          },
-          B: {
-            memo: safeText(b_memo.value),
-            last_paste: safeText(b_paste.value)
-          },
-          C: {
-            mode: safeText(c_mode.value),
-            preview: safeText(c_preview.textContent)
-          },
-          D: {
-            id: safeText(d_id.value).trim(),
-            status: safeText(d_status.value),
-            note: safeText(d_note.value),
-            next: safeText(d_next.value).trim(),
-            tags: safeText(d_tags.value).trim(),
-            out: safeText(d_out.textContent)
-          }
-        };
-      }
-
-      function applyStateToUI(state){
-        if(!state) return;
-
-        // A
-        a_customer.value = state?.A?.customer ?? "";
-        a_topic.value = state?.A?.topic ?? "";
-        a_budget.value = state?.A?.budget ?? "";
-        a_contact.value = state?.A?.contact ?? "";
-        a_context.value = state?.A?.context ?? "";
-
-        // B
-        b_memo.value = state?.B?.memo ?? "";
-        b_paste.value = state?.B?.last_paste ?? "";
-
-        // C
-        c_mode.value = state?.C?.mode ?? "short";
-        const prev = state?.C?.preview ?? "아직 생성되지 않았습니다.";
-        c_preview.textContent = prev || "아직 생성되지 않았습니다.";
-
-        // D
-        d_id.value = state?.D?.id ?? "";
-        d_status.value = state?.D?.status ?? "todo";
-        d_note.value = state?.D?.note ?? "";
-        d_next.value = state?.D?.next ?? "";
-        d_tags.value = state?.D?.tags ?? "";
-        d_out.textContent = state?.D?.out ?? "—";
-
-        b_saved.textContent = state?.meta?.last_saved ?? "—";
-      }
-
-      function autoSave(action){
-        const st = getStateFromUI();
-        saveState(st);
-        setLast(action + " (AUTO-SAVED)");
-      }
-
-      function normalizeLines(text){
-        return safeText(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n");
-      }
-
-      // ======= C: generator =======
-      function buildGuide(mode){
-        const cust = safeText(a_customer.value).trim() || "고객";
-        const topic = safeText(a_topic.value).trim() || "주제 미기입";
-        const budget = safeText(a_budget.value).trim();
-        const contact = safeText(a_contact.value).trim();
-        const ctx = normalizeLines(a_context.value).trim();
-
-        const memo = normalizeLines(b_memo.value).trim();
-
-        const head = [
-          `안내서 · ${cust}`,
-          `주제: ${topic}`,
-          budget ? `예산: ${budget}` : null,
-          contact ? `연락: ${contact}` : null,
-          `작성: ${nowKST()}`
-        ].filter(Boolean).join("\n");
-
-        const baseShort = [
-          head,
-          "",
-          "1) 요약",
-          `- 요청 핵심: ${topic}`,
-          ctx ? `- 원문 요약: ${ctx.split("\n").slice(0,2).join(" / ").slice(0,180)}${ctx.length>180?"…":""}` : "- 원문 요약: (없음)",
-          memo ? `- 참고 메모: ${memo.split("\n").slice(0,2).join(" / ").slice(0,180)}${memo.length>180?"…":""}` : "- 참고 메모: (없음)",
-          "",
-          "2) 다음 액션(추천)",
-          "- (1) 보고서 후보 3개 선정 → 제목/발행사 확인",
-          "- (2) 견적/납기/라이선스 핵심 문장 3줄로 정리",
-          "- (3) 고객에게 1차 안내 메일 발송(요약+옵션)",
-          "",
-          "3) 고객에게 보낼 한 줄",
-          `- “${cust}님, ${topic} 관련 후보 자료를 3개로 추려 핵심만 요약해 안내드리겠습니다.”`
-        ].join("\n");
-
-        const baseFull = [
-          head,
-          "",
-          "1) 고객 상황 정리",
-          `- 고객/기관: ${cust}`,
-          `- 관심 주제: ${topic}`,
-          budget ? `- 예산: ${budget}` : "- 예산: (미기입)",
-          contact ? `- 연락: ${contact}` : "- 연락: (미기입)",
-          "",
-          "2) 원문(발췌) / 참고",
-          ctx ? ctx : "(원문 없음)",
-          "",
-          "3) 내부 메모(추출/정리)",
-          memo ? memo : "(메모 없음)",
-          "",
-          "4) 안내 구성(메일/전화용)",
-          "- 핵심 포인트 3개",
-          "  ① 목적/배경  ② 필요한 범위(기간/지역/산업)  ③ 예산/납기",
-          "- 옵션 제시 2개",
-          "  ① 빠른 요약본(저가/단기)  ② 상세 보고서(정가/정식)",
-          "",
-          "5) 다음 액션 체크리스트",
-          "- 자료 후보 3개 → 비교표(가격/형태/PDF/엑셀/라이선스)",
-          "- 발행사 조건(인쇄/공유/네트워크) 문구 확인",
-          "- 견적서 초안 생성 → 고객 확인 질문 3개",
-          "",
-          "6) 고객 확인 질문 3개",
-          "1) 사용 인원(1인/팀)과 사용 장소(내부/외부 공유) 범위는?",
-          "2) 필요한 기간(최근 3년/5년/10년)과 지역 범위는?",
-          "3) 예산 상한선과 납기(오늘/이번 주/다음 주)는?"
-        ].join("\n");
-
-        return mode === "full" ? baseFull : baseShort;
-      }
-
-      // ======= B: paste-based extraction =======
-      function extractSignals(text){
-        const t = normalizeLines(text);
-        const lines = t.split("\n").map(s=>s.trim()).filter(Boolean);
-
-        const emailRe = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig;
-        const phoneRe = /(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?)\d{3,4}[-.\s]?\d{4}/g;
-        const moneyRe = /(?:₩|KRW|USD|EUR|JPY|\$|€|¥)\s?\d[\d,]*(?:\.\d+)?|(?:\d[\d,]*(?:\.\d+)?\s?(?:원|만원|억|달러|USD|EUR|엔|JPY))/g;
-
-        const keywords = [];
-        const hits = [];
-
-        for(const ln of lines){
-          const emails = ln.match(emailRe);
-          const phones = ln.match(phoneRe);
-          const moneys = ln.match(moneyRe);
-
-          const hasBudgetWord = /예산|budget|견적|가격|금액|비용|단가|invoice|quotation/i.test(ln);
-          const hasKeywordWord = /키워드|keyword|주제|topic|산업|시장|보고서/i.test(ln);
-
-          if(emails || phones || moneys || hasBudgetWord){
-            hits.push(ln);
-          }
-          if(hasKeywordWord){
-            keywords.push(ln);
-          }
-        }
-
-        // fallback: collect unique emails/phones/moneys from entire text
-        const allEmails = Array.from(new Set((t.match(emailRe) || []).map(s=>s.toLowerCase())));
-        const allPhones = Array.from(new Set((t.match(phoneRe) || []).map(s=>s)));
-        const allMoneys = Array.from(new Set((t.match(moneyRe) || []).map(s=>s)));
-
-        const pack = [];
-        pack.push(`[추출 ${nowKST()}]`);
-        if(allEmails.length) pack.push(`- 이메일: ${allEmails.join(", ")}`);
-        if(allPhones.length) pack.push(`- 전화: ${allPhones.join(", ")}`);
-        if(allMoneys.length) pack.push(`- 금액: ${allMoneys.join(", ")}`);
-
-        if(hits.length){
-          pack.push("- 예산/금액/연락 관련 문장:");
-          for(const h of hits.slice(0,12)) pack.push("  · " + h);
-          if(hits.length>12) pack.push(`  · (외 ${hits.length-12}줄)`);
-        }
-        if(keywords.length){
-          pack.push("- 키워드/주제 관련 문장:");
-          for(const k of keywords.slice(0,8)) pack.push("  · " + k);
-          if(keywords.length>8) pack.push(`  · (외 ${keywords.length-8}줄)`);
-        }
-
-        if(pack.length===1) pack.push("- (추출 결과 없음)");
-        return pack.join("\n");
-      }
-
-      // ======= D: follow-up store (within STATE_KEY) =======
-      function dSummary(){
-        const id = safeText(d_id.value).trim() || "(ID 없음)";
-        const st = safeText(d_status.value);
-        const next = safeText(d_next.value).trim() || "(미정)";
-        const tags = safeText(d_tags.value).trim() || "(없음)";
-        const note = normalizeLines(d_note.value).trim() || "(내용 없음)";
-
-        const cSnap = safeText(c_preview.textContent).slice(0,220);
-        const aSnap = `${safeText(a_customer.value).trim() || "고객"} / ${safeText(a_topic.value).trim() || "주제"}`;
-
-        return [
-          `D 요약 · ${nowKST()}`,
-          `- ID: ${id}`,
-          `- 상태: ${st}`,
-          `- 다음 연락: ${next}`,
-          `- 태그: ${tags}`,
-          `- 고객/주제: ${aSnap}`,
-          `- 메모: ${note.split("\n").slice(0,3).join(" / ").slice(0,200)}${note.length>200?"…":""}`,
-          `- C 미리보기 스냅샷: ${cSnap}${cSnap.length>=220?"…":""}`
-        ].join("\n");
-      }
-
-      // ======= wiring =======
-      function initBadges(){
-        b_build.textContent = BUILD_ID;
-        b_key.textContent = STATE_KEY;
-        b_js.textContent = "OK";
-        setLast("BOOT");
-      }
-
-      function attachAutoSaveInputs(){
-        const inputs = [
-          a_customer, a_topic, a_budget, a_contact, a_context,
-          c_mode,
-          b_paste, b_memo,
-          d_id, d_status, d_note, d_next, d_tags
-        ];
-        for(const el of inputs){
-          el.addEventListener("input", ()=>autoSave("INPUT"));
-          el.addEventListener("change", ()=>autoSave("CHANGE"));
-        }
-      }
-
-      // C buttons
-      $("c_generate").addEventListener("click", ()=>{
-        const mode = c_mode.value;
-        const text = buildGuide(mode);
-        // IMPORTANT: textContent only
-        c_preview.textContent = text;
-        autoSave("C_GENERATE");
-      });
-
-      $("c_toggle_mode").addEventListener("click", ()=>{
-        c_mode.value = (c_mode.value === "short") ? "full" : "short";
-        // auto regenerate to show change immediately
-        const text = buildGuide(c_mode.value);
-        c_preview.textContent = text;
-        autoSave("C_TOGGLE_MODE");
-      });
-
-      $("c_copy").addEventListener("click", async ()=>{
-        const t = safeText(c_preview.textContent);
-        try{
-          await navigator.clipboard.writeText(t);
-          setLast("C_COPY (OK)");
-        }catch(e){
-          // fallback
-          const ta = document.createElement("textarea");
-          ta.value = t; document.body.appendChild(ta);
-          ta.select(); document.execCommand("copy");
-          document.body.removeChild(ta);
-          setLast("C_COPY (FALLBACK)");
-        }
-        autoSave("C_COPY");
-      });
-
-      // B buttons
-      $("b_extract").addEventListener("click", ()=>{
-        const src = safeText(b_paste.value);
-        const extracted = extractSignals(src);
-        const cur = safeText(b_memo.value);
-        b_memo.value = (cur ? (cur.trimEnd() + "\n\n") : "") + extracted + "\n";
-        autoSave("B_EXTRACT");
-      });
-
-      $("b_clear_paste").addEventListener("click", ()=>{
-        b_paste.value = "";
-        autoSave("B_CLEAR_PASTE");
-      });
-
-      // D buttons
-      $("d_save").addEventListener("click", ()=>{
-        // state already includes D; just save and confirm in output
-        const summary = dSummary();
-        d_out.textContent = summary;
-        autoSave("D_SAVE");
-      });
-
-      $("d_load").addEventListener("click", ()=>{
-        const st = loadState();
-        applyStateToUI(st);
-        setLast("D_LOAD");
-        // do not overwrite build id, only UI
-        autoSave("D_LOAD");
-      });
-
-      $("d_summary").addEventListener("click", ()=>{
-        const summary = dSummary();
-        d_out.textContent = summary;
-        autoSave("D_SUMMARY");
-      });
-
-      $("d_reset").addEventListener("click", ()=>{
-        d_id.value = "";
-        d_status.value = "todo";
-        d_note.value = "";
-        d_next.value = "";
-        d_tags.value = "";
-        d_out.textContent = "—";
-        autoSave("D_RESET");
-      });
-
-      // export/wipe
-      $("btn_export").addEventListener("click", ()=>{
-        const st = getStateFromUI();
-        const blob = new Blob([JSON.stringify(st, null, 2)], {type:"application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `tool01_state_${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        autoSave("EXPORT_JSON");
-      });
-
-      $("btn_wipe_key").addEventListener("click", ()=>{
-        localStorage.removeItem(STATE_KEY);
-        // keep UI but show action
-        setLast("LS_KEY_DELETED");
-        b_saved.textContent = "—";
-      });
-
-      // ======= boot =======
-      initBadges();
-
-      // restore state on load
-      const st = loadState();
-      if(st){
-        applyStateToUI(st);
-        setLast("RESTORED");
-      }else{
-        // ensure preview is clearly non-empty, but not "fixed forever"
-        c_preview.textContent = "아직 생성되지 않았습니다.";
-        d_out.textContent = "—";
-        b_saved.textContent = "—";
-      }
-
-      attachAutoSaveInputs();
-      // final autosave on boot to ensure STATE_KEY exists after first load
-      autoSave("BOOT_SAVE");
-
-    })();
-  </script>
+
+<div class="badges">
+  <div class="badge">JS: <strong id="b_js">OK</strong></div>
+  <div class="badge">BUILD ID: <strong id="b_build"></strong></div>
+  <div class="badge">STATE KEY: <strong id="b_key"></strong></div>
+  <div class="badge">LAST ACTION: <strong id="b_last">BOOT</strong></div>
+</div>
+
+<div class="container">
+
+<!-- A -->
+<div class="card">
+<h2>A · 고객 데이터</h2>
+
+<label>고객/기관</label>
+<input id="a_customer">
+
+<label>주제/키워드</label>
+<input id="a_topic">
+
+<label>예산</label>
+<input id="a_budget">
+
+<label>연락처</label>
+<input id="a_contact">
+
+<label>요청 원문</label>
+<textarea id="a_context"></textarea>
+
+<div class="btns">
+<button class="primary" id="c_make">C 안내서 생성</button>
+<button id="c_copy">C 복사</button>
+</div>
+</div>
+
+<!-- C -->
+<div class="card">
+<h2>C · 워드 안내서 미리보기</h2>
+<div id="c_preview" class="out">아직 생성되지 않았습니다.</div>
+</div>
+
+<!-- D -->
+<div class="card">
+<h2>D · 후속조치</h2>
+
+<label>상태</label>
+<select id="d_status">
+<option>TODO</option>
+<option>DOING</option>
+<option>WAITING</option>
+<option>DONE</option>
+</select>
+
+<label>다음 연락일</label>
+<input id="d_next">
+
+<label>후속조치 메모</label>
+<textarea id="d_note"></textarea>
+
+<div class="btns">
+<button id="d_save">저장</button>
+<button id="d_load">불러오기</button>
+</div>
+
+<div class="btns" style="margin-top:10px">
+<button id="a_no">무응답</button>
+<button id="a_open">열람</button>
+<button id="a_reply">회신</button>
+<button id="a_q">추가질문</button>
+<button class="primary" id="a_buy">구매의사</button>
+</div>
+
+<div class="small">버튼 클릭 → 화면 즉시 변화 확인</div>
+</div>
+
+<!-- LOG -->
+<div class="card">
+<h2>동작 로그</h2>
+<div id="log" class="out">—</div>
+</div>
+
+</div>
+
+<script>
+const BUILD="WIC01-"+new Date().toISOString().slice(0,19);
+const KEY="wic_tool01_state";
+b_build.textContent=BUILD;
+b_key.textContent=KEY;
+
+function now(){return new Date().toLocaleString("ko-KR")}
+function last(v){b_last.textContent=v}
+
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state()));
+}
+function load(){
+  const s=localStorage.getItem(KEY);
+  if(!s)return;
+  const d=JSON.parse(s);
+  d_status.value=d.status;
+  d_next.value=d.next;
+  d_note.value=d.note;
+  log.textContent=d.log;
+}
+
+function state(){
+  return{
+    status:d_status.value,
+    next:d_next.value,
+    note:d_note.value,
+    log:log.textContent
+  }
+}
+
+function guide(){
+  return `
+[자동 안내서]
+
+고객: ${a_customer.value||"-"}
+주제: ${a_topic.value||"-"}
+예산: ${a_budget.value||"-"}
+연락처: ${a_contact.value||"-"}
+
+요청 요약:
+${a_context.value||"-"}
+
+다음 액션:
+- 자료 후보 선정
+- 조건/가격 정리
+- 고객 회신 대기
+`;
+}
+
+function flash(el){
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
+}
+
+c_make.onclick=()=>{
+  c_preview.textContent=guide();
+  flash(c_preview);
+  last("C_GENERATE");
+}
+
+c_copy.onclick=()=>{
+  navigator.clipboard.writeText(c_preview.textContent);
+  last("C_COPY");
+}
+
+d_save.onclick=()=>{
+  save();
+  log.textContent+="\n["+now()+"] 저장";
+  flash(log);
+  last("D_SAVE");
+}
+
+d_load.onclick=()=>{
+  load();
+  flash(log);
+  last("D_LOAD");
+}
+
+function action(name,text,days){
+  d_status.value="DOING";
+  d_note.value=text;
+  const d=new Date(); d.setDate(d.getDate()+days);
+  d_next.value=d.toISOString().slice(0,10);
+  log.textContent+="\n["+now()+"] "+name;
+  flash(log);
+  save();
+  last("ACTION_"+name);
+}
+
+a_no.onclick=()=>action("무응답","2일 후 리마인드 메일",2);
+a_open.onclick=()=>action("열람","확인 메일 발송",1);
+a_reply.onclick=()=>action("회신","회신 반영 재안내",0);
+a_q.onclick=()=>action("추가질문","질문 정리 후 재전송",0);
+a_buy.onclick=()=>action("구매의사","견적·결제 안내",0);
+
+</script>
 </body>
 </html>
