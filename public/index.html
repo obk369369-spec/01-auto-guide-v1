@@ -472,14 +472,16 @@
             </button>
           </div>
 
+          
           <div class="preview-box" id="preview-box">
             <div class="preview-placeholder" id="preview-placeholder">
               아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
               「자동 안내서 초안 생성」 버튼을 눌러 주세요.
             </div>
+            <pre id="preview-content" style="margin:0; white-space:pre-wrap; font:inherit;"></pre>
           </div>
 
-          <div class="hint">
+          <div class="hint"><div class="hint">
             · 이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다.
           </div>
         </section>
@@ -682,6 +684,7 @@
         // preview
         previewBox: document.getElementById("preview-box"),
         previewPlaceholder: document.getElementById("preview-placeholder"),
+        previewContent: document.getElementById("preview-content"),
 
         // followup
         fuCall: document.getElementById("fu-call"),
@@ -692,7 +695,12 @@
         fuSummary: document.getElementById("followup-summary"),
         btnFollowupSave: document.getElementById("btn-followup-save"),
         btnFollowupRecalc: document.getElementById("btn-followup-recalc"),
-        btnFollowupReset: document.getElementById("btn-followup-reset")
+        btnFollowupReset: document.getElementById("btn-followup-reset"),
+
+        // csv db
+        dbFile: document.getElementById("dbFile"),
+        dbRow: document.getElementById("dbRow"),
+        btnApplyRow: document.getElementById("btn-apply-row")
       };
 
       // ===== 상태 =====
@@ -733,17 +741,30 @@
         el.optionStatus.textContent = "옵션 상태: 설정 반영됨";
       }
 
+      
       function renderPreview() {
         const p = state.preview;
         const hasText = !!p.text && p.text.trim().length > 0;
 
         if (!hasText) {
           el.previewPlaceholder.style.display = "block";
-          el.previewPlaceholder.textContent =
-            "아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤 「자동 안내서 초안 생성」 버튼을 눌러 주세요.";
-          el.previewBox.textContent = "";
+          el.previewContent.textContent = "";
           el.previewStatus.textContent = "안내서 상태: 아직 생성되지 않았습니다.";
         } else {
+          el.previewPlaceholder.style.display = "none";
+          // formatted/plain은 일단 동일 텍스트로 표시 (워드 붙여넣기용)
+          el.previewContent.textContent = p.text;
+          el.previewStatus.textContent = "안내서 상태: 생성 완료 (복사·편집 가능)";
+        }
+
+        if (p.mode === "formatted") {
+          el.btnModeFormatted.classList.add("active");
+          el.btnModePlain.classList.remove("active");
+        } else {
+          el.btnModePlain.classList.add("active");
+          el.btnModeFormatted.classList.remove("active");
+        }
+      } else {
           el.previewPlaceholder.style.display = "none";
           if (p.mode === "formatted") {
             el.previewBox.textContent = p.text;
@@ -819,6 +840,126 @@
         state.followup.bid = el.fuBid.value;
         state.followup.memo = el.fuMemo.value.trim();
       }
+
+      
+      // ===== CSV 고객DB (간단) =====
+      function parseCSV(text) {
+        // 아주 단순 CSV (따옴표/쉼표 복잡 케이스는 최소 처리)
+        const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim().length);
+        if (lines.length < 2) return { headers: [], rows: [] };
+        const splitLine = (line) => {
+          const out = [];
+          let cur = "";
+          let inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+              if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+              else { inQ = !inQ; }
+            } else if (ch === "," && !inQ) {
+              out.push(cur.trim());
+              cur = "";
+            } else {
+              cur += ch;
+            }
+          }
+          out.push(cur.trim());
+          return out;
+        };
+        const headers = splitLine(lines[0]).map(h => h.replace(/^"|"$/g, "").trim());
+        const rows = lines.slice(1).map(l => splitLine(l).map(v => v.replace(/^"|"$/g, "").trim()));
+        return { headers, rows };
+      }
+
+      function guessCol(headers, keys) {
+        const lower = headers.map(h => (h || "").toLowerCase());
+        for (let k of keys) {
+          const kk = k.toLowerCase();
+          const idx = lower.findIndex(h => h.includes(kk));
+          if (idx >= 0) return idx;
+        }
+        return -1;
+      }
+
+      let csvCache = { headers: [], rows: [] };
+
+      function wireCSVImport() {
+        if (!el.dbFile || !el.dbRow || !el.btnApplyRow) return;
+
+        el.dbFile.addEventListener("change", async function() {
+          const file = el.dbFile.files && el.dbFile.files[0];
+          if (!file) return;
+          const text = await file.text();
+          csvCache = parseCSV(text);
+
+          // 옵션 채우기 (최대 200행)
+          el.dbRow.innerHTML = '<option value="">행 선택</option>';
+          const nameIdx = guessCol(csvCache.headers, ["이름", "성명", "name"]);
+          const orgIdx  = guessCol(csvCache.headers, ["기관", "회사", "소속", "organization", "org"]);
+          const deptIdx = guessCol(csvCache.headers, ["부서", "연구실", "department", "dept"]);
+
+          const max = Math.min(csvCache.rows.length, 200);
+          for (let i = 0; i < max; i++) {
+            const r = csvCache.rows[i] || [];
+            const name = nameIdx >= 0 ? (r[nameIdx] || "") : "";
+            const org  = orgIdx  >= 0 ? (r[orgIdx]  || "") : "";
+            const dept = deptIdx >= 0 ? (r[deptIdx] || "") : "";
+            const label = [org, dept, name].filter(Boolean).join(" · ") || `Row ${i+1}`;
+            const opt = document.createElement("option");
+            opt.value = String(i);
+            opt.textContent = label;
+            el.dbRow.appendChild(opt);
+          }
+        });
+
+        el.btnApplyRow.addEventListener("click", function() {
+          const idx = parseInt(el.dbRow.value, 10);
+          if (isNaN(idx) || !csvCache.rows[idx]) return;
+
+          const headers = csvCache.headers;
+          const row = csvCache.rows[idx];
+
+          const iName   = guessCol(headers, ["이름", "성명", "name"]);
+          const iTitle  = guessCol(headers, ["직함", "직위", "title", "position"]);
+          const iOrg    = guessCol(headers, ["기관", "회사", "소속", "organization", "org"]);
+          const iDept   = guessCol(headers, ["부서", "연구실", "department", "dept"]);
+          const iField  = guessCol(headers, ["분야", "키워드", "관심", "field", "keyword"]);
+          const iBudget = guessCol(headers, ["예산", "연구비", "budget"]);
+          const iEmail  = guessCol(headers, ["이메일", "email"]);
+          const iMemo   = guessCol(headers, ["메모", "비고", "memo", "note"]);
+
+          state.basic.customerName = iName>=0 ? (row[iName]||"") : state.basic.customerName;
+          state.basic.customerTitle = iTitle>=0 ? (row[iTitle]||"") : state.basic.customerTitle;
+          state.basic.customerOrg = iOrg>=0 ? (row[iOrg]||"") : state.basic.customerOrg;
+          state.basic.customerDept = iDept>=0 ? (row[iDept]||"") : state.basic.customerDept;
+          state.basic.customerField = iField>=0 ? (row[iField]||"") : state.basic.customerField;
+          state.basic.customerBudget = iBudget>=0 ? (row[iBudget]||"") : state.basic.customerBudget;
+          state.basic.customerEmail = iEmail>=0 ? (row[iEmail]||"") : state.basic.customerEmail;
+          state.basic.customerShortMemo = iMemo>=0 ? (row[iMemo]||"") : state.basic.customerShortMemo;
+
+          state.lastUpdated = new Date().toISOString();
+          renderBasic();
+          saveState(state);
+        });
+      }
+
+      // ===== 자동 저장(입력 변경 시) =====
+      function wireAutoSave() {
+        const basicInputs = [el.customerName, el.customerTitle, el.customerOrg, el.customerDept, el.customerField, el.customerBudget, el.customerEmail, el.customerShortMemo];
+        const optionInputs = [el.guideType, el.tone, el.keywords, el.channel, el.reportList, el.detailMemo];
+        const followInputs = [el.fuCall, el.fuMail, el.fuQuote, el.fuBid, el.fuMemo];
+
+        function onBasic() { readBasicFromDOM(); renderBasic(); state.lastUpdated = new Date().toISOString(); saveState(state); }
+        function onOpt()   { readOptionsFromDOM(); renderOptions(); state.lastUpdated = new Date().toISOString(); saveState(state); }
+        function onFollow(){ readFollowupFromDOM(); state.lastUpdated = new Date().toISOString(); saveState(state); renderFollowupStatus(false); }
+
+        basicInputs.forEach(x => x && x.addEventListener("input", onBasic));
+        optionInputs.forEach(x => x && x.addEventListener("input", onOpt));
+        optionInputs.forEach(x => x && x.addEventListener("change", onOpt));
+        followInputs.forEach(x => x && x.addEventListener("input", onFollow));
+        followInputs.forEach(x => x && x.addEventListener("change", onFollow));
+      }
+
 
       // ===== 안내서 텍스트 생성 =====
       function buildGuideText() {
@@ -1123,6 +1264,8 @@
           state.todayCount = 0;
         }
         renderAll();
+        wireAutoSave();
+        wireCSVImport();
       }
 
       init();
