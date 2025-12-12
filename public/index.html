@@ -1,1274 +1,597 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>1번 도구 · 고객 자동화 안내서</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1번 도구 · 고객 자동화 안내서 (v2.0 기능우선)</title>
   <style>
-    :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #1f2933;
-      background: #f5f1e6;
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; padding: 12px; background:#0b1220; color:#e5e7eb; }
+    .top { position: sticky; top: 0; z-index: 10; background:#0b1220; padding: 8px 0 10px; }
+    .badges { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .badge { border:1px solid #2a3857; background:#111a2e; padding:6px 10px; border-radius:999px; font-size:12px; }
+    .badge strong { color:#c7d2fe; font-weight:600; }
+    .wrap { display:grid; grid-template-columns: 1fr; gap: 10px; max-width: 1200px; margin: 0 auto; }
+    @media (min-width: 980px){ .wrap { grid-template-columns: 1fr 1fr; } }
+    .card { border:1px solid #223150; background:#0f1930; border-radius:12px; padding:12px; }
+    .card h2 { margin:0 0 8px; font-size:14px; color:#cbd5e1; }
+    label { display:block; font-size:12px; color:#a7b3c7; margin:8px 0 4px; }
+    input, textarea, select, button {
+      width:100%; box-sizing:border-box; border-radius:10px;
+      border:1px solid #2a3857; background:#0b1326; color:#e5e7eb;
+      padding:10px; font-size:13px;
     }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-      background: #f5f1e6;
-    }
-    .app {
-      width: 100%;
-      max-width: 1180px;
-      background: #fffdf7;
-      border-radius: 16px;
-      padding: 16px 18px 22px;
-      border: 1px solid #e0d5c0;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-    }
-    .app-header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 14px;
-    }
-    .app-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #3b1f0a;
-    }
-    .app-subtitle {
-      font-size: 13px;
-      color: #6b5a43;
-    }
-    .app-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #7a6a4c;
-    }
-    .badge {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid #d5c3a3;
-      background: #faf3e2;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
-      gap: 10px;
-      margin-top: 8px;
-    }
-    @media (max-width: 960px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-    .card {
-      border-radius: 12px;
-      border: 1px solid #e1d4c1;
-      background: #fffaf0;
-      padding: 10px 12px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #3b2b13;
-    }
-    .card-sub {
-      font-size: 11px;
-      color: #8c7a5b;
-    }
-    .status-pill {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #f3ebe0;
-      border: 1px solid #ddccb2;
-    }
-    .field-group {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 4px 8px;
-      align-items: center;
-      margin-top: 2px;
-    }
-    .field-group.full {
-      grid-template-columns: 1fr;
-    }
-    .field-label {
-      font-size: 12px;
-      color: #4b3b22;
-    }
-    .field-label small {
-      color: #a0885e;
-      font-size: 11px;
-    }
-    .field-control input,
-    .field-control select,
-    .field-control textarea {
-      width: 100%;
-      font-size: 12px;
-      padding: 5px 7px;
-      border-radius: 6px;
-      border: 1px solid #d8c7aa;
-      background: #fffdf8;
-      color: #2b2113;
-    }
-    .field-control textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-    .field-control input:focus,
-    .field-control select:focus,
-    .field-control textarea:focus {
-      outline: 1px solid #c49c5b;
-      border-color: #c49c5b;
-      box-shadow: 0 0 0 1px rgba(196,156,91,0.1);
-    }
-    .hint {
-      font-size: 11px;
-      color: #9a8662;
-      margin-top: -2px;
-    }
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    button {
-      cursor: pointer;
-      border-radius: 999px;
-      border: 1px solid #d2b68a;
-      background: #f3e1ba;
-      font-size: 12px;
-      padding: 5px 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #3b2b13;
-      transition: background 0.12s ease, transform 0.05s ease;
-    }
-    button:hover {
-      background: #f0d192;
-      transform: translateY(-0.5px);
-    }
-    button.secondary {
-      background: #f6efe4;
-    }
-    button.secondary:hover {
-      background: #efe3d1;
-    }
-    button.danger {
-      background: #fbe4e2;
-      border-color: #f1b5ae;
-      color: #8a1f22;
-    }
-    button.danger:hover {
-      background: #f6cbc7;
-    }
-    .small {
-      font-size: 11px;
-    }
-    .stats-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 11px;
-      color: #7c6846;
-      margin-top: 4px;
-    }
-    .stats-item {
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: #faf1dd;
-      border: 1px solid #e0c9a0;
-    }
-    .preview-mode-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-    }
-    .preview-mode-btn {
-      padding: 3px 10px;
-      font-size: 11px;
-      border-radius: 999px;
-      border: 1px solid #d7c3a0;
-      background: #f7efe0;
-      cursor: pointer;
-    }
-    .preview-mode-btn.active {
-      background: #e0c58a;
-      color: #2d200f;
-      font-weight: 600;
-    }
-    .preview-box {
-      margin-top: 6px;
-      border-radius: 10px;
-      border: 1px solid #e0cfb3;
-      background: #fffdf9;
-      padding: 8px 9px;
-      max-height: 320px;
-      overflow: auto;
-      font-size: 12px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-    }
-    .preview-placeholder {
-      font-size: 12px;
-      color: #9b8a6c;
-    }
-    .followup-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 1.3fr;
-      gap: 6px 10px;
-      align-items: center;
-      margin-top: 4px;
-    }
-    @media (max-width: 768px) {
-      .followup-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .followup-summary {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #4b3b22;
-      padding: 6px 8px;
-      border-radius: 8px;
-      background: #faf3e2;
-      border: 1px dashed #dec69a;
-      white-space: pre-wrap;
-    }
-    .footer-note {
-      margin-top: 8px;
-      font-size: 11px;
-      color: #9a8662;
-      text-align: right;
-    }
+    textarea { min-height: 96px; resize: vertical; }
+    .row { display:grid; grid-template-columns: 1fr; gap:8px; }
+    @media (min-width: 980px){ .row2 { grid-template-columns: 1fr 1fr; } }
+    .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .btns button { width:auto; padding:10px 12px; cursor:pointer; }
+    .btn-primary { border-color:#4657ff; background:#1a2aa8; }
+    .btn-warn { border-color:#ff7a7a; background:#3a1220; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .small { font-size:12px; color:#a7b3c7; }
+    .split { display:grid; grid-template-columns: 1fr; gap:10px; }
+    @media (min-width: 980px){ .split { grid-template-columns: 1fr 1fr; } }
+    .out { white-space: pre-wrap; word-break: break-word; min-height: 220px; }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="app-header">
-      <div class="app-title">1번 도구 · 고객 자동화 안내서</div>
-      <div class="app-subtitle">
-        연구자·고객 정보를 입력하면, 인사·소개·맞춤 제안·후속 안내까지 한 번에 묶인 워드/메일용 안내서 초안과
-        후속 조치 체크리스트를 한 화면에서 관리합니다.
-      </div>
-      <div class="app-meta">
-        <span class="badge">Local-only · Safe DOM · v1.0</span>
-        <span class="badge">화면에 보이는 기능만 동작 · Static public/index.html</span>
-        <span class="badge">저장: localStorage · wic_tool1_state_v1</span>
-      </div>
-      <div class="stats-bar" id="stats-bar">
-        <span class="stats-item" id="stat-total">누적 안내서 생성: 0</span>
-        <span class="stats-item" id="stat-today">오늘 만든 안내서: 0</span>
-        <span class="stats-item" id="stat-last">마지막 생성 시각: -</span>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- 왼쪽: A + B -->
-      <div class="left">
-        <!-- A. 고객 기본 정보 -->
-        <section class="card" id="section-basic">
-          <div class="card-header">
-            <div>
-              <div class="card-title">A. 고객 기본 정보</div>
-              <div class="card-sub">엑셀 고객DB에서 옮겨 적는 필수 정보 (이름 또는 기관 중 1개 이상 필수)</div>
-            </div>
-            <div class="status-pill" id="basic-status">기본 정보 상태: 필수 항목 누락</div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerName">고객 이름<br><small>예: 홍길동</small></label>
-            <div class="field-control">
-              <input id="customerName" type="text" placeholder="홍길동" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerTitle">직함 / 직위<br><small>예: 박사 / 책임연구원</small></label>
-            <div class="field-control">
-              <input id="customerTitle" type="text" placeholder="박사 / 책임연구원" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerOrg">기관 / 회사<br><small>예: KIST / KITECH</small></label>
-            <div class="field-control">
-              <input id="customerOrg" type="text" placeholder="KIST / KITECH" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerDept">부서 / 연구실<br><small>예: 소재부품연구부</small></label>
-            <div class="field-control">
-              <input id="customerDept" type="text" placeholder="소재부품연구부" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerField">연구 / 관심 분야<br><small>예: 반도체 패키징 접착제</small></label>
-            <div class="field-control">
-              <input id="customerField" type="text" placeholder="반도체 패키징 접착제" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerBudget">예상 예산 / 연구비<br><small>예: 연 1,200만원</small></label>
-            <div class="field-control">
-              <input id="customerBudget" type="text" placeholder="연 1,200만원" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="customerEmail">이메일 (선택)<br><small>예: example@org.re.kr</small></label>
-            <div class="field-control">
-              <input id="customerEmail" type="email" placeholder="example@org.re.kr" />
-            </div>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label" for="customerShortMemo">내 메모 (짧게)<br><small>예: 기존 고객 / 예산 있음</small></label>
-            <div class="field-control">
-              <textarea id="customerShortMemo" placeholder="예: 기존 고객 / 예산 있음"></textarea>
-            </div>
-          </div>
-
-          <div class="hint">
-            · 이름·기관·연구분야는 인사말과 본문 요약, 후반부 정리 문장에 자동으로 반영됩니다.
-          </div>
-        </section>
-
-        <!-- B. 안내서 옵션 · 보고서 목록 -->
-        <section class="card" id="section-options" style="margin-top:8px;">
-          <div class="card-header">
-            <div>
-              <div class="card-title">B. 안내서 옵션 · 보고서 목록</div>
-              <div class="card-sub">상황에 따라 문체·구성·강조 포인트를 자동 조합합니다.</div>
-            </div>
-            <div class="status-pill" id="option-status">옵션 상태: 기본값 사용 중</div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="guideType">안내서 유형<br><small>신규 / 기존 / 재문의</small></label>
-            <div class="field-control">
-              <select id="guideType">
-                <option value="new">신규 문의 / 첫 안내</option>
-                <option value="existing">기존 고객 / 추가 안내</option>
-                <option value="re">재문의 / 업데이트 안내</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="tone">문체 / 톤<br><small>예: 연구자 대상 정중한 톤</small></label>
-            <div class="field-control">
-              <select id="tone">
-                <option value="polite">연구자용 정중한 톤 (기본)</option>
-                <option value="very_polite">매우 공손한 톤</option>
-                <option value="simple">간단·직관 톤</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="keywords">핵심 키워드 (콤마 구분)<br><small>예: 글라스 서브스트레이트, 접착제</small></label>
-            <div class="field-control">
-              <input id="keywords" type="text" placeholder="글라스 서브스트레이트, 접착제" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="channel">예상 사용 채널<br><small>메일 / 워드 / PDF</small></label>
-            <div class="field-control">
-              <select id="channel">
-                <option value="email">이메일 본문용</option>
-                <option value="word">워드 파일용</option>
-                <option value="pdf">PDF 안내용</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label" for="reportList">
-              보고서 / 자료 목록<br/>
-              <small>한 줄당 1개 · 제목만 적으면 자동 번호 매김</small>
-            </label>
-            <div class="field-control">
-              <textarea id="reportList" placeholder="Glass Substrate for Advanced Packaging 2025&#10;Semiconductor Packaging Adhesives: Global Market 2024&#10;고기능 접착제·실란트 세계시장 2023"></textarea>
-            </div>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label" for="detailMemo">
-              고객 상세 메모 (안내서 본문 반영)<br/>
-              <small>전화 내용, 예산, 원하는 포인트 등 자유 입력</small>
-            </label>
-            <div class="field-control">
-              <textarea id="detailMemo" placeholder="- 최근 패키징용 유리기판 관련 중장기 로드맵 수립 중&#10;- 국내·해외 업체 동향, 공정별 기술 포인트, 비용·투자 규모 데이터 필요&#10;- 기한: 다음 달 예산 집행 전까지"></textarea>
-            </div>
-          </div>
-
-          <div class="btn-row">
-            <button id="btn-generate">
-              ⚙️ 자동 안내서 초안 생성
-            </button>
-            <button id="btn-append-memo" class="secondary">
-              ➕ 메모를 안내서에 덧붙이기
-            </button>
-            <button id="btn-clear-inputs" class="secondary">
-              🧹 입력 내용 초기화
-            </button>
-          </div>
-          <div class="hint">
-            · 안내서 생성 후에도 옵션만 바꿔 다시 생성할 수 있습니다. (기본 정보는 유지 / 미리보기만 새로 생성)
-          </div>
-        </section>
-      </div>
-
-      <!-- 오른쪽: C + D -->
-      <div class="right">
-        <!-- C. 자동 안내서 미리보기 -->
-        <section class="card" id="section-preview">
-          <div class="card-header">
-            <div>
-              <div class="card-title">C. 자동 안내서 미리보기</div>
-              <div class="card-sub">
-                인사 · 소개 · 맞춤 제안 · 후속 안내까지 한 번에 붙여 넣을 수 있는 구조입니다.
-              </div>
-            </div>
-            <div class="status-pill" id="preview-status">안내서 상태: 아직 생성되지 않았습니다.</div>
-          </div>
-
-          <div class="preview-mode-row">
-            <button type="button" class="preview-mode-btn active" id="btn-mode-formatted">📄 안내서 형식</button>
-            <button type="button" class="preview-mode-btn" id="btn-mode-plain">📋 순수 텍스트</button>
-          </div>
-
-          <div class="btn-row">
-            <button type="button" id="btn-copy" class="secondary">
-              📎 클립보드 복사
-            </button>
-            <button type="button" id="btn-add-divider" class="secondary">
-              📝 워드 구분선 추가
-            </button>
-          </div>
-
-          
-          <div class="preview-box" id="preview-box">
-            <div class="preview-placeholder" id="preview-placeholder">
-              아직 자동 안내서가 없습니다. 왼쪽에서 고객 정보와 옵션을 입력한 뒤
-              「자동 안내서 초안 생성」 버튼을 눌러 주세요.
-            </div>
-            <pre id="preview-content" style="margin:0; white-space:pre-wrap; font:inherit;"></pre>
-          </div>
-
-          <div class="hint"><div class="hint">
-            · 이 안내서는 이 브라우저에만 저장되며, 새로고침 후에도 복원됩니다.
-          </div>
-        </section>
-
-        <!-- D. 후속 조치 · Follow-up 체크리스트 -->
-        <section class="card" id="section-followup" style="margin-top:8px;">
-          <div class="card-header">
-            <div>
-              <div class="card-title">D. 후속 조치 · Follow-up 체크리스트</div>
-              <div class="card-sub">전화 · 메일 · 견적 · 입찰 등 후속 행동을 한 화면에서 관리합니다.</div>
-            </div>
-            <div class="status-pill" id="followup-status">후속 조치 상태: 미저장</div>
-          </div>
-
-          <div class="followup-grid">
-            <div class="field-label">
-              전화 상담 예정<br><small>예: 오늘 또는 예정 날짜</small>
-            </div>
-            <div class="field-control">
-              <input id="fu-call" type="date" />
-            </div>
-
-            <div class="field-label">
-              안내 메일 발송 / 회신 대기<br><small>메일 보낸 날 혹은 회신 기한</small>
-            </div>
-            <div class="field-control">
-              <input id="fu-mail" type="date" />
-            </div>
-
-            <div class="field-label">
-              공식 견적서 / 인보이스 발송<br><small>견적 or 인보이스 보낸 날짜</small>
-            </div>
-            <div class="field-control">
-              <input id="fu-quote" type="date" />
-            </div>
-
-            <div class="field-label">
-              입찰 / 조달 등록 준비<br><small>입찰 마감 또는 등록 기한</small>
-            </div>
-            <div class="field-control">
-              <input id="fu-bid" type="date" />
-            </div>
-
-            <div class="field-label">
-              추가 메모 (후속 조치용)<br><small>예: 입찰 마감일 / 내부 결재 일정</small>
-            </div>
-            <div class="field-control">
-              <textarea id="fu-memo" placeholder="- KISTI 조달 등록 필요 여부 확인&#10;- 내부 결재라인: 팀장 → 본부장&#10;- 예산 집행 기한: 1월 말까지"></textarea>
-            </div>
-          </div>
-
-          <div class="followup-summary" id="followup-summary">
-            다음 할 일 요약: 아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.
-          </div>
-
-          <div class="btn-row">
-            <button type="button" id="btn-followup-save">
-              💾 후속 조치 상태 저장
-            </button>
-            <button type="button" id="btn-followup-recalc" class="secondary">
-              🔄 요약 다시 계산
-            </button>
-            <button type="button" id="btn-followup-reset" class="danger">
-              ♻️ 체크리스트 초기화
-            </button>
-          </div>
-        </section>
-
-        <div class="footer-note">
-          Local-only / Static · public/index.html · 고객 자동화 안내서 v1.0
-        </div>
+  <div class="top">
+    <div class="badges" aria-label="runtime badges">
+      <div class="badge"><strong>JS</strong>: <span id="b_js">BOOT</span></div>
+      <div class="badge"><strong>BUILD ID</strong>: <span id="b_build" class="mono"></span></div>
+      <div class="badge"><strong>STATE KEY</strong>: <span id="b_key" class="mono"></span></div>
+      <div class="badge"><strong>LAST ACTION</strong>: <span id="b_last" class="mono">—</span></div>
+      <div class="badge"><strong>AUTO SAVE</strong>: <span id="b_saved" class="mono">—</span></div>
+      <div style="margin-left:auto; display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btn_export" type="button">상태 내보내기(JSON)</button>
+        <button id="btn_wipe_key" class="btn-warn" type="button">localStorage 키 삭제</button>
       </div>
     </div>
   </div>
 
+  <div class="wrap">
+    <!-- A -->
+    <section class="card">
+      <h2>A · 입력</h2>
+      <div class="row row2">
+        <div>
+          <label>고객/기관</label>
+          <input id="a_customer" placeholder="예: KISTI / 홍길동" />
+        </div>
+        <div>
+          <label>주제/키워드</label>
+          <input id="a_topic" placeholder="예: 배터리, 반도체, 접착제" />
+        </div>
+      </div>
+
+      <div class="row row2">
+        <div>
+          <label>예산/금액(선택)</label>
+          <input id="a_budget" placeholder="예: 1,200만원 / 10,000,000원" />
+        </div>
+        <div>
+          <label>연락처(선택)</label>
+          <input id="a_contact" placeholder="예: email / 전화" />
+        </div>
+      </div>
+
+      <label>요청/상황(원문)</label>
+      <textarea id="a_context" placeholder="고객 문의 내용, 상황, 요구사항 등을 붙여 넣기"></textarea>
+
+      <div class="btns">
+        <button id="c_generate" type="button" class="btn-primary">C 생성 → 미리보기 채우기</button>
+        <button id="c_toggle_mode" type="button">C 모드 전환</button>
+        <button id="c_copy" type="button">C 복사</button>
+      </div>
+      <div class="small">미리보기는 <span class="mono">textContent</span>로만 갱신합니다.</div>
+    </section>
+
+    <!-- C -->
+    <section class="card">
+      <h2>C · 안내서 미리보기</h2>
+      <label>모드</label>
+      <select id="c_mode">
+        <option value="short">짧게(요약형)</option>
+        <option value="full">길게(상세형)</option>
+      </select>
+      <label>미리보기 출력</label>
+      <div id="c_preview" class="out mono" role="status" aria-live="polite">아직 생성되지 않았습니다.</div>
+      <div class="small">복사 버튼으로 전체 텍스트를 클립보드에 복사합니다.</div>
+    </section>
+
+    <!-- B -->
+    <section class="card">
+      <h2>B · 붙여넣기 기반 추출 (fetch 금지)</h2>
+      <label>복사한 텍스트/HTML 붙여넣기</label>
+      <textarea id="b_paste" placeholder="외부 사이트/메일/문서에서 복사한 텍스트를 붙여넣기"></textarea>
+      <div class="btns">
+        <button id="b_extract" type="button" class="btn-primary">추출 → B 메모 삽입</button>
+        <button id="b_clear_paste" type="button">붙여넣기 지우기</button>
+      </div>
+      <label>B 메모(추출 결과/보관)</label>
+      <textarea id="b_memo" placeholder="추출된 이메일/전화/금액/예산/키워드 문장들이 여기에 추가됩니다."></textarea>
+      <div class="small">추출: 이메일/전화/금액/예산 관련 문장 + 키워드 라인(기본 규칙).</div>
+    </section>
+
+    <!-- D -->
+    <section class="card">
+      <h2>D · 후속조치(저장/불러오기/요약/초기화)</h2>
+
+      <div class="row row2">
+        <div>
+          <label>후속조치 ID</label>
+          <input id="d_id" placeholder="예: 2025-12-12_KISTI_홍길동" />
+        </div>
+        <div>
+          <label>상태</label>
+          <select id="d_status">
+            <option value="todo">TODO</option>
+            <option value="doing">DOING</option>
+            <option value="waiting">WAITING</option>
+            <option value="done">DONE</option>
+          </select>
+        </div>
+      </div>
+
+      <label>후속조치 내용</label>
+      <textarea id="d_note" placeholder="예: 견적 발송 / 발행사 확인 / 2차 전화"></textarea>
+
+      <div class="row row2">
+        <div>
+          <label>다음 연락일(선택)</label>
+          <input id="d_next" placeholder="예: 2025-12-15" />
+        </div>
+        <div>
+          <label>태그(쉼표)</label>
+          <input id="d_tags" placeholder="예: 예산,긴급,반도체" />
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="d_save" type="button" class="btn-primary">D 저장</button>
+        <button id="d_load" type="button">D 불러오기</button>
+        <button id="d_summary" type="button">D 요약</button>
+        <button id="d_reset" type="button" class="btn-warn">D 초기화</button>
+      </div>
+
+      <label>D 요약 출력</label>
+      <div id="d_out" class="out mono" role="status" aria-live="polite">—</div>
+      <div class="small">저장/불러오기/새로고침 후 유지(localStorage) 동작이 핵심입니다.</div>
+    </section>
+  </div>
+
   <script>
-    (function() {
-      const STORAGE_KEY = "wic_tool1_state_v1";
+    (function(){
+      "use strict";
 
-      // ===== 유틸 =====
-      function todayStr() {
+      // ======= BUILD/STATE =======
+      const BUILD_ID = "WIC-TOOL01-" + new Date().toISOString().replace(/[-:]/g,"").slice(0,15);
+      const STATE_KEY = "wic_tool_01_state_v2";
+
+      // ======= DOM =======
+      const $ = (id)=>document.getElementById(id);
+
+      const b_js = $("b_js");
+      const b_build = $("b_build");
+      const b_key = $("b_key");
+      const b_last = $("b_last");
+      const b_saved = $("b_saved");
+
+      const a_customer = $("a_customer");
+      const a_topic = $("a_topic");
+      const a_budget = $("a_budget");
+      const a_contact = $("a_contact");
+      const a_context = $("a_context");
+
+      const c_mode = $("c_mode");
+      const c_preview = $("c_preview");
+
+      const b_paste = $("b_paste");
+      const b_memo = $("b_memo");
+
+      const d_id = $("d_id");
+      const d_status = $("d_status");
+      const d_note = $("d_note");
+      const d_next = $("d_next");
+      const d_tags = $("d_tags");
+      const d_out = $("d_out");
+
+      // ======= helpers =======
+      function nowKST(){
+        // Asia/Seoul fixed offset +09:00 for display
         const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${y}-${m}-${day}`;
+        const tz = 9 * 60;
+        const local = new Date(d.getTime() + (tz + d.getTimezoneOffset())*60000);
+        return local.toISOString().replace("T"," ").slice(0,19) + " KST";
       }
 
-      function formatDateTime(dt) {
-        if (!dt) return "-";
-        const d = new Date(dt);
-        if (isNaN(d.getTime())) return "-";
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const hh = String(d.getHours()).padStart(2, "0");
-        const mm = String(d.getMinutes()).padStart(2, "0");
-        return `${y}-${m}-${day} ${hh}:${mm}`;
+      function setLast(action){
+        b_last.textContent = action;
       }
 
-      function saveState(state) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (_e) {
-          // localStorage 실패는 조용히 무시
-        }
+      function markSaved(){
+        b_saved.textContent = nowKST();
       }
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return null;
+      function safeText(v){ return (v ?? "").toString(); }
+
+      function loadState(){
+        try{
+          const raw = localStorage.getItem(STATE_KEY);
+          if(!raw) return null;
           return JSON.parse(raw);
-        } catch (_e) {
+        }catch(e){
           return null;
         }
       }
 
-      function getInitialState() {
+      function saveState(state){
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        markSaved();
+      }
+
+      function getStateFromUI(){
         return {
-          version: "1.0",
-          lastUpdated: null,
-          totalCount: 0,
-          todayDate: todayStr(),
-          todayCount: 0,
-          lastGeneratedAt: null,
-          basic: {
-            customerName: "",
-            customerTitle: "",
-            customerOrg: "",
-            customerDept: "",
-            customerField: "",
-            customerBudget: "",
-            customerEmail: "",
-            customerShortMemo: ""
+          meta: {
+            build_id: BUILD_ID,
+            state_key: STATE_KEY,
+            last_saved: nowKST()
           },
-          options: {
-            guideType: "new",
-            tone: "polite",
-            keywords: "",
-            channel: "email",
-            reportList: "",
-            detailMemo: ""
+          A: {
+            customer: safeText(a_customer.value).trim(),
+            topic: safeText(a_topic.value).trim(),
+            budget: safeText(a_budget.value).trim(),
+            contact: safeText(a_contact.value).trim(),
+            context: safeText(a_context.value)
           },
-          preview: {
-            text: "",
-            mode: "formatted"
+          B: {
+            memo: safeText(b_memo.value),
+            last_paste: safeText(b_paste.value)
           },
-          followup: {
-            call: "",
-            mail: "",
-            quote: "",
-            bid: "",
-            memo: "",
-            summary: ""
+          C: {
+            mode: safeText(c_mode.value),
+            preview: safeText(c_preview.textContent)
+          },
+          D: {
+            id: safeText(d_id.value).trim(),
+            status: safeText(d_status.value),
+            note: safeText(d_note.value),
+            next: safeText(d_next.value).trim(),
+            tags: safeText(d_tags.value).trim(),
+            out: safeText(d_out.textContent)
           }
         };
       }
 
-      // ===== DOM 참조 =====
-      const el = {
-        // stats
-        statTotal: document.getElementById("stat-total"),
-        statToday: document.getElementById("stat-today"),
-        statLast: document.getElementById("stat-last"),
+      function applyStateToUI(state){
+        if(!state) return;
 
-        // status
-        basicStatus: document.getElementById("basic-status"),
-        optionStatus: document.getElementById("option-status"),
-        previewStatus: document.getElementById("preview-status"),
-        followupStatus: document.getElementById("followup-status"),
+        // A
+        a_customer.value = state?.A?.customer ?? "";
+        a_topic.value = state?.A?.topic ?? "";
+        a_budget.value = state?.A?.budget ?? "";
+        a_contact.value = state?.A?.contact ?? "";
+        a_context.value = state?.A?.context ?? "";
 
-        // basic
-        customerName: document.getElementById("customerName"),
-        customerTitle: document.getElementById("customerTitle"),
-        customerOrg: document.getElementById("customerOrg"),
-        customerDept: document.getElementById("customerDept"),
-        customerField: document.getElementById("customerField"),
-        customerBudget: document.getElementById("customerBudget"),
-        customerEmail: document.getElementById("customerEmail"),
-        customerShortMemo: document.getElementById("customerShortMemo"),
+        // B
+        b_memo.value = state?.B?.memo ?? "";
+        b_paste.value = state?.B?.last_paste ?? "";
 
-        // options
-        guideType: document.getElementById("guideType"),
-        tone: document.getElementById("tone"),
-        keywords: document.getElementById("keywords"),
-        channel: document.getElementById("channel"),
-        reportList: document.getElementById("reportList"),
-        detailMemo: document.getElementById("detailMemo"),
+        // C
+        c_mode.value = state?.C?.mode ?? "short";
+        const prev = state?.C?.preview ?? "아직 생성되지 않았습니다.";
+        c_preview.textContent = prev || "아직 생성되지 않았습니다.";
 
-        // buttons
-        btnGenerate: document.getElementById("btn-generate"),
-        btnAppendMemo: document.getElementById("btn-append-memo"),
-        btnClearInputs: document.getElementById("btn-clear-inputs"),
-        btnModeFormatted: document.getElementById("btn-mode-formatted"),
-        btnModePlain: document.getElementById("btn-mode-plain"),
-        btnCopy: document.getElementById("btn-copy"),
-        btnAddDivider: document.getElementById("btn-add-divider"),
+        // D
+        d_id.value = state?.D?.id ?? "";
+        d_status.value = state?.D?.status ?? "todo";
+        d_note.value = state?.D?.note ?? "";
+        d_next.value = state?.D?.next ?? "";
+        d_tags.value = state?.D?.tags ?? "";
+        d_out.textContent = state?.D?.out ?? "—";
 
-        // preview
-        previewBox: document.getElementById("preview-box"),
-        previewPlaceholder: document.getElementById("preview-placeholder"),
-        previewContent: document.getElementById("preview-content"),
-
-        // followup
-        fuCall: document.getElementById("fu-call"),
-        fuMail: document.getElementById("fu-mail"),
-        fuQuote: document.getElementById("fu-quote"),
-        fuBid: document.getElementById("fu-bid"),
-        fuMemo: document.getElementById("fu-memo"),
-        fuSummary: document.getElementById("followup-summary"),
-        btnFollowupSave: document.getElementById("btn-followup-save"),
-        btnFollowupRecalc: document.getElementById("btn-followup-recalc"),
-        btnFollowupReset: document.getElementById("btn-followup-reset"),
-
-        // csv db
-        dbFile: document.getElementById("dbFile"),
-        dbRow: document.getElementById("dbRow"),
-        btnApplyRow: document.getElementById("btn-apply-row")
-      };
-
-      // ===== 상태 =====
-      let state = getInitialState();
-
-      // ===== 상태 → 화면 반영 =====
-      function renderStats() {
-        el.statTotal.textContent = `누적 안내서 생성: ${state.totalCount}`;
-        el.statToday.textContent = `오늘 만든 안내서: ${state.todayCount}`;
-        el.statLast.textContent = `마지막 생성 시각: ${formatDateTime(state.lastGeneratedAt)}`;
+        b_saved.textContent = state?.meta?.last_saved ?? "—";
       }
 
-      function renderBasic() {
-        const b = state.basic;
-        el.customerName.value = b.customerName || "";
-        el.customerTitle.value = b.customerTitle || "";
-        el.customerOrg.value = b.customerOrg || "";
-        el.customerDept.value = b.customerDept || "";
-        el.customerField.value = b.customerField || "";
-        el.customerBudget.value = b.customerBudget || "";
-        el.customerEmail.value = b.customerEmail || "";
-        el.customerShortMemo.value = b.customerShortMemo || "";
-
-        const hasNameOrOrg = !!(b.customerName || b.customerOrg);
-        el.basicStatus.textContent = hasNameOrOrg
-          ? "기본 정보 상태: 준비 완료"
-          : "기본 정보 상태: 필수 항목 누락";
+      function autoSave(action){
+        const st = getStateFromUI();
+        saveState(st);
+        setLast(action + " (AUTO-SAVED)");
       }
 
-      function renderOptions() {
-        const o = state.options;
-        el.guideType.value = o.guideType || "new";
-        el.tone.value = o.tone || "polite";
-        el.keywords.value = o.keywords || "";
-        el.channel.value = o.channel || "email";
-        el.reportList.value = o.reportList || "";
-        el.detailMemo.value = o.detailMemo || "";
-        el.optionStatus.textContent = "옵션 상태: 설정 반영됨";
+      function normalizeLines(text){
+        return safeText(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n");
       }
 
-      
-      function renderPreview() {
-        const p = state.preview;
-        const hasText = !!p.text && p.text.trim().length > 0;
+      // ======= C: generator =======
+      function buildGuide(mode){
+        const cust = safeText(a_customer.value).trim() || "고객";
+        const topic = safeText(a_topic.value).trim() || "주제 미기입";
+        const budget = safeText(a_budget.value).trim();
+        const contact = safeText(a_contact.value).trim();
+        const ctx = normalizeLines(a_context.value).trim();
 
-        if (!hasText) {
-          el.previewPlaceholder.style.display = "block";
-          el.previewContent.textContent = "";
-          el.previewStatus.textContent = "안내서 상태: 아직 생성되지 않았습니다.";
-        } else {
-          el.previewPlaceholder.style.display = "none";
-          // formatted/plain은 일단 동일 텍스트로 표시 (워드 붙여넣기용)
-          el.previewContent.textContent = p.text;
-          el.previewStatus.textContent = "안내서 상태: 생성 완료 (복사·편집 가능)";
-        }
+        const memo = normalizeLines(b_memo.value).trim();
 
-        if (p.mode === "formatted") {
-          el.btnModeFormatted.classList.add("active");
-          el.btnModePlain.classList.remove("active");
-        } else {
-          el.btnModePlain.classList.add("active");
-          el.btnModeFormatted.classList.remove("active");
-        }
-      } else {
-          el.previewPlaceholder.style.display = "none";
-          if (p.mode === "formatted") {
-            el.previewBox.textContent = p.text;
-          } else {
-            el.previewBox.textContent = p.text;
+        const head = [
+          `안내서 · ${cust}`,
+          `주제: ${topic}`,
+          budget ? `예산: ${budget}` : null,
+          contact ? `연락: ${contact}` : null,
+          `작성: ${nowKST()}`
+        ].filter(Boolean).join("\n");
+
+        const baseShort = [
+          head,
+          "",
+          "1) 요약",
+          `- 요청 핵심: ${topic}`,
+          ctx ? `- 원문 요약: ${ctx.split("\n").slice(0,2).join(" / ").slice(0,180)}${ctx.length>180?"…":""}` : "- 원문 요약: (없음)",
+          memo ? `- 참고 메모: ${memo.split("\n").slice(0,2).join(" / ").slice(0,180)}${memo.length>180?"…":""}` : "- 참고 메모: (없음)",
+          "",
+          "2) 다음 액션(추천)",
+          "- (1) 보고서 후보 3개 선정 → 제목/발행사 확인",
+          "- (2) 견적/납기/라이선스 핵심 문장 3줄로 정리",
+          "- (3) 고객에게 1차 안내 메일 발송(요약+옵션)",
+          "",
+          "3) 고객에게 보낼 한 줄",
+          `- “${cust}님, ${topic} 관련 후보 자료를 3개로 추려 핵심만 요약해 안내드리겠습니다.”`
+        ].join("\n");
+
+        const baseFull = [
+          head,
+          "",
+          "1) 고객 상황 정리",
+          `- 고객/기관: ${cust}`,
+          `- 관심 주제: ${topic}`,
+          budget ? `- 예산: ${budget}` : "- 예산: (미기입)",
+          contact ? `- 연락: ${contact}` : "- 연락: (미기입)",
+          "",
+          "2) 원문(발췌) / 참고",
+          ctx ? ctx : "(원문 없음)",
+          "",
+          "3) 내부 메모(추출/정리)",
+          memo ? memo : "(메모 없음)",
+          "",
+          "4) 안내 구성(메일/전화용)",
+          "- 핵심 포인트 3개",
+          "  ① 목적/배경  ② 필요한 범위(기간/지역/산업)  ③ 예산/납기",
+          "- 옵션 제시 2개",
+          "  ① 빠른 요약본(저가/단기)  ② 상세 보고서(정가/정식)",
+          "",
+          "5) 다음 액션 체크리스트",
+          "- 자료 후보 3개 → 비교표(가격/형태/PDF/엑셀/라이선스)",
+          "- 발행사 조건(인쇄/공유/네트워크) 문구 확인",
+          "- 견적서 초안 생성 → 고객 확인 질문 3개",
+          "",
+          "6) 고객 확인 질문 3개",
+          "1) 사용 인원(1인/팀)과 사용 장소(내부/외부 공유) 범위는?",
+          "2) 필요한 기간(최근 3년/5년/10년)과 지역 범위는?",
+          "3) 예산 상한선과 납기(오늘/이번 주/다음 주)는?"
+        ].join("\n");
+
+        return mode === "full" ? baseFull : baseShort;
+      }
+
+      // ======= B: paste-based extraction =======
+      function extractSignals(text){
+        const t = normalizeLines(text);
+        const lines = t.split("\n").map(s=>s.trim()).filter(Boolean);
+
+        const emailRe = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig;
+        const phoneRe = /(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?)\d{3,4}[-.\s]?\d{4}/g;
+        const moneyRe = /(?:₩|KRW|USD|EUR|JPY|\$|€|¥)\s?\d[\d,]*(?:\.\d+)?|(?:\d[\d,]*(?:\.\d+)?\s?(?:원|만원|억|달러|USD|EUR|엔|JPY))/g;
+
+        const keywords = [];
+        const hits = [];
+
+        for(const ln of lines){
+          const emails = ln.match(emailRe);
+          const phones = ln.match(phoneRe);
+          const moneys = ln.match(moneyRe);
+
+          const hasBudgetWord = /예산|budget|견적|가격|금액|비용|단가|invoice|quotation/i.test(ln);
+          const hasKeywordWord = /키워드|keyword|주제|topic|산업|시장|보고서/i.test(ln);
+
+          if(emails || phones || moneys || hasBudgetWord){
+            hits.push(ln);
           }
-          el.previewStatus.textContent = "안내서 상태: 생성 완료 (복사·편집 가능)";
-        }
-
-        if (p.mode === "formatted") {
-          el.btnModeFormatted.classList.add("active");
-          el.btnModePlain.classList.remove("active");
-        } else {
-          el.btnModePlain.classList.add("active");
-          el.btnModeFormatted.classList.remove("active");
-        }
-      }
-
-      function renderFollowup() {
-        const f = state.followup;
-        el.fuCall.value = f.call || "";
-        el.fuMail.value = f.mail || "";
-        el.fuQuote.value = f.quote || "";
-        el.fuBid.value = f.bid || "";
-        el.fuMemo.value = f.memo || "";
-        if (f.summary && f.summary.trim().length > 0) {
-          el.fuSummary.textContent = f.summary;
-        } else {
-          el.fuSummary.textContent =
-            "다음 할 일 요약: 아직 요약이 없습니다. 날짜를 채운 뒤 「요약 다시 계산」을 눌러 주세요.";
-        }
-      }
-
-      function renderFollowupStatus(saved) {
-        el.followupStatus.textContent = saved
-          ? "후속 조치 상태: 저장됨"
-          : "후속 조치 상태: 미저장";
-      }
-
-      function renderAll() {
-        renderStats();
-        renderBasic();
-        renderOptions();
-        renderPreview();
-        renderFollowup();
-      }
-
-      // ===== 화면 → 상태 반영 =====
-      function readBasicFromDOM() {
-        state.basic.customerName = el.customerName.value.trim();
-        state.basic.customerTitle = el.customerTitle.value.trim();
-        state.basic.customerOrg = el.customerOrg.value.trim();
-        state.basic.customerDept = el.customerDept.value.trim();
-        state.basic.customerField = el.customerField.value.trim();
-        state.basic.customerBudget = el.customerBudget.value.trim();
-        state.basic.customerEmail = el.customerEmail.value.trim();
-        state.basic.customerShortMemo = el.customerShortMemo.value.trim();
-      }
-
-      function readOptionsFromDOM() {
-        state.options.guideType = el.guideType.value;
-        state.options.tone = el.tone.value;
-        state.options.keywords = el.keywords.value.trim();
-        state.options.channel = el.channel.value;
-        state.options.reportList = el.reportList.value.trim();
-        state.options.detailMemo = el.detailMemo.value.trim();
-      }
-
-      function readFollowupFromDOM() {
-        state.followup.call = el.fuCall.value;
-        state.followup.mail = el.fuMail.value;
-        state.followup.quote = el.fuQuote.value;
-        state.followup.bid = el.fuBid.value;
-        state.followup.memo = el.fuMemo.value.trim();
-      }
-
-      
-      // ===== CSV 고객DB (간단) =====
-      function parseCSV(text) {
-        // 아주 단순 CSV (따옴표/쉼표 복잡 케이스는 최소 처리)
-        const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim().length);
-        if (lines.length < 2) return { headers: [], rows: [] };
-        const splitLine = (line) => {
-          const out = [];
-          let cur = "";
-          let inQ = false;
-          for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
-            if (ch === '"') {
-              if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-              else { inQ = !inQ; }
-            } else if (ch === "," && !inQ) {
-              out.push(cur.trim());
-              cur = "";
-            } else {
-              cur += ch;
-            }
-          }
-          out.push(cur.trim());
-          return out;
-        };
-        const headers = splitLine(lines[0]).map(h => h.replace(/^"|"$/g, "").trim());
-        const rows = lines.slice(1).map(l => splitLine(l).map(v => v.replace(/^"|"$/g, "").trim()));
-        return { headers, rows };
-      }
-
-      function guessCol(headers, keys) {
-        const lower = headers.map(h => (h || "").toLowerCase());
-        for (let k of keys) {
-          const kk = k.toLowerCase();
-          const idx = lower.findIndex(h => h.includes(kk));
-          if (idx >= 0) return idx;
-        }
-        return -1;
-      }
-
-      let csvCache = { headers: [], rows: [] };
-
-      function wireCSVImport() {
-        if (!el.dbFile || !el.dbRow || !el.btnApplyRow) return;
-
-        el.dbFile.addEventListener("change", async function() {
-          const file = el.dbFile.files && el.dbFile.files[0];
-          if (!file) return;
-          const text = await file.text();
-          csvCache = parseCSV(text);
-
-          // 옵션 채우기 (최대 200행)
-          el.dbRow.innerHTML = '<option value="">행 선택</option>';
-          const nameIdx = guessCol(csvCache.headers, ["이름", "성명", "name"]);
-          const orgIdx  = guessCol(csvCache.headers, ["기관", "회사", "소속", "organization", "org"]);
-          const deptIdx = guessCol(csvCache.headers, ["부서", "연구실", "department", "dept"]);
-
-          const max = Math.min(csvCache.rows.length, 200);
-          for (let i = 0; i < max; i++) {
-            const r = csvCache.rows[i] || [];
-            const name = nameIdx >= 0 ? (r[nameIdx] || "") : "";
-            const org  = orgIdx  >= 0 ? (r[orgIdx]  || "") : "";
-            const dept = deptIdx >= 0 ? (r[deptIdx] || "") : "";
-            const label = [org, dept, name].filter(Boolean).join(" · ") || `Row ${i+1}`;
-            const opt = document.createElement("option");
-            opt.value = String(i);
-            opt.textContent = label;
-            el.dbRow.appendChild(opt);
-          }
-        });
-
-        el.btnApplyRow.addEventListener("click", function() {
-          const idx = parseInt(el.dbRow.value, 10);
-          if (isNaN(idx) || !csvCache.rows[idx]) return;
-
-          const headers = csvCache.headers;
-          const row = csvCache.rows[idx];
-
-          const iName   = guessCol(headers, ["이름", "성명", "name"]);
-          const iTitle  = guessCol(headers, ["직함", "직위", "title", "position"]);
-          const iOrg    = guessCol(headers, ["기관", "회사", "소속", "organization", "org"]);
-          const iDept   = guessCol(headers, ["부서", "연구실", "department", "dept"]);
-          const iField  = guessCol(headers, ["분야", "키워드", "관심", "field", "keyword"]);
-          const iBudget = guessCol(headers, ["예산", "연구비", "budget"]);
-          const iEmail  = guessCol(headers, ["이메일", "email"]);
-          const iMemo   = guessCol(headers, ["메모", "비고", "memo", "note"]);
-
-          state.basic.customerName = iName>=0 ? (row[iName]||"") : state.basic.customerName;
-          state.basic.customerTitle = iTitle>=0 ? (row[iTitle]||"") : state.basic.customerTitle;
-          state.basic.customerOrg = iOrg>=0 ? (row[iOrg]||"") : state.basic.customerOrg;
-          state.basic.customerDept = iDept>=0 ? (row[iDept]||"") : state.basic.customerDept;
-          state.basic.customerField = iField>=0 ? (row[iField]||"") : state.basic.customerField;
-          state.basic.customerBudget = iBudget>=0 ? (row[iBudget]||"") : state.basic.customerBudget;
-          state.basic.customerEmail = iEmail>=0 ? (row[iEmail]||"") : state.basic.customerEmail;
-          state.basic.customerShortMemo = iMemo>=0 ? (row[iMemo]||"") : state.basic.customerShortMemo;
-
-          state.lastUpdated = new Date().toISOString();
-          renderBasic();
-          saveState(state);
-        });
-      }
-
-      // ===== 자동 저장(입력 변경 시) =====
-      function wireAutoSave() {
-        const basicInputs = [el.customerName, el.customerTitle, el.customerOrg, el.customerDept, el.customerField, el.customerBudget, el.customerEmail, el.customerShortMemo];
-        const optionInputs = [el.guideType, el.tone, el.keywords, el.channel, el.reportList, el.detailMemo];
-        const followInputs = [el.fuCall, el.fuMail, el.fuQuote, el.fuBid, el.fuMemo];
-
-        function onBasic() { readBasicFromDOM(); renderBasic(); state.lastUpdated = new Date().toISOString(); saveState(state); }
-        function onOpt()   { readOptionsFromDOM(); renderOptions(); state.lastUpdated = new Date().toISOString(); saveState(state); }
-        function onFollow(){ readFollowupFromDOM(); state.lastUpdated = new Date().toISOString(); saveState(state); renderFollowupStatus(false); }
-
-        basicInputs.forEach(x => x && x.addEventListener("input", onBasic));
-        optionInputs.forEach(x => x && x.addEventListener("input", onOpt));
-        optionInputs.forEach(x => x && x.addEventListener("change", onOpt));
-        followInputs.forEach(x => x && x.addEventListener("input", onFollow));
-        followInputs.forEach(x => x && x.addEventListener("change", onFollow));
-      }
-
-
-      // ===== 안내서 텍스트 생성 =====
-      function buildGuideText() {
-        const b = state.basic;
-        const o = state.options;
-
-        const nameOrOrg = b.customerName || b.customerOrg;
-        if (!nameOrOrg) {
-          return "";
-        }
-
-        const lines = [];
-        const titleLine = (b.customerOrg || "") + (b.customerDept ? " " + b.customerDept : "");
-        const nameLine =
-          (b.customerName || "") +
-          (b.customerTitle ? " " + b.customerTitle : "");
-
-        if (titleLine.trim()) lines.push(titleLine.trim());
-        if (nameLine.trim()) lines.push(nameLine.trim());
-        lines.push("");
-
-        // 인사말
-        let greet = "";
-        if (o.tone === "very_polite") {
-          greet = `${nameOrOrg} 귀하께,\n항상 귀중한 연구와 업무에 깊은 존경의 마음을 전합니다.`;
-        } else if (o.tone === "simple") {
-          greet = `${nameOrOrg}께,\n문의 주셔서 감사합니다.`;
-        } else {
-          greet = `${nameOrOrg} 귀하께,\n항상 소중한 연구와 협력에 감사드리며, 아래와 같이 관련 자료를 안내드립니다.`;
-        }
-        lines.push(greet);
-        lines.push("");
-
-        // 상황 설명
-        if (o.guideType === "new") {
-          lines.push(
-            "이번 안내서는 신규 문의를 기준으로, 현재 연구 방향과 예산 범위에 맞추어 선별한 보고서와 자료를 정리한 것입니다."
-          );
-        } else if (o.guideType === "existing") {
-          lines.push(
-            "이번 안내서는 기존에 안내드린 내용에 최근 업데이트된 자료와 추가 요청 사항을 반영하여 정리한 것입니다."
-          );
-        } else {
-          lines.push(
-            "이번 안내서는 이전 문의 이후 추가로 요청 주신 내용과 최신 동향을 반영하여 보완·정리한 자료입니다."
-          );
-        }
-
-        // 연구 분야 / 예산 / 키워드
-        const researchParts = [];
-        if (b.customerField) {
-          researchParts.push(`연구·관심 분야: ${b.customerField}`);
-        }
-        if (b.customerBudget) {
-          researchParts.push(`예상 예산/연구비: ${b.customerBudget}`);
-        }
-        if (o.keywords) {
-          researchParts.push(`핵심 키워드: ${o.keywords}`);
-        }
-        if (researchParts.length > 0) {
-          lines.push("");
-          lines.push(researchParts.join(" · "));
-        }
-
-        // 상세 메모
-        if (o.detailMemo) {
-          lines.push("");
-          lines.push("요청·상담 메모:");
-          lines.push(o.detailMemo);
-        }
-
-        // 보고서 목록
-        const reportLines = (o.reportList || "")
-          .split(/\r?\n/)
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
-
-        if (reportLines.length > 0) {
-          lines.push("");
-          lines.push("Ⅰ. 제안 드리는 주요 보고서 / 자료 목록");
-          reportLines.forEach((r, idx) => {
-            lines.push(`${idx + 1}. ${r}`);
-          });
-        }
-
-        // 채널 설명
-        lines.push("");
-        if (o.channel === "email") {
-          lines.push(
-            "위 내용은 이메일 본문과 첨부 파일 안내용으로 바로 활용하실 수 있도록 구성되어 있습니다."
-          );
-        } else if (o.channel === "word") {
-          lines.push(
-            "위 내용은 워드 파일(잠금 템플릿)에 그대로 붙여 사용하실 수 있도록 단락별로 정리되어 있습니다."
-          );
-        } else {
-          lines.push(
-            "위 내용은 PDF 안내서 및 요약자료로 변환해 사용하시기 쉽도록 문단 구조를 단순화하여 구성하였습니다."
-          );
-        }
-
-        // 마무리 안내
-        lines.push("");
-        lines.push(
-          "추가로 필요하신 세부 데이터나 다른 주제의 보고서가 있으시면 언제든지 회신 주시면 감사하겠습니다."
-        );
-        if (b.customerEmail) {
-          lines.push(`회신은 본 메일 또는 ${b.customerEmail} 로 주셔도 됩니다.`);
-        }
-        lines.push("");
-        lines.push("감사합니다.");
-        lines.push("월드산업정보센터 드림");
-
-        // 짧은 메모
-        if (b.customerShortMemo) {
-          lines.push("");
-          lines.push("[내부 메모]");
-          lines.push(b.customerShortMemo);
-        }
-
-        return lines.join("\n");
-      }
-
-      // ===== Follow-up 요약 생성 =====
-      function buildFollowupSummary() {
-        const f = state.followup;
-        const lines = [];
-        lines.push("다음 할 일 요약:");
-
-        function line(label, value) {
-          if (value) {
-            lines.push(`- ${label}: ${value}`);
-          } else {
-            lines.push(`- ${label}: (미정)`);
+          if(hasKeywordWord){
+            keywords.push(ln);
           }
         }
 
-        line("전화 상담 예정", f.call);
-        line("안내 메일 발송 / 회신 대기", f.mail);
-        line("공식 견적서 / 인보이스 발송", f.quote);
-        line("입찰 / 조달 등록 준비", f.bid);
+        // fallback: collect unique emails/phones/moneys from entire text
+        const allEmails = Array.from(new Set((t.match(emailRe) || []).map(s=>s.toLowerCase())));
+        const allPhones = Array.from(new Set((t.match(phoneRe) || []).map(s=>s)));
+        const allMoneys = Array.from(new Set((t.match(moneyRe) || []).map(s=>s)));
 
-        if (f.memo) {
-          lines.push("");
-          lines.push("[추가 메모]");
-          lines.push(f.memo);
+        const pack = [];
+        pack.push(`[추출 ${nowKST()}]`);
+        if(allEmails.length) pack.push(`- 이메일: ${allEmails.join(", ")}`);
+        if(allPhones.length) pack.push(`- 전화: ${allPhones.join(", ")}`);
+        if(allMoneys.length) pack.push(`- 금액: ${allMoneys.join(", ")}`);
+
+        if(hits.length){
+          pack.push("- 예산/금액/연락 관련 문장:");
+          for(const h of hits.slice(0,12)) pack.push("  · " + h);
+          if(hits.length>12) pack.push(`  · (외 ${hits.length-12}줄)`);
+        }
+        if(keywords.length){
+          pack.push("- 키워드/주제 관련 문장:");
+          for(const k of keywords.slice(0,8)) pack.push("  · " + k);
+          if(keywords.length>8) pack.push(`  · (외 ${keywords.length-8}줄)`);
         }
 
-        return lines.join("\n");
+        if(pack.length===1) pack.push("- (추출 결과 없음)");
+        return pack.join("\n");
       }
 
-      // ===== 이벤트 핸들러 =====
-      el.btnGenerate.addEventListener("click", function() {
-        readBasicFromDOM();
-        readOptionsFromDOM();
+      // ======= D: follow-up store (within STATE_KEY) =======
+      function dSummary(){
+        const id = safeText(d_id.value).trim() || "(ID 없음)";
+        const st = safeText(d_status.value);
+        const next = safeText(d_next.value).trim() || "(미정)";
+        const tags = safeText(d_tags.value).trim() || "(없음)";
+        const note = normalizeLines(d_note.value).trim() || "(내용 없음)";
 
-        const hasNameOrOrg = !!(state.basic.customerName || state.basic.customerOrg);
-        if (!hasNameOrOrg) {
-          el.basicStatus.textContent = "기본 정보 상태: 필수 항목 누락 (이름 또는 기관 1개 이상 필요)";
-          return;
+        const cSnap = safeText(c_preview.textContent).slice(0,220);
+        const aSnap = `${safeText(a_customer.value).trim() || "고객"} / ${safeText(a_topic.value).trim() || "주제"}`;
+
+        return [
+          `D 요약 · ${nowKST()}`,
+          `- ID: ${id}`,
+          `- 상태: ${st}`,
+          `- 다음 연락: ${next}`,
+          `- 태그: ${tags}`,
+          `- 고객/주제: ${aSnap}`,
+          `- 메모: ${note.split("\n").slice(0,3).join(" / ").slice(0,200)}${note.length>200?"…":""}`,
+          `- C 미리보기 스냅샷: ${cSnap}${cSnap.length>=220?"…":""}`
+        ].join("\n");
+      }
+
+      // ======= wiring =======
+      function initBadges(){
+        b_build.textContent = BUILD_ID;
+        b_key.textContent = STATE_KEY;
+        b_js.textContent = "OK";
+        setLast("BOOT");
+      }
+
+      function attachAutoSaveInputs(){
+        const inputs = [
+          a_customer, a_topic, a_budget, a_contact, a_context,
+          c_mode,
+          b_paste, b_memo,
+          d_id, d_status, d_note, d_next, d_tags
+        ];
+        for(const el of inputs){
+          el.addEventListener("input", ()=>autoSave("INPUT"));
+          el.addEventListener("change", ()=>autoSave("CHANGE"));
         }
+      }
 
-        const text = buildGuideText();
-        if (!text) return;
-
-        // 카운트/시간 업데이트
-        const now = new Date();
-        const today = todayStr();
-        if (state.todayDate !== today) {
-          state.todayDate = today;
-          state.todayCount = 0;
-        }
-        state.totalCount += 1;
-        state.todayCount += 1;
-        state.lastGeneratedAt = now.toISOString();
-
-        state.preview.text = text;
-        state.preview.mode = "formatted";
-
-        state.lastUpdated = now.toISOString();
-
-        renderStats();
-        renderBasic();
-        renderOptions();
-        renderPreview();
-        saveState(state);
+      // C buttons
+      $("c_generate").addEventListener("click", ()=>{
+        const mode = c_mode.value;
+        const text = buildGuide(mode);
+        // IMPORTANT: textContent only
+        c_preview.textContent = text;
+        autoSave("C_GENERATE");
       });
 
-      el.btnAppendMemo.addEventListener("click", function() {
-        const memo = el.detailMemo.value.trim();
-        if (!memo) return;
-        if (!state.preview.text || state.preview.text.trim().length === 0) {
-          // 미리보기가 없으면 새로 생성 유도
-          el.previewStatus.textContent = "안내서 상태: 먼저 자동 안내서 초안을 생성해 주세요.";
-          return;
-        }
-        state.preview.text += "\n\n[추가 메모]\n" + memo;
-        state.preview.mode = state.preview.mode || "formatted";
-        state.lastUpdated = new Date().toISOString();
-        renderPreview();
-        saveState(state);
+      $("c_toggle_mode").addEventListener("click", ()=>{
+        c_mode.value = (c_mode.value === "short") ? "full" : "short";
+        // auto regenerate to show change immediately
+        const text = buildGuide(c_mode.value);
+        c_preview.textContent = text;
+        autoSave("C_TOGGLE_MODE");
       });
 
-      el.btnClearInputs.addEventListener("click", function() {
-        state.basic = {
-          customerName: "",
-          customerTitle: "",
-          customerOrg: "",
-          customerDept: "",
-          customerField: "",
-          customerBudget: "",
-          customerEmail: "",
-          customerShortMemo: ""
-        };
-        state.options.keywords = "";
-        state.options.reportList = "";
-        state.options.detailMemo = "";
-        renderBasic();
-        renderOptions();
-        state.lastUpdated = new Date().toISOString();
-        saveState(state);
-      });
-
-      el.btnModeFormatted.addEventListener("click", function() {
-        state.preview.mode = "formatted";
-        renderPreview();
-        saveState(state);
-      });
-
-      el.btnModePlain.addEventListener("click", function() {
-        state.preview.mode = "plain";
-        renderPreview();
-        saveState(state);
-      });
-
-      el.btnCopy.addEventListener("click", function() {
-        const text = state.preview.text || "";
-        if (!text.trim()) return;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).catch(function() {});
-        } else {
+      $("c_copy").addEventListener("click", async ()=>{
+        const t = safeText(c_preview.textContent);
+        try{
+          await navigator.clipboard.writeText(t);
+          setLast("C_COPY (OK)");
+        }catch(e){
+          // fallback
           const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); } catch (_e) {}
+          ta.value = t; document.body.appendChild(ta);
+          ta.select(); document.execCommand("copy");
           document.body.removeChild(ta);
+          setLast("C_COPY (FALLBACK)");
         }
+        autoSave("C_COPY");
       });
 
-      el.btnAddDivider.addEventListener("click", function() {
-        if (!state.preview.text || state.preview.text.trim().length === 0) return;
-        state.preview.text += "\n\n----------------------------------------\n";
-        state.preview.mode = state.preview.mode || "formatted";
-        state.lastUpdated = new Date().toISOString();
-        renderPreview();
-        saveState(state);
+      // B buttons
+      $("b_extract").addEventListener("click", ()=>{
+        const src = safeText(b_paste.value);
+        const extracted = extractSignals(src);
+        const cur = safeText(b_memo.value);
+        b_memo.value = (cur ? (cur.trimEnd() + "\n\n") : "") + extracted + "\n";
+        autoSave("B_EXTRACT");
       });
 
-      el.btnFollowupSave.addEventListener("click", function() {
-        readFollowupFromDOM();
-        state.followup.summary = buildFollowupSummary();
-        state.lastUpdated = new Date().toISOString();
-        renderFollowup();
-        renderFollowupStatus(true);
-        saveState(state);
+      $("b_clear_paste").addEventListener("click", ()=>{
+        b_paste.value = "";
+        autoSave("B_CLEAR_PASTE");
       });
 
-      el.btnFollowupRecalc.addEventListener("click", function() {
-        readFollowupFromDOM();
-        state.followup.summary = buildFollowupSummary();
-        renderFollowup();
-        renderFollowupStatus(false);
-        saveState(state);
+      // D buttons
+      $("d_save").addEventListener("click", ()=>{
+        // state already includes D; just save and confirm in output
+        const summary = dSummary();
+        d_out.textContent = summary;
+        autoSave("D_SAVE");
       });
 
-      el.btnFollowupReset.addEventListener("click", function() {
-        state.followup = {
-          call: "",
-          mail: "",
-          quote: "",
-          bid: "",
-          memo: "",
-          summary: ""
-        };
-        state.lastUpdated = new Date().toISOString();
-        renderFollowup();
-        renderFollowupStatus(false);
-        saveState(state);
+      $("d_load").addEventListener("click", ()=>{
+        const st = loadState();
+        applyStateToUI(st);
+        setLast("D_LOAD");
+        // do not overwrite build id, only UI
+        autoSave("D_LOAD");
       });
 
-      // ===== 초기 로드 =====
-      function init() {
-        const loaded = loadState();
-        if (loaded && loaded.version === "1.0") {
-          state = Object.assign(getInitialState(), loaded);
-        }
-        // 오늘 날짜 갱신 처리
-        const today = todayStr();
-        if (state.todayDate !== today) {
-          state.todayDate = today;
-          state.todayCount = 0;
-        }
-        renderAll();
-        wireAutoSave();
-        wireCSVImport();
+      $("d_summary").addEventListener("click", ()=>{
+        const summary = dSummary();
+        d_out.textContent = summary;
+        autoSave("D_SUMMARY");
+      });
+
+      $("d_reset").addEventListener("click", ()=>{
+        d_id.value = "";
+        d_status.value = "todo";
+        d_note.value = "";
+        d_next.value = "";
+        d_tags.value = "";
+        d_out.textContent = "—";
+        autoSave("D_RESET");
+      });
+
+      // export/wipe
+      $("btn_export").addEventListener("click", ()=>{
+        const st = getStateFromUI();
+        const blob = new Blob([JSON.stringify(st, null, 2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `tool01_state_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        autoSave("EXPORT_JSON");
+      });
+
+      $("btn_wipe_key").addEventListener("click", ()=>{
+        localStorage.removeItem(STATE_KEY);
+        // keep UI but show action
+        setLast("LS_KEY_DELETED");
+        b_saved.textContent = "—";
+      });
+
+      // ======= boot =======
+      initBadges();
+
+      // restore state on load
+      const st = loadState();
+      if(st){
+        applyStateToUI(st);
+        setLast("RESTORED");
+      }else{
+        // ensure preview is clearly non-empty, but not "fixed forever"
+        c_preview.textContent = "아직 생성되지 않았습니다.";
+        d_out.textContent = "—";
+        b_saved.textContent = "—";
       }
 
-      init();
+      attachAutoSaveInputs();
+      // final autosave on boot to ensure STATE_KEY exists after first load
+      autoSave("BOOT_SAVE");
+
     })();
   </script>
 </body>
