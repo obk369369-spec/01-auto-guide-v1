@@ -1,461 +1,105 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>대용량 CSV 처리 코어 (브라우저 단독)</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0b1220; color:#e5e7eb; }
-    body{ margin:0; padding:16px; }
-    .app{ max-width:1100px; margin:0 auto; background:#0a0f1a; border:1px solid #243047; border-radius:14px; padding:14px; }
-    h1{ font-size:18px; margin:0 0 10px; }
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .card{ background:#0b1526; border:1px solid #223149; border-radius:12px; padding:12px; margin-top:10px; }
-    input[type="file"], input[type="text"]{ background:#091225; color:#e5e7eb; border:1px solid #2a3a56; border-radius:10px; padding:10px; }
-    button{ background:#1d4ed8; color:#fff; border:0; border-radius:10px; padding:10px 12px; cursor:pointer; }
-    button.secondary{ background:#334155; }
-    button.danger{ background:#b91c1c; }
-    .small{ font-size:12px; color:#9ca3af; }
-    progress{ width:280px; height:16px; }
-    table{ width:100%; border-collapse:collapse; font-size:12px; }
-    th, td{ border-bottom:1px solid #223149; padding:6px 8px; text-align:left; white-space:nowrap; }
-    th{ position:sticky; top:0; background:#0b1526; }
-    .pill{ display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid #2a3a56; font-size:12px; color:#cbd5e1; }
-    .grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
-    @media (min-width: 980px){ .grid{ grid-template-columns: 1.2fr .8fr; } }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-  </style>
+<meta charset="utf-8">
+<title>붙여넣기 처리 도구 v2.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7f9;color:#111}
+body{margin:0;padding:12px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.badge{padding:6px 10px;border:1px solid #cfd6e4;border-radius:999px;background:#fff;font-size:12px}
+.app{max-width:980px;margin:auto;display:grid;gap:12px}
+.card{background:#fff;border:1px solid #cfd6e4;border-radius:12px;padding:10px}
+h2{margin:0 0 6px;font-size:14px}
+textarea,button{width:100%;padding:8px;border-radius:8px;border:1px solid #cfd6e4;font-size:13px}
+textarea{min-height:120px}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.out{white-space:pre-wrap;border:1px dashed #cfd6e4;border-radius:8px;padding:8px;min-height:120px;background:#fafafa}
+.pass{background:#e6fffa}
+.fail{background:#fff1f2}
+</style>
 </head>
 <body>
-  <div class="app">
-    <h1>대용량 CSV 처리 코어 (서버 없이: Worker + IndexedDB)</h1>
 
-    <div class="card">
-      <div class="row">
-        <input id="file" type="file" accept=".csv,text/csv" />
-        <button id="run">읽기/저장 시작</button>
-        <button id="stop" class="secondary">중지</button>
-        <button id="clear" class="danger">데이터 초기화</button>
-        <span class="pill" id="mode">MODE: LOCAL ONLY</span>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <progress id="prog" value="0" max="1"></progress>
-        <span class="small" id="status">대기 중</span>
-      </div>
-      <div class="small" style="margin-top:8px;">
-        - 긴 CSV도 “업로드 제한” 없이 브라우저에서 처리합니다. (서버 전송 없음) <br/>
-        - 저장소: IndexedDB (새로고침 후에도 유지) / 파싱: Web Worker
-      </div>
-    </div>
+<div class="badges">
+  <div class="badge">JS: <b id="b_js">OK</b></div>
+  <div class="badge">STATE: <b id="b_state">X</b></div>
+</div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="row" style="justify-content:space-between;">
-          <div>
-            <div class="small">미리보기 (최대 200행)</div>
-            <div class="small">열 개수/헤더 자동 인식(첫 행 기준)</div>
-          </div>
-          <div class="row">
-            <input id="q" type="text" placeholder="검색(부분 문자열)" />
-            <button id="search" class="secondary">검색</button>
-            <button id="reload" class="secondary">최근 200행</button>
-          </div>
-        </div>
-        <div style="max-height:420px; overflow:auto; margin-top:10px;">
-          <table id="tbl">
-            <thead></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="small">저장 정보</div>
-        <div id="meta" class="mono" style="margin-top:10px; font-size:12px; line-height:1.5;"></div>
-        <div class="small" style="margin-top:10px;">
-          권장 패턴(속도):<br/>
-          1) 공통 코어(업로드/파싱/저장/진행률) 먼저 고정<br/>
-          2) 각 도구는 “화면/버튼/필드”만 갈아끼움<br/>
-          3) 서버는 나중에(정말 필요할 때만)
-        </div>
-      </div>
+<div class="app">
+  <div class="card">
+    <h2>입력 (붙여넣기)</h2>
+    <textarea id="inp" placeholder="여기에 텍스트를 붙여넣기"></textarea>
+    <div class="btns" style="margin-top:6px">
+      <button id="run">실행</button>
+      <button id="save">저장</button>
+      <button id="clear">초기화</button>
+      <button id="test">자동 테스트 1회</button>
     </div>
   </div>
 
+  <div class="card">
+    <h2>결과</h2>
+    <div id="out" class="out">—</div>
+  </div>
+</div>
+
 <script>
-(() => {
-  // ---------- IndexedDB ----------
-  const DB_NAME = "wic_csv_core_db";
-  const DB_VER = 1;
-  const STORE = "rows";
-  const META = "meta";
+const KEY="tool_v21_state";
+const $=id=>document.getElementById(id);
 
-  function openDB(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if(!db.objectStoreNames.contains(STORE)){
-          const s = db.createObjectStore(STORE, { keyPath: "id" , autoIncrement:true });
-          s.createIndex("t", "t");
-        }
-        if(!db.objectStoreNames.contains(META)){
-          db.createObjectStore(META, { keyPath: "k" });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  function tx(db, store, mode="readonly"){ return db.transaction(store, mode).objectStore(store); }
+function process(t){
+  // 규칙 처리: 줄 수, 단어 수, 첫 200자 요약
+  const lines=t.split(/\r?\n/).filter(x=>x.trim()!=="");
+  const words=t.trim()?t.trim().split(/\s+/).length:0;
+  return [
+    "[처리 결과]",
+    "줄 수: "+lines.length,
+    "단어 수: "+words,
+    "",
+    "요약:",
+    t.slice(0,200)
+  ].join("\n");
+}
 
-  async function metaSet(db, k, v){
-    return new Promise((res, rej)=>{
-      const s = db.transaction(META, "readwrite").objectStore(META);
-      const r = s.put({k, v});
-      r.onsuccess = () => res(true);
-      r.onerror = () => rej(r.error);
-    });
-  }
-  async function metaGet(db, k){
-    return new Promise((res, rej)=>{
-      const s = tx(db, META);
-      const r = s.get(k);
-      r.onsuccess = () => res(r.result?.v ?? null);
-      r.onerror = () => rej(r.error);
-    });
-  }
-  async function clearAll(db){
-    await new Promise((res, rej)=>{
-      const tr = db.transaction([STORE, META], "readwrite");
-      tr.objectStore(STORE).clear().onsuccess = () => {};
-      tr.objectStore(META).clear().onsuccess = () => {};
-      tr.oncomplete = () => res(true);
-      tr.onerror = () => rej(tr.error);
-    });
-  }
+function setState(ok){
+  $("b_state").textContent= ok?"OK":"X";
+  $("b_state").parentElement.className="badge "+(ok?"pass":"fail");
+}
 
-  async function addBatch(db, rows){
-    return new Promise((res, rej)=>{
-      const tr = db.transaction(STORE, "readwrite");
-      const s = tr.objectStore(STORE);
-      for(const r of rows) s.add(r);
-      tr.oncomplete = () => res(true);
-      tr.onerror = () => rej(tr.error);
-    });
-  }
+$("run").onclick=()=>{
+  const t=$("inp").value;
+  $("out").textContent=process(t);
+  setState(true);
+};
 
-  async function countRows(db){
-    return new Promise((res, rej)=>{
-      const r = tx(db, STORE).count();
-      r.onsuccess = ()=>res(r.result||0);
-      r.onerror = ()=>rej(r.error);
-    });
-  }
+$("save").onclick=()=>{
+  localStorage.setItem(KEY, JSON.stringify({inp:$("inp").value,out:$("out").textContent}));
+  setState(true);
+};
 
-  async function getLastN(db, n=200){
-    // IndexedDB에서 마지막 N개를 가져오는 간단 방식: cursor로 끝까지 가며 버퍼 유지
-    return new Promise((res, rej)=>{
-      const s = tx(db, STORE);
-      const r = s.openCursor();
-      const buf = [];
-      r.onsuccess = (e)=>{
-        const cur = e.target.result;
-        if(cur){
-          buf.push(cur.value);
-          if(buf.length > n) buf.shift();
-          cur.continue();
-        } else res(buf);
-      };
-      r.onerror = ()=>rej(r.error);
-    });
-  }
+$("clear").onclick=()=>{
+  $("inp").value="";
+  $("out").textContent="—";
+  localStorage.removeItem(KEY);
+  setState(false);
+};
 
-  async function searchRows(db, needle, limit=200){
-    needle = (needle||"").toLowerCase();
-    if(!needle) return [];
-    return new Promise((res, rej)=>{
-      const s = tx(db, STORE);
-      const r = s.openCursor();
-      const out = [];
-      r.onsuccess = (e)=>{
-        const cur = e.target.result;
-        if(cur){
-          const v = cur.value;
-          const hit = JSON.stringify(v.c).toLowerCase().includes(needle);
-          if(hit){
-            out.push(v);
-            if(out.length >= limit) return res(out);
-          }
-          cur.continue();
-        } else res(out);
-      };
-      r.onerror = ()=>rej(r.error);
-    });
-  }
+$("test").onclick=()=>{
+  const sample="테스트 문장\n두번째 줄";
+  const r=process(sample);
+  const pass=r.includes("줄 수: 2") && r.includes("단어 수:");
+  setState(pass);
+};
 
-  // ---------- Worker (CSV chunk parser) ----------
-  const workerCode = `
-    let stopped = false;
-    self.onmessage = async (e) => {
-      const msg = e.data;
-      if(msg.type === 'STOP'){ stopped = true; return; }
-      if(msg.type !== 'START') return;
-
-      stopped = false;
-      const file = msg.file;
-      const delim = msg.delim || ',';
-      const chunkSize = msg.chunkSize || (1024*1024*2); // 2MB
-      let offset = 0;
-      let textRemainder = '';
-      let rowCount = 0;
-      let headers = null;
-      const now = () => new Date().toISOString();
-
-      function parseLine(line){
-        // 간단 CSV 파서(따옴표 지원). 속도 우선.
-        const out = [];
-        let cur = '';
-        let inQ = false;
-        for(let i=0;i<line.length;i++){
-          const ch = line[i];
-          if(ch === '"'){
-            if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
-            else inQ = !inQ;
-          } else if(ch === delim && !inQ){
-            out.push(cur); cur = '';
-          } else cur += ch;
-        }
-        out.push(cur);
-        return out;
-      }
-
-      const total = file.size || 1;
-      const batch = [];
-      const batchMax = 500; // 저장 단위
-      self.postMessage({type:'META', totalBytes: total, startedAt: now()});
-
-      while(offset < total){
-        if(stopped){ self.postMessage({type:'DONE', stopped:true}); return; }
-        const blob = file.slice(offset, offset + chunkSize);
-        const buf = await blob.arrayBuffer();
-        const chunkText = new TextDecoder('utf-8').decode(buf);
-        const text = textRemainder + chunkText;
-        const lines = text.split(/\\r?\\n/);
-        textRemainder = lines.pop() || '';
-
-        for(const lineRaw of lines){
-          if(stopped){ self.postMessage({type:'DONE', stopped:true}); return; }
-          const line = lineRaw;
-          if(line.trim() === '') continue;
-          const cols = parseLine(line);
-          if(!headers){
-            headers = cols;
-            self.postMessage({type:'HEADERS', headers});
-            continue;
-          }
-          const row = { t: Date.now(), c: cols };
-          batch.push(row);
-          rowCount++;
-          if(batch.length >= batchMax){
-            self.postMessage({type:'BATCH', rows: batch.splice(0, batch.length), rowCount});
-          }
-        }
-
-        offset += chunkSize;
-        self.postMessage({type:'PROG', bytes: offset, totalBytes: total, rowCount});
-      }
-
-      // flush remainder
-      if(textRemainder.trim() !== '' && !stopped){
-        const cols = parseLine(textRemainder);
-        if(!headers){
-          headers = cols;
-          self.postMessage({type:'HEADERS', headers});
-        } else {
-          batch.push({ t: Date.now(), c: cols });
-          rowCount++;
-        }
-      }
-      if(batch.length) self.postMessage({type:'BATCH', rows: batch, rowCount});
-      self.postMessage({type:'DONE', stopped:false, rowCount, finishedAt: now()});
-    };
-  `;
-
-  function makeWorker(){
-    const blob = new Blob([workerCode], {type:"text/javascript"});
-    const url = URL.createObjectURL(blob);
-    const w = new Worker(url);
-    w._url = url;
-    return w;
-  }
-
-  // ---------- UI ----------
-  const $ = (id)=>document.getElementById(id);
-  const fileEl = $("file");
-  const runBtn = $("run");
-  const stopBtn = $("stop");
-  const clearBtn = $("clear");
-  const prog = $("prog");
-  const status = $("status");
-  const tbl = $("tbl");
-  const thead = tbl.querySelector("thead");
-  const tbody = tbl.querySelector("tbody");
-  const q = $("q");
-  const searchBtn = $("search");
-  const reloadBtn = $("reload");
-  const metaBox = $("meta");
-
-  let db = null;
-  let worker = null;
-  let currentHeaders = null;
-
-  function setStatus(s){ status.textContent = s; }
-  function setProg(v, m){ prog.max = m; prog.value = v; }
-
-  function renderTable(headers, rows){
-    currentHeaders = headers || currentHeaders || [];
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
-
-    const trh = document.createElement("tr");
-    for(let i=0;i<Math.min(currentHeaders.length, 40);i++){
-      const th = document.createElement("th");
-      th.textContent = currentHeaders[i] || ("COL"+(i+1));
-      trh.appendChild(th);
-    }
-    thead.appendChild(trh);
-
-    const show = rows.slice(0, 200);
-    for(const r of show){
-      const tr = document.createElement("tr");
-      const cols = r.c || [];
-      for(let i=0;i<Math.min(currentHeaders.length, 40);i++){
-        const td = document.createElement("td");
-        td.textContent = cols[i] ?? "";
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-  }
-
-  async function refreshMeta(){
-    const cnt = await countRows(db);
-    const startedAt = await metaGet(db, "startedAt");
-    const finishedAt = await metaGet(db, "finishedAt");
-    const totalBytes = await metaGet(db, "totalBytes");
-    const rowCount = await metaGet(db, "rowCount");
-    const headers = await metaGet(db, "headers");
-    metaBox.textContent =
-`rows_in_db: ${cnt}
-rowCount_last: ${rowCount ?? "-"}
-bytes_total: ${totalBytes ?? "-"}
-startedAt: ${startedAt ?? "-"}
-finishedAt: ${finishedAt ?? "-"}
-headers: ${(headers ? JSON.stringify(headers).slice(0,220)+"..." : "-")}`;
-    if(headers && !currentHeaders) currentHeaders = headers;
-  }
-
-  async function loadLast(){
-    const headers = await metaGet(db, "headers");
-    const rows = await getLastN(db, 200);
-    if(headers) currentHeaders = headers;
-    renderTable(currentHeaders || headers || [], rows);
-  }
-
-  async function doSearch(){
-    const needle = q.value.trim();
-    const headers = await metaGet(db, "headers");
-    if(headers) currentHeaders = headers;
-    const rows = await searchRows(db, needle, 200);
-    renderTable(currentHeaders || headers || [], rows.map(x=>({c:x.c})));
-    setStatus(needle ? `검색 결과 ${rows.length}행 (최대 200)` : "검색어 없음");
-  }
-
-  function stopWorker(){
-    if(worker){
-      worker.postMessage({type:"STOP"});
-      worker.terminate();
-      URL.revokeObjectURL(worker._url);
-      worker = null;
-    }
-  }
-
-  // ---------- Run ----------
-  (async ()=>{
-    db = await openDB();
-    await refreshMeta();
-    await loadLast();
-  })();
-
-  runBtn.onclick = async () => {
-    const f = fileEl.files?.[0];
-    if(!f){ setStatus("CSV 파일을 선택해줘"); return; }
-
-    stopWorker();
-    worker = makeWorker();
-
-    setProg(0, 1);
-    setStatus("파싱 시작...");
-    await metaSet(db, "finishedAt", null);
-    await metaSet(db, "rowCount", 0);
-
-    worker.onmessage = async (e) => {
-      const m = e.data;
-      if(m.type === "META"){
-        await metaSet(db, "totalBytes", m.totalBytes);
-        await metaSet(db, "startedAt", m.startedAt);
-        setProg(0, m.totalBytes || 1);
-        setStatus("읽는 중...");
-        await refreshMeta();
-      }
-      if(m.type === "HEADERS"){
-        currentHeaders = m.headers || [];
-        await metaSet(db, "headers", currentHeaders);
-        await refreshMeta();
-      }
-      if(m.type === "PROG"){
-        setProg(Math.min(m.bytes, m.totalBytes||1), m.totalBytes||1);
-        setStatus(`진행: ${Math.round((m.bytes/(m.totalBytes||1))*100)}% / 누적 행: ${m.rowCount}`);
-      }
-      if(m.type === "BATCH"){
-        // DB 저장
-        await addBatch(db, m.rows || []);
-        await metaSet(db, "rowCount", m.rowCount || 0);
-        // 가벼운 UI 갱신(너무 자주 X)
-        if((m.rowCount||0) % 5000 < 500){
-          await refreshMeta();
-          const last = (m.rows||[]).slice(-20).map(x=>({c:x.c}));
-          if(last.length) renderTable(currentHeaders||[], last);
-        }
-      }
-      if(m.type === "DONE"){
-        await metaSet(db, "finishedAt", m.finishedAt || new Date().toISOString());
-        await metaSet(db, "rowCount", m.rowCount || 0);
-        await refreshMeta();
-        await loadLast();
-        setStatus(m.stopped ? "중지됨" : `완료: 총 ${m.rowCount||0}행 저장`);
-        stopWorker();
-      }
-    };
-
-    // 시작 전에 기존 데이터는 유지(원하면 초기화 버튼)
-    worker.postMessage({ type:"START", file: f, delim: ",", chunkSize: 1024*1024*2 });
-  };
-
-  stopBtn.onclick = () => { stopWorker(); setStatus("중지됨"); };
-  clearBtn.onclick = async () => {
-    stopWorker();
-    await clearAll(db);
-    currentHeaders = null;
-    setProg(0, 1);
-    setStatus("초기화 완료");
-    thead.innerHTML = ""; tbody.innerHTML = "";
-    await refreshMeta();
-  };
-
-  searchBtn.onclick = doSearch;
-  reloadBtn.onclick = loadLast;
+(function restore(){
+  const s=localStorage.getItem(KEY);
+  if(!s) return;
+  const d=JSON.parse(s);
+  $("inp").value=d.inp||"";
+  $("out").textContent=d.out||"—";
+  setState(true);
 })();
 </script>
 </body>
