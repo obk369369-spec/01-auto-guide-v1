@@ -3,265 +3,734 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>1번 도구 · 고객 자동화 안내서</title>
-
+<title>1번 도구 · 고객 자동화 안내서 (단일파일)</title>
 <style>
-/* 눈 피로 완화 컬러 */
 :root{
-  --bg:#f6f7f9;
-  --card:#ffffff;
-  --line:#d8dde6;
-  --text:#1f2937;
-  --sub:#6b7280;
-  --accent:#4f46e5;
+  --bg:#f7f8fb; --card:#ffffff; --line:#d7dde7;
+  --text:#111827; --sub:#6b7280; --muted:#f3f4f6;
+  --accent:#4f46e5; --ok:#059669;
 }
 *{box-sizing:border-box}
-body{
-  margin:0; padding:12px;
-  background:var(--bg); color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-}
-.badges{
-  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-  margin-bottom:10px;
-}
-.badge{
-  background:#eef2ff;
-  border:1px solid var(--line);
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-}
-.container{
-  max-width:1200px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-}
-@media(min-width:900px){
-  .container{grid-template-columns:1fr 1fr;}
-}
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-}
+body{margin:0;padding:12px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.top{position:sticky;top:0;background:var(--bg);padding:6px 0 10px;z-index:10}
+.badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{border:1px solid var(--line);background:#eef2ff;padding:6px 10px;border-radius:999px;font-size:12px}
+.badge strong{font-weight:700}
+.badge .ok{color:var(--ok)}
+.wrap{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:980px){.wrap{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 h2{margin:0 0 8px;font-size:15px}
-label{font-size:12px;color:var(--sub)}
+label{display:block;font-size:12px;color:var(--sub);margin-top:8px}
 input,textarea,select,button{
-  width:100%;
-  margin-top:4px;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid var(--line);
-  font-size:13px;
+  width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--line);
+  background:#fff;color:var(--text);font-size:13px
 }
-textarea{min-height:90px}
-.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-button{cursor:pointer;background:#fff}
-.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.small{font-size:12px;color:var(--sub);margin-top:4px}
+textarea{min-height:92px;resize:vertical}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btns button{width:auto;cursor:pointer}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.danger{background:#fee2e2;border-color:#fecaca}
+.small{font-size:12px;color:var(--sub);margin-top:6px}
 .out{
-  white-space:pre-wrap;
-  min-height:220px;
-  border:1px dashed var(--line);
-  padding:8px;
-  border-radius:8px;
-  background:#fafafa;
+  white-space:pre-wrap;word-break:break-word;
+  min-height:240px;border:1px dashed var(--line);
+  border-radius:10px;padding:10px;background:var(--muted)
 }
-.flash{
-  animation:flash 0.25s ease;
-}
-@keyframes flash{
-  from{background:#e0e7ff}
-  to{background:var(--card)}
-}
+.flash{outline:3px solid #c7d2fe;transition:outline 0.35s}
+.grid2{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:980px){.grid2{grid-template-columns:1fr 1fr}}
+hr{border:none;border-top:1px solid var(--line);margin:10px 0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
 </style>
 </head>
-
 <body>
 
-<div class="badges">
-  <div class="badge">JS: <strong id="b_js">OK</strong></div>
-  <div class="badge">BUILD ID: <strong id="b_build"></strong></div>
-  <div class="badge">STATE KEY: <strong id="b_key"></strong></div>
-  <div class="badge">LAST ACTION: <strong id="b_last">BOOT</strong></div>
+<div class="top">
+  <div class="badges">
+    <div class="badge">JS: <strong class="ok">OK</strong></div>
+    <div class="badge">BUILD ID: <strong id="b_build" class="mono"></strong></div>
+    <div class="badge">STATE KEY: <strong id="b_key" class="mono"></strong></div>
+    <div class="badge">LAST ACTION: <strong id="b_last" class="mono">BOOT</strong></div>
+    <div class="badge">AUTO SAVE: <strong id="b_save" class="mono">—</strong></div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btn_export" type="button">상태 내보내기(JSON)</button>
+      <button id="btn_wipe" class="danger" type="button">localStorage 키 삭제</button>
+    </div>
+  </div>
 </div>
 
-<div class="container">
+<div class="wrap">
 
-<!-- A -->
-<div class="card">
-<h2>A · 고객 데이터</h2>
+  <!-- 좌: 고객데이터 + A -->
+  <section class="card">
+    <h2>고객 데이터(업로드/선택)</h2>
 
-<label>고객/기관</label>
-<input id="a_customer">
+    <div class="grid2">
+      <div>
+        <label>고객 데이터 업로드(CSV 또는 JSON)</label>
+        <input id="cust_file" type="file" accept=".csv,.json,text/csv,application/json">
+        <div class="small">CSV 헤더 예: name,institution,dept,field,keywords,budget,contact,email,phone</div>
+      </div>
+      <div>
+        <label>고객 선택(업로드 후 자동 생성)</label>
+        <select id="cust_pick">
+          <option value="">(고객 선택)</option>
+        </select>
+        <div class="small">선택하면 아래 A 입력이 자동 채워집니다.</div>
+      </div>
+    </div>
 
-<label>주제/키워드</label>
-<input id="a_topic">
+    <label>고객 데이터 붙여넣기(대체 입력, 선택)</label>
+    <textarea id="cust_paste" placeholder="CSV 또는 JSON 텍스트를 붙여넣고 [붙여넣기 반영]을 누르세요"></textarea>
+    <div class="btns">
+      <button id="cust_apply" class="primary" type="button">붙여넣기 반영</button>
+      <button id="cust_clear" type="button">고객DB 비우기</button>
+    </div>
 
-<label>예산</label>
-<input id="a_budget">
+    <hr>
 
-<label>연락처</label>
-<input id="a_contact">
+    <h2>A · 입력(자동 채움)</h2>
+    <div class="grid2">
+      <div>
+        <label>고객/기관</label>
+        <input id="a_customer" placeholder="예: KISTI / 홍길동">
+      </div>
+      <div>
+        <label>주제/키워드</label>
+        <input id="a_topic" placeholder="예: 반도체 접착제">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>예산</label>
+        <input id="a_budget" placeholder="예: 1,200만원">
+      </div>
+      <div>
+        <label>연락처</label>
+        <input id="a_contact" placeholder="예: 이메일/전화">
+      </div>
+    </div>
 
-<label>요청 원문</label>
-<textarea id="a_context"></textarea>
+    <label>요청/상황(원문)</label>
+    <textarea id="a_context" placeholder="고객 문의 원문(메일/통화 요약 포함)을 붙여넣기"></textarea>
 
-<div class="btns">
-<button class="primary" id="c_make">C 안내서 생성</button>
-<button id="c_copy">C 복사</button>
-</div>
-</div>
+    <div class="btns">
+      <button id="c_generate" class="primary" type="button">C 워드형 안내서 생성</button>
+      <button id="c_copy" type="button">C 복사</button>
+    </div>
+    <div class="small">안내서는 “섹션 고정(워드형)” + 고객데이터 자동 반영으로 생성됩니다.</div>
+  </section>
 
-<!-- C -->
-<div class="card">
-<h2>C · 워드 안내서 미리보기</h2>
-<div id="c_preview" class="out">아직 생성되지 않았습니다.</div>
-</div>
+  <!-- 우: C + 메일초안 -->
+  <section class="card">
+    <h2>C · 워드형 안내서 미리보기</h2>
+    <div id="c_preview" class="out mono" role="status" aria-live="polite">아직 생성되지 않았습니다.</div>
 
-<!-- D -->
-<div class="card">
-<h2>D · 후속조치</h2>
+    <hr>
 
-<label>상태</label>
-<select id="d_status">
-<option>TODO</option>
-<option>DOING</option>
-<option>WAITING</option>
-<option>DONE</option>
-</select>
+    <h2>썬더버드 발송용 메일 초안</h2>
+    <div class="btns">
+      <button id="mail_copy" type="button">메일 초안 복사</button>
+    </div>
+    <div id="mail_draft" class="out mono" role="status" aria-live="polite">아직 생성되지 않았습니다.</div>
+    <div class="small">사후조치 버튼을 누르면 메일 초안도 함께 자동 갱신됩니다.</div>
+  </section>
 
-<label>다음 연락일</label>
-<input id="d_next">
+  <!-- 좌하: D + 사후조치 액션 -->
+  <section class="card">
+    <h2>D · 사후조치(화면에서 실행)</h2>
 
-<label>후속조치 메모</label>
-<textarea id="d_note"></textarea>
+    <div class="grid2">
+      <div>
+        <label>후속조치 ID</label>
+        <input id="d_id" placeholder="예: 2025-12-13_KISTI_홍길동">
+      </div>
+      <div>
+        <label>상태</label>
+        <select id="d_status">
+          <option value="todo">TODO</option>
+          <option value="doing">DOING</option>
+          <option value="waiting">WAITING</option>
+          <option value="done">DONE</option>
+        </select>
+      </div>
+    </div>
 
-<div class="btns">
-<button id="d_save">저장</button>
-<button id="d_load">불러오기</button>
-</div>
+    <div class="grid2">
+      <div>
+        <label>다음 연락일</label>
+        <input id="d_next" placeholder="예: 2025-12-15">
+      </div>
+      <div>
+        <label>태그(쉼표)</label>
+        <input id="d_tags" placeholder="예: 무응답,리마인드,예산">
+      </div>
+    </div>
 
-<div class="btns" style="margin-top:10px">
-<button id="a_no">무응답</button>
-<button id="a_open">열람</button>
-<button id="a_reply">회신</button>
-<button id="a_q">추가질문</button>
-<button class="primary" id="a_buy">구매의사</button>
-</div>
+    <label>후속조치 내용</label>
+    <textarea id="d_note" placeholder="버튼을 누르면 자동으로 채워집니다(수정 가능)"></textarea>
 
-<div class="small">버튼 클릭 → 화면 즉시 변화 확인</div>
-</div>
+    <div class="btns">
+      <button id="d_save" class="primary" type="button">D 저장</button>
+      <button id="d_load" type="button">D 불러오기</button>
+      <button id="d_summary" type="button">D 요약 갱신</button>
+      <button id="d_reset" class="danger" type="button">D 초기화</button>
+    </div>
 
-<!-- LOG -->
-<div class="card">
-<h2>동작 로그</h2>
-<div id="log" class="out">—</div>
-</div>
+    <hr>
+
+    <h2>사후조치 액션(5개)</h2>
+    <div class="btns">
+      <button id="act_no" type="button">무응답</button>
+      <button id="act_open" type="button">열람</button>
+      <button id="act_reply" type="button">회신</button>
+      <button id="act_more" type="button">추가질문</button>
+      <button id="act_buy" class="primary" type="button">구매의사</button>
+    </div>
+    <div class="small" id="toast" style="display:none;">적용됨</div>
+
+    <label>D 요약 출력</label>
+    <div id="d_out" class="out mono">—</div>
+    <div class="small">버튼 클릭 시: D 필드/요약/메일초안/C 안내서/배지가 동시에 변합니다(눈으로 확인).</div>
+  </section>
+
+  <!-- 우하: 로그 -->
+  <section class="card">
+    <h2>동작 로그</h2>
+    <div id="log" class="out mono">—</div>
+  </section>
 
 </div>
 
 <script>
-const BUILD="WIC01-"+new Date().toISOString().slice(0,19);
-const KEY="wic_tool01_state";
-b_build.textContent=BUILD;
-b_key.textContent=KEY;
+(() => {
+  "use strict";
 
-function now(){return new Date().toLocaleString("ko-KR")}
-function last(v){b_last.textContent=v}
+  const $ = (id) => document.getElementById(id);
 
-function save(){
-  localStorage.setItem(KEY,JSON.stringify(state()));
-}
-function load(){
-  const s=localStorage.getItem(KEY);
-  if(!s)return;
-  const d=JSON.parse(s);
-  d_status.value=d.status;
-  d_next.value=d.next;
-  d_note.value=d.note;
-  log.textContent=d.log;
-}
+  // ===== badges/state =====
+  const BUILD_ID = "WIC-TOOL01-" + new Date().toISOString().replace(/[-:]/g,"").slice(0,15);
+  const STATE_KEY = "wic_tool_01_state_v3";
+  $("b_build").textContent = BUILD_ID;
+  $("b_key").textContent = STATE_KEY;
 
-function state(){
-  return{
-    status:d_status.value,
-    next:d_next.value,
-    note:d_note.value,
-    log:log.textContent
+  const setLast = (v) => $("b_last").textContent = v;
+  const markSaved = () => $("b_save").textContent = kstNow();
+
+  function kstNow(){
+    // 표시용(환경 로케일 그대로 사용)
+    const d = new Date();
+    return d.toLocaleString("ko-KR");
   }
-}
+  function flash(el){
+    el.classList.add("flash");
+    setTimeout(()=>el.classList.remove("flash"), 350);
+  }
+  function toast(msg="적용됨"){
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(()=>t.style.display="none", 900);
+  }
+  function appendLog(line){
+    const lg = $("log");
+    const cur = lg.textContent === "—" ? "" : lg.textContent + "\n";
+    lg.textContent = cur + `[${kstNow()}] ${line}`;
+    flash(lg);
+  }
 
-function guide(){
-  return `
-[자동 안내서]
+  // ===== customer DB =====
+  const DB_KEY = "wic_tool_01_customer_db_v1";
+  let customerDB = [];
 
-고객: ${a_customer.value||"-"}
-주제: ${a_topic.value||"-"}
-예산: ${a_budget.value||"-"}
-연락처: ${a_contact.value||"-"}
+  function parseCSV(text){
+    const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l=>l.trim().length);
+    if(lines.length < 2) return [];
+    const header = splitCSVLine(lines[0]).map(h=>h.trim());
+    const rows = [];
+    for(let i=1;i<lines.length;i++){
+      const cols = splitCSVLine(lines[i]);
+      const obj = {};
+      header.forEach((h,idx)=>obj[h] = (cols[idx] ?? "").trim());
+      rows.push(obj);
+    }
+    return rows;
+  }
+  function splitCSVLine(line){
+    const out = [];
+    let cur = "", q=false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(ch === '"'){ q = !q; continue; }
+      if(ch === "," && !q){ out.push(cur); cur=""; continue; }
+      cur += ch;
+    }
+    out.push(cur);
+    return out;
+  }
 
-요청 요약:
-${a_context.value||"-"}
+  function normalizeCustomerRow(r){
+    // 유연하게 매핑
+    const name = r.name || r.customer || r.고객명 || r.성명 || "";
+    const inst = r.institution || r.org || r.기관 || r.소속 || "";
+    const dept = r.dept || r.department || r.부서 || "";
+    const field = r.field || r.research || r.분야 || "";
+    const keywords = r.keywords || r.keyword || r.키워드 || "";
+    const budget = r.budget || r.예산 || "";
+    const contact = r.contact || r.email || r.phone || r.연락처 || "";
+    return { name, inst, dept, field, keywords, budget, contact };
+  }
 
-다음 액션:
-- 자료 후보 선정
-- 조건/가격 정리
-- 고객 회신 대기
-`;
-}
+  function saveCustomerDB(){
+    localStorage.setItem(DB_KEY, JSON.stringify(customerDB));
+  }
+  function loadCustomerDB(){
+    try{
+      const raw = localStorage.getItem(DB_KEY);
+      if(!raw) return;
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) customerDB = arr;
+    }catch(e){}
+  }
 
-function flash(el){
-  el.classList.remove("flash");
-  void el.offsetWidth;
-  el.classList.add("flash");
-}
+  function refreshPicker(){
+    const sel = $("cust_pick");
+    sel.innerHTML = `<option value="">(고객 선택)</option>`;
+    customerDB.forEach((c,idx)=>{
+      const label = `${c.inst||""} ${c.name||""}`.trim() || `고객 ${idx+1}`;
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = label + (c.keywords ? ` · ${c.keywords}` : "");
+      sel.appendChild(opt);
+    });
+  }
 
-c_make.onclick=()=>{
-  c_preview.textContent=guide();
-  flash(c_preview);
-  last("C_GENERATE");
-}
+  function applyCustomerToA(c){
+    const customer = [c.inst, c.dept, c.name].filter(Boolean).join(" / ") || (c.name||"");
+    $("a_customer").value = customer || "";
+    $("a_topic").value = (c.keywords || c.field || "").trim();
+    $("a_budget").value = (c.budget || "").trim();
+    $("a_contact").value = (c.contact || "").trim();
+    autoSave("CUSTOMER_APPLY");
+    setLast("CUSTOMER_APPLY");
+    appendLog("고객 선택 적용( A 자동 채움 )");
+  }
 
-c_copy.onclick=()=>{
-  navigator.clipboard.writeText(c_preview.textContent);
-  last("C_COPY");
-}
+  $("cust_pick").addEventListener("change", ()=>{
+    const v = $("cust_pick").value;
+    if(!v) return;
+    const c = customerDB[Number(v)];
+    if(c) applyCustomerToA(c);
+  });
 
-d_save.onclick=()=>{
-  save();
-  log.textContent+="\n["+now()+"] 저장";
-  flash(log);
-  last("D_SAVE");
-}
+  $("cust_clear").addEventListener("click", ()=>{
+    customerDB = [];
+    localStorage.removeItem(DB_KEY);
+    refreshPicker();
+    $("cust_paste").value = "";
+    setLast("CUSTOMER_DB_CLEARED");
+    appendLog("고객 DB 삭제");
+  });
 
-d_load.onclick=()=>{
-  load();
-  flash(log);
-  last("D_LOAD");
-}
+  $("cust_apply").addEventListener("click", ()=>{
+    const t = $("cust_paste").value.trim();
+    if(!t){ appendLog("고객 붙여넣기: 입력 없음"); return; }
+    try{
+      let arr = [];
+      if(t.startsWith("[") || t.startsWith("{")){
+        const j = JSON.parse(t);
+        arr = Array.isArray(j) ? j : (j.items ? j.items : [j]);
+      }else{
+        arr = parseCSV(t);
+      }
+      customerDB = arr.map(normalizeCustomerRow).filter(x=>Object.values(x).some(v=>String(v||"").trim()));
+      saveCustomerDB();
+      refreshPicker();
+      setLast("CUSTOMER_DB_APPLIED");
+      appendLog(`고객 DB 반영: ${customerDB.length}건`);
+    }catch(e){
+      appendLog("고객 붙여넣기: 파싱 실패");
+    }
+  });
 
-function action(name,text,days){
-  d_status.value="DOING";
-  d_note.value=text;
-  const d=new Date(); d.setDate(d.getDate()+days);
-  d_next.value=d.toISOString().slice(0,10);
-  log.textContent+="\n["+now()+"] "+name;
-  flash(log);
-  save();
-  last("ACTION_"+name);
-}
+  $("cust_file").addEventListener("change", async ()=>{
+    const f = $("cust_file").files?.[0];
+    if(!f) return;
+    const text = await f.text();
+    $("cust_paste").value = text;
+    $("cust_apply").click();
+    setLast("CUSTOMER_FILE_LOADED");
+  });
 
-a_no.onclick=()=>action("무응답","2일 후 리마인드 메일",2);
-a_open.onclick=()=>action("열람","확인 메일 발송",1);
-a_reply.onclick=()=>action("회신","회신 반영 재안내",0);
-a_q.onclick=()=>action("추가질문","질문 정리 후 재전송",0);
-a_buy.onclick=()=>action("구매의사","견적·결제 안내",0);
+  // ===== state for tool =====
+  function stateFromUI(){
+    return {
+      meta:{ build_id: BUILD_ID, state_key: STATE_KEY, saved_at: kstNow() },
+      A:{
+        customer:$("a_customer").value,
+        topic:$("a_topic").value,
+        budget:$("a_budget").value,
+        contact:$("a_contact").value,
+        context:$("a_context").value
+      },
+      C:{
+        preview:$("c_preview").textContent,
+        mail:$("mail_draft").textContent
+      },
+      D:{
+        id:$("d_id").value,
+        status:$("d_status").value,
+        next:$("d_next").value,
+        tags:$("d_tags").value,
+        note:$("d_note").value,
+        out:$("d_out").textContent
+      },
+      log:$("log").textContent,
+      customer_db_count: customerDB.length
+    };
+  }
+  function applyState(st){
+    if(!st) return;
+    $("a_customer").value = st?.A?.customer ?? "";
+    $("a_topic").value = st?.A?.topic ?? "";
+    $("a_budget").value = st?.A?.budget ?? "";
+    $("a_contact").value = st?.A?.contact ?? "";
+    $("a_context").value = st?.A?.context ?? "";
 
+    $("c_preview").textContent = st?.C?.preview ?? "아직 생성되지 않았습니다.";
+    $("mail_draft").textContent = st?.C?.mail ?? "아직 생성되지 않았습니다.";
+
+    $("d_id").value = st?.D?.id ?? "";
+    $("d_status").value = st?.D?.status ?? "todo";
+    $("d_next").value = st?.D?.next ?? "";
+    $("d_tags").value = st?.D?.tags ?? "";
+    $("d_note").value = st?.D?.note ?? "";
+    $("d_out").textContent = st?.D?.out ?? "—";
+
+    $("log").textContent = st?.log ?? "—";
+    $("b_save").textContent = st?.meta?.saved_at ?? "—";
+  }
+  function saveState(){
+    localStorage.setItem(STATE_KEY, JSON.stringify(stateFromUI()));
+    markSaved();
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STATE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+  function autoSave(action){
+    saveState();
+    setLast(action + " (AUTO-SAVED)");
+  }
+
+  // ===== 워드형 안내서 생성(섹션 고정) =====
+  function wordStyleGuide(){
+    const cust = ($("a_customer").value || "—").trim();
+    const topic = ($("a_topic").value || "—").trim();
+    const budget = ($("a_budget").value || "—").trim();
+    const contact = ($("a_contact").value || "—").trim();
+    const ctx = ($("a_context").value || "—").trim();
+
+    // 원문에서 아주 단순하게 핵심 3줄 뽑기(눈으로 보이는 “형식” 우선)
+    const lines = ctx === "—" ? [] : ctx.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    const key3 = lines.slice(0,3);
+    const scope = (() => {
+      const t = ctx;
+      const hit = [];
+      if(/기간|year|년|months|개월/i.test(t)) hit.push("기간");
+      if(/지역|global|asia|korea|국내|미국|유럽/i.test(t)) hit.push("지역");
+      if(/산업|시장|업종|분야|application/i.test(t)) hit.push("산업/적용");
+      return hit.length ? hit.join(", ") : "—";
+    })();
+
+    return [
+`[워드형 자동 안내서]
+문서명: 고객 자동화 안내서
+작성일: ${kstNow()}
+
+1. 고객 기본정보
+- 고객/기관: ${cust}
+- 주제/키워드: ${topic}
+- 예산: ${budget}
+- 연락처: ${contact}
+
+2. 문의 원문(요약)
+- 핵심문장(최대 3줄):
+  ${key3.length ? key3.map(s=>"· "+s).join("\n  ") : "· (원문 없음)"}
+- 범위 힌트(기간/지역/산업): ${scope}
+
+3. 제안 방향(내부)
+- 자료 후보: (후보 3개를 여기에 채움)
+  ① 후보1: (제목/발행사)
+  ② 후보2: (제목/발행사)
+  ③ 후보3: (제목/발행사)
+- 조건 체크: 가격 / 형태(PDF/엑셀) / 라이선스(인쇄/공유)
+
+4. 고객 발송 메시지(메일 본문 요약)
+- 한 줄: "${cust.split("/").pop().trim() || "고객"}님, ${topic} 관련 후보 자료를 3개로 추려 핵심만 안내드리겠습니다."
+- 확인 질문(3개):
+  1) 사용 인원(1인/팀)과 내부 공유 범위는?
+  2) 기간/지역/세부 산업 범위는?
+  3) 예산 상한선과 납기(희망일)는?
+
+5. 다음 액션(체크리스트)
+[ ] 후보 3개 선정
+[ ] 라이선스 핵심 문장 확인
+[ ] 견적 초안 생성
+[ ] 고객 회신 대기 및 사후조치 실행`
+    ].join("\n");
+  }
+
+  // ===== 메일 초안 생성 =====
+  function makeMailDraft(kind){
+    const custRaw = ($("a_customer").value || "고객").trim();
+    const custName = custRaw.split("/").pop().trim() || "고객";
+    const topic = ($("a_topic").value || "주제").trim();
+    const budget = ($("a_budget").value || "").trim();
+    const baseSubject = `[자료 안내] ${topic}`;
+
+    const tail = [
+      "",
+      "감사합니다.",
+      "월드산업정보센터"
+    ].join("\n");
+
+    if(kind === "first"){
+      return [
+        `제목: ${baseSubject}`,
+        "",
+        `${custName}님,`,
+        `${topic} 관련하여 후보 자료를 3개로 추려 핵심만 정리해 안내드리겠습니다.`,
+        budget ? `예산 범위: ${budget}` : "",
+        "",
+        "확인을 위해 아래 3가지만 부탁드립니다.",
+        "1) 사용 인원(1인/팀)과 내부 공유 범위",
+        "2) 기간/지역/세부 산업 범위",
+        "3) 희망 납기(필요 시점)",
+        tail
+      ].filter(Boolean).join("\n");
+    }
+
+    if(kind === "remind"){
+      return [
+        `제목: [리마인드] ${topic} 자료 안내`,
+        "",
+        `${custName}님,`,
+        `지난번 ${topic} 자료 안내 드린 건 관련해 확인차 연락드립니다.`,
+        "원하시면 후보 3개를 바로 비교표로 정리해 드리겠습니다.",
+        tail
+      ].join("\n");
+    }
+
+    if(kind === "opened"){
+      return [
+        `제목: ${topic} 자료 안내 확인`,
+        "",
+        `${custName}님,`,
+        "자료 안내 메일을 확인하셨는지 확인차 드립니다.",
+        "필요 범위(기간/지역/산업)만 알려주시면 바로 맞춰서 재안내드리겠습니다.",
+        tail
+      ].join("\n");
+    }
+
+    if(kind === "reply"){
+      return [
+        `제목: [회신 반영] ${topic} 자료 재안내`,
+        "",
+        `${custName}님,`,
+        "회신 내용 반영하여 후보/조건을 다시 정리해 안내드리겠습니다.",
+        "추가로 사용 인원과 내부 공유 범위만 확인 부탁드립니다.",
+        tail
+      ].join("\n");
+    }
+
+    if(kind === "buy"){
+      return [
+        `제목: [견적/진행] ${topic} 자료 구매 안내`,
+        "",
+        `${custName}님,`,
+        "구매 진행을 위해 견적/납기/라이선스 핵심 내용을 확정하여 안내드립니다.",
+        "진행 원하시면 결제/발주 안내를 바로 드리겠습니다.",
+        tail
+      ].join("\n");
+    }
+
+    return makeMailDraft("first");
+  }
+
+  // ===== C 버튼 =====
+  $("c_generate").addEventListener("click", ()=>{
+    $("c_preview").textContent = wordStyleGuide();
+    $("mail_draft").textContent = makeMailDraft("first");
+    flash($("c_preview")); flash($("mail_draft"));
+    appendLog("C 워드형 안내서 생성");
+    autoSave("C_GENERATE");
+  });
+
+  $("c_copy").addEventListener("click", async ()=>{
+    const t = $("c_preview").textContent;
+    try{ await navigator.clipboard.writeText(t); }catch(e){}
+    appendLog("C 복사");
+    autoSave("C_COPY");
+  });
+
+  $("mail_copy").addEventListener("click", async ()=>{
+    const t = $("mail_draft").textContent;
+    try{ await navigator.clipboard.writeText(t); }catch(e){}
+    appendLog("메일 초안 복사");
+    autoSave("MAIL_COPY");
+  });
+
+  // ===== D 저장/불러오기/요약 =====
+  function dSummary(){
+    const id = ($("d_id").value || "(ID 없음)").trim();
+    const st = $("d_status").value;
+    const nx = ($("d_next").value || "(미정)").trim();
+    const tags = ($("d_tags").value || "(없음)").trim();
+    const note = ($("d_note").value || "(없음)").trim();
+    return [
+      `D 요약 · ${kstNow()}`,
+      `- ID: ${id}`,
+      `- 상태: ${st}`,
+      `- 다음 연락: ${nx}`,
+      `- 태그: ${tags}`,
+      `- 메모: ${note.split(/\r?\n/).slice(0,4).join(" / ")}`
+    ].join("\n");
+  }
+
+  $("d_save").addEventListener("click", ()=>{
+    $("d_out").textContent = dSummary();
+    flash($("d_out"));
+    appendLog("D 저장");
+    autoSave("D_SAVE");
+  });
+
+  $("d_load").addEventListener("click", ()=>{
+    const st = loadState();
+    applyState(st);
+    flash($("d_out")); flash($("log"));
+    setLast("D_LOAD");
+    appendLog("D 불러오기(상태 복원)");
+    autoSave("D_LOAD");
+  });
+
+  $("d_summary").addEventListener("click", ()=>{
+    $("d_out").textContent = dSummary();
+    flash($("d_out"));
+    appendLog("D 요약 갱신");
+    autoSave("D_SUMMARY");
+  });
+
+  $("d_reset").addEventListener("click", ()=>{
+    $("d_id").value=""; $("d_status").value="todo"; $("d_next").value="";
+    $("d_tags").value=""; $("d_note").value=""; $("d_out").textContent="—";
+    flash($("d_out"));
+    appendLog("D 초기화");
+    autoSave("D_RESET");
+  });
+
+  // ===== 사후조치 액션(누르면 화면이 “동시에” 바뀜) =====
+  function yyyyMmDdPlus(days){
+    const d = new Date();
+    d.setDate(d.getDate()+days);
+    return d.toISOString().slice(0,10);
+  }
+  function applyAction(name, opts){
+    // D 필드 즉시 변화(눈으로 확인)
+    $("d_status").value = opts.status;
+    $("d_next").value = yyyyMmDdPlus(opts.nextDays);
+    $("d_tags").value = opts.tags;
+    $("d_note").value = opts.note;
+
+    // 안내서/메일도 같이 갱신(화면에서 확실히 “의미”가 보이게)
+    $("c_preview").textContent = wordStyleGuide();
+    $("mail_draft").textContent = makeMailDraft(opts.mailKind);
+
+    // 요약/로그/배지도 갱신
+    $("d_out").textContent = dSummary();
+    appendLog(`ACTION ${name}`);
+    setLast(`ACTION_${name}`);
+    flash($("d_note")); flash($("d_out")); flash($("c_preview")); flash($("mail_draft"));
+    toast("적용됨");
+
+    // 저장
+    autoSave(`ACTION_${name}`);
+  }
+
+  $("act_no").addEventListener("click", ()=>applyAction("무응답", {
+    status:"waiting", nextDays:2, tags:"무응답,리마인드",
+    note:`[무응답] ${kstNow()}\n- 2일 후 리마인드 메일 발송\n- 후보 3개 비교표 준비`,
+    mailKind:"remind"
+  }));
+  $("act_open").addEventListener("click", ()=>applyAction("열람", {
+    status:"doing", nextDays:1, tags:"열람,확인",
+    note:`[열람] ${kstNow()}\n- 1일 후 확인 메일 발송\n- 범위(기간/지역/산업) 질문 3개 포함`,
+    mailKind:"opened"
+  }));
+  $("act_reply").addEventListener("click", ()=>applyAction("회신", {
+    status:"doing", nextDays:0, tags:"회신,재정리",
+    note:`[회신] ${kstNow()}\n- 회신 반영하여 후보/조건 3줄 재정리\n- 라이선스(인쇄/공유) 문구 확인`,
+    mailKind:"reply"
+  }));
+  $("act_more").addEventListener("click", ()=>applyAction("추가질문", {
+    status:"doing", nextDays:0, tags:"추가질문,범위확정",
+    note:`[추가질문] ${kstNow()}\n- 질문을 3개로 축약해 범위 확정\n- 확정 후 안내서 재생성 및 재발송`,
+    mailKind:"reply"
+  }));
+  $("act_buy").addEventListener("click", ()=>applyAction("구매의사", {
+    status:"waiting", nextDays:0, tags:"구매의사,견적",
+    note:`[구매의사] ${kstNow()}\n- 견적/납기/라이선스 확정\n- 결제/발주 안내 발송`,
+    mailKind:"buy"
+  }));
+
+  // ===== export / wipe =====
+  $("btn_export").addEventListener("click", ()=>{
+    const st = stateFromUI();
+    const blob = new Blob([JSON.stringify(st,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tool01_state_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    appendLog("상태 내보내기(JSON)");
+    autoSave("EXPORT_JSON");
+  });
+
+  $("btn_wipe").addEventListener("click", ()=>{
+    localStorage.removeItem(STATE_KEY);
+    localStorage.removeItem(DB_KEY);
+    $("b_save").textContent="—";
+    customerDB = [];
+    refreshPicker();
+    $("log").textContent="—";
+    $("c_preview").textContent="아직 생성되지 않았습니다.";
+    $("mail_draft").textContent="아직 생성되지 않았습니다.";
+    setLast("LS_KEYS_DELETED");
+    appendLog("localStorage 키 삭제");
+  });
+
+  // ===== boot restore =====
+  loadCustomerDB();
+  refreshPicker();
+
+  const st = loadState();
+  if(st){
+    applyState(st);
+    setLast("RESTORED");
+  }else{
+    $("c_preview").textContent="아직 생성되지 않았습니다.";
+    $("mail_draft").textContent="아직 생성되지 않았습니다.";
+  }
+  saveState(); // 최초 키 생성
+  setLast("BOOT_SAVE (AUTO-SAVED)");
+  markSaved();
+
+})();
 </script>
 </body>
 </html>
