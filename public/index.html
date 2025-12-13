@@ -2,104 +2,179 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>붙여넣기 처리 도구 v2.1</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1번 도구 · 고객 자동화 안내서 (v2.1 실행)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7f9;color:#111}
 body{margin:0;padding:12px}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .badge{padding:6px 10px;border:1px solid #cfd6e4;border-radius:999px;background:#fff;font-size:12px}
-.app{max-width:980px;margin:auto;display:grid;gap:12px}
+.ok{background:#e6fffa}.x{background:#fff1f2}
+.app{max-width:1100px;margin:auto;display:grid;gap:12px}
 .card{background:#fff;border:1px solid #cfd6e4;border-radius:12px;padding:10px}
 h2{margin:0 0 6px;font-size:14px}
-textarea,button{width:100%;padding:8px;border-radius:8px;border:1px solid #cfd6e4;font-size:13px}
-textarea{min-height:120px}
+label{font-size:12px;color:#555}
+input,textarea,select,button{width:100%;padding:8px;border-radius:8px;border:1px solid #cfd6e4;font-size:13px}
+textarea{min-height:90px}
 .btns{display:flex;gap:6px;flex-wrap:wrap}
-.out{white-space:pre-wrap;border:1px dashed #cfd6e4;border-radius:8px;padding:8px;min-height:120px;background:#fafafa}
-.pass{background:#e6fffa}
-.fail{background:#fff1f2}
+.out{white-space:pre-wrap;border:1px dashed #cfd6e4;border-radius:8px;padding:8px;min-height:140px;background:#fafafa}
+.flash{animation:f 0.2s}@keyframes f{from{background:#e0e7ff}to{background:#fafafa}}
 </style>
 </head>
 <body>
 
 <div class="badges">
-  <div class="badge">JS: <b id="b_js">OK</b></div>
-  <div class="badge">STATE: <b id="b_state">X</b></div>
+  <div class="badge ok">JS: OK</div>
+  <div id="b_state" class="badge x">STATE: X</div>
+  <div class="badge">LAST ACTION: <b id="b_last">BOOT</b></div>
 </div>
 
 <div class="app">
-  <div class="card">
-    <h2>입력 (붙여넣기)</h2>
-    <textarea id="inp" placeholder="여기에 텍스트를 붙여넣기"></textarea>
-    <div class="btns" style="margin-top:6px">
-      <button id="run">실행</button>
-      <button id="save">저장</button>
-      <button id="clear">초기화</button>
-      <button id="test">자동 테스트 1회</button>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>결과</h2>
-    <div id="out" class="out">—</div>
-  </div>
+<!-- A -->
+<div class="card">
+<h2>A · 고객 입력 (붙여넣기 / CSV)</h2>
+<label>고객/기관</label><input id="a_customer">
+<label>주제/키워드</label><input id="a_topic">
+<label>예산</label><input id="a_budget">
+<label>연락처</label><input id="a_contact">
+<label>요청 원문 (길어도 OK)</label>
+<textarea id="a_context" placeholder="메일/CSV 내용 그대로 붙여넣기"></textarea>
+<div class="btns" style="margin-top:6px">
+  <button id="c_make">안내서 생성</button>
+  <button id="c_copy">안내서 복사</button>
+</div>
+</div>
+
+<!-- C -->
+<div class="card">
+<h2>C · 워드 안내서 미리보기</h2>
+<div id="c_preview" class="out">—</div>
+</div>
+
+<!-- D -->
+<div class="card">
+<h2>D · 사후조치 (액션 실행)</h2>
+<label>상태</label>
+<select id="d_status"><option>TODO</option><option>DOING</option><option>WAITING</option><option>DONE</option></select>
+<label>다음 연락일</label><input id="d_next">
+<label>후속조치 메모</label><textarea id="d_note"></textarea>
+
+<div class="btns">
+  <button id="a_no">무응답</button>
+  <button id="a_open">열람</button>
+  <button id="a_reply">회신</button>
+  <button id="a_q">추가질문</button>
+  <button id="a_buy">구매의사</button>
+</div>
+</div>
+
+<!-- LOG -->
+<div class="card">
+<h2>실행 증거</h2>
+<div id="log" class="out">—</div>
+<div class="btns" style="margin-top:6px">
+  <button id="save">저장</button>
+  <button id="clear">localStorage 삭제</button>
+  <button id="test">자동 테스트 1회</button>
+</div>
+</div>
+
 </div>
 
 <script>
-const KEY="tool_v21_state";
+const KEY="tool01_v21";
 const $=id=>document.getElementById(id);
+const now=()=>new Date().toLocaleString("ko-KR");
+const setState=ok=>{
+  $("b_state").textContent="STATE: "+(ok?"OK":"X");
+  $("b_state").className="badge "+(ok?"ok":"x");
+};
+const last=v=>$("b_last").textContent=v;
 
-function process(t){
-  // 규칙 처리: 줄 수, 단어 수, 첫 200자 요약
-  const lines=t.split(/\r?\n/).filter(x=>x.trim()!=="");
-  const words=t.trim()?t.trim().split(/\s+/).length:0;
+function buildGuide(){
   return [
-    "[처리 결과]",
-    "줄 수: "+lines.length,
-    "단어 수: "+words,
+    "【자동 안내서】",
+    "고객: "+($("a_customer").value||"-"),
+    "주제: "+($("a_topic").value||"-"),
+    "예산: "+($("a_budget").value||"-"),
+    "연락처: "+($("a_contact").value||"-"),
     "",
-    "요약:",
-    t.slice(0,200)
+    "요청 요약:",
+    ($("a_context").value||"-").slice(0,500),
+    "",
+    "다음 액션:",
+    "- 후보 자료 3개 선정",
+    "- 조건/가격 요약",
+    "- 고객 회신 대기"
   ].join("\n");
 }
 
-function setState(ok){
-  $("b_state").textContent= ok?"OK":"X";
-  $("b_state").parentElement.className="badge "+(ok?"pass":"fail");
-}
-
-$("run").onclick=()=>{
-  const t=$("inp").value;
-  $("out").textContent=process(t);
-  setState(true);
+$("c_make").onclick=()=>{
+  $("c_preview").textContent=buildGuide();
+  $("c_preview").classList.add("flash");
+  last("C_GENERATE"); setState(true);
+};
+$("c_copy").onclick=()=>{
+  navigator.clipboard.writeText($("c_preview").textContent);
+  last("C_COPY"); setState(true);
 };
 
+function action(name, note, days){
+  $("d_status").value="DOING";
+  $("d_note").value=note;
+  const d=new Date(); d.setDate(d.getDate()+days);
+  $("d_next").value=d.toISOString().slice(0,10);
+  $("log").textContent+="\n["+now()+"] "+name;
+  $("log").classList.add("flash");
+  last("ACTION_"+name); setState(true);
+}
+
+$("a_no").onclick=()=>action("무응답","2일 후 리마인드 메일",2);
+$("a_open").onclick=()=>action("열람","확인 메일 발송",1);
+$("a_reply").onclick=()=>action("회신","회신 반영 재안내",0);
+$("a_q").onclick=()=>action("추가질문","질문 정리 후 재전송",0);
+$("a_buy").onclick=()=>action("구매의사","견적/결제 안내",0);
+
 $("save").onclick=()=>{
-  localStorage.setItem(KEY, JSON.stringify({inp:$("inp").value,out:$("out").textContent}));
-  setState(true);
+  localStorage.setItem(KEY,JSON.stringify({
+    a:{c:$("a_customer").value,t:$("a_topic").value,b:$("a_budget").value,l:$("a_contact").value,x:$("a_context").value},
+    c:$("c_preview").textContent,
+    d:{s:$("d_status").value,n:$("d_next").value,m:$("d_note").value},
+    log:$("log").textContent
+  }));
+  $("log").textContent+="\n["+now()+"] SAVED";
+  last("SAVE"); setState(true);
 };
 
 $("clear").onclick=()=>{
-  $("inp").value="";
-  $("out").textContent="—";
   localStorage.removeItem(KEY);
-  setState(false);
+  location.reload();
 };
 
 $("test").onclick=()=>{
-  const sample="테스트 문장\n두번째 줄";
-  const r=process(sample);
-  const pass=r.includes("줄 수: 2") && r.includes("단어 수:");
-  setState(pass);
+  const sample="테스트 고객\n문의 내용";
+  $("a_context").value=sample;
+  $("c_make").click();
+  setState($("c_preview").textContent.includes("자동 안내서"));
+  last("AUTO_TEST");
 };
 
 (function restore(){
   const s=localStorage.getItem(KEY);
   if(!s) return;
   const d=JSON.parse(s);
-  $("inp").value=d.inp||"";
-  $("out").textContent=d.out||"—";
-  setState(true);
+  $("a_customer").value=d.a.c||"";
+  $("a_topic").value=d.a.t||"";
+  $("a_budget").value=d.a.b||"";
+  $("a_contact").value=d.a.l||"";
+  $("a_context").value=d.a.x||"";
+  $("c_preview").textContent=d.c||"—";
+  $("d_status").value=d.d.s||"TODO";
+  $("d_next").value=d.d.n||"";
+  $("d_note").value=d.d.m||"";
+  $("log").textContent=d.log||"—";
+  setState(true); last("RESTORE");
 })();
 </script>
 </body>
