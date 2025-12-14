@@ -3,418 +3,117 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Auto Guide · STATE + 원문 + 안내서 (LOCAL ONLY)</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;line-height:1.35}
-    body{margin:0;background:#0b1220;color:#e5e7eb}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid #24324f;background:#0f1b33}
-    .dot{width:10px;height:10px;border-radius:999px;background:#ef4444}
-    .dot.ok{background:#22c55e}
-    .panel{border:1px solid #24324f;background:#0f1b33;border-radius:14px;padding:14px;margin-top:12px}
-    .title{font-weight:700;font-size:15px;margin:0 0 10px}
-    textarea{width:100%;min-height:160px;resize:vertical;border-radius:12px;border:1px solid #24324f;background:#0b1220;color:#e5e7eb;padding:10px}
-    .btn{border:1px solid #24324f;background:#111f3d;color:#e5e7eb;border-radius:12px;padding:10px 12px;cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-    .btn.warn{background:#3b1212}
-    .btn.ok{background:#123b1e}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    pre{white-space:pre-wrap;word-break:break-word;margin:0}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
-    .small{font-size:12px;color:#9ca3af}
-    .hr{height:1px;background:#24324f;margin:10px 0}
-  </style>
+  <title>01 · 붙여넣기 → 실행 → 결과</title>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row">
-      <div class="badge"><span class="mono">JS:</span> <span id="jsBadge" class="mono">OK</span></div>
-      <div class="badge"><span class="mono">STATE:</span> <span id="stateBadge" class="mono">X</span></div>
-      <div class="badge"><span class="mono">LAST ACTION:</span> <span id="lastAction" class="mono">—</span></div>
-      <div class="badge"><span class="mono">MODE:</span> <span class="mono">LOCAL ONLY</span></div>
-    </div>
+  <div id="state"></div>
+  <textarea id="inp" placeholder="여기에 붙여넣기"></textarea>
+  <button id="run">실행</button>
+  <pre id="out">—</pre>
+  <button id="clr">초기화</button>
+  <button id="tst">자동 테스트 1회</button>
 
-    <div id="screenInput" class="panel" hidden>
-      <p class="title">INPUT · 원문 입력</p>
-      <div class="small">메일/문의/CSV 텍스트를 그대로 붙여넣고 “안내서 생성”을 누르세요. (길어도 OK)</div>
-      <div class="hr"></div>
-      <textarea id="rawText" placeholder="여기에 원문(메일/문의/CSV)을 붙여넣기"></textarea>
-      <div class="row" style="margin-top:10px">
-        <button id="btnGenerate" class="btn ok">안내서 생성</button>
-        <button id="btnSaveOnly" class="btn">저장</button>
-        <button id="btnClear" class="btn warn">localStorage 삭제</button>
-        <button id="btnTest1" class="btn">자동 테스트 1회</button>
-      </div>
-      <div class="panel" style="margin-top:12px">
-        <p class="title">실행 증거</p>
-        <pre id="evidenceInput" class="mono">—</pre>
-      </div>
-    </div>
+  <script>
+    (function () {
+      const LS_KEY = "WIC_01_V1";
+      const $ = (id) => document.getElementById(id);
 
-    <div id="screenGuide" class="panel" hidden>
-      <p class="title">GUIDE · 생성된 안내서</p>
-      <div class="grid">
-        <div>
-          <div class="small">원문 (저장됨)</div>
-          <div class="hr"></div>
-          <pre id="rawPreview" class="mono" style="min-height:180px;background:#0b1220;border:1px solid #24324f;border-radius:12px;padding:10px">—</pre>
-        </div>
-        <div>
-          <div class="small">안내서 (저장됨)</div>
-          <div class="hr"></div>
-          <pre id="guidePreview" class="mono" style="min-height:180px;background:#0b1220;border:1px solid #24324f;border-radius:12px;padding:10px">—</pre>
-        </div>
-      </div>
+      const elState = $("state");
+      const elInp = $("inp");
+      const elOut = $("out");
+      const btnRun = $("run");
+      const btnClr = $("clr");
+      const btnTst = $("tst");
 
-      <div class="row" style="margin-top:12px">
-        <button id="btnCopyGuide" class="btn ok">안내서 복사</button>
-        <button id="btnBack" class="btn">입력으로</button>
-        <button id="btnClear2" class="btn warn">localStorage 삭제</button>
-        <button id="btnTest2" class="btn">자동 테스트 1회</button>
-      </div>
-
-      <div class="panel" style="margin-top:12px">
-        <p class="title">실행 증거</p>
-        <pre id="evidenceGuide" class="mono">—</pre>
-      </div>
-    </div>
-
-    <div class="panel">
-      <p class="title">저장 정보</p>
-      <pre id="storeInfo" class="mono">—</pre>
-      <div class="small">저장 항목: STATE(GUIDE/INPUT) + 원문 + 생성된 안내서</div>
-    </div>
-  </div>
-
-<script>
-(() => {
-  "use strict";
-
-  // ====== Storage Contract (락) ======
-  const LS_KEY = "WIC_AUTO_GUIDE_V1_STATEBUNDLE";
-  const ALLOWED_STATES = { INPUT: true, GUIDE: true };
-
-  /** @type {{state:"INPUT"|"GUIDE", raw:string, guide:string, lastAction:string, updatedAt:number}} */
-  let model = {
-    state: "INPUT",
-    raw: "",
-    guide: "",
-    lastAction: "BOOT",
-    updatedAt: Date.now()
-  };
-
-  // ====== DOM ======
-  const $ = (id) => document.getElementById(id);
-
-  const jsBadge = $("jsBadge");
-  const stateBadge = $("stateBadge");
-  const lastActionEl = $("lastAction");
-
-  const screenInput = $("screenInput");
-  const screenGuide = $("screenGuide");
-
-  const rawText = $("rawText");
-  const btnGenerate = $("btnGenerate");
-  const btnSaveOnly = $("btnSaveOnly");
-  const btnClear = $("btnClear");
-  const btnTest1 = $("btnTest1");
-
-  const rawPreview = $("rawPreview");
-  const guidePreview = $("guidePreview");
-  const btnCopyGuide = $("btnCopyGuide");
-  const btnBack = $("btnBack");
-  const btnClear2 = $("btnClear2");
-  const btnTest2 = $("btnTest2");
-
-  const evidenceInput = $("evidenceInput");
-  const evidenceGuide = $("evidenceGuide");
-  const storeInfo = $("storeInfo");
-
-  // ====== Helpers ======
-  function nowISO() {
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
-      " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
-  }
-
-  function safeState(s) {
-    return ALLOWED_STATES[s] ? s : "INPUT";
-  }
-
-  function setAction(action) {
-    model.lastAction = action;
-    model.updatedAt = Date.now();
-    lastActionEl.textContent = action;
-  }
-
-  function save() {
-    try {
-      const payload = {
-        state: model.state,
-        raw: model.raw,
-        guide: model.guide,
-        lastAction: model.lastAction,
-        updatedAt: model.updatedAt
+      const now = () => {
+        const d = new Date();
+        const z = (n) => String(n).padStart(2, "0");
+        return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()) + " " +
+               z(d.getHours()) + ":" + z(d.getMinutes()) + ":" + z(d.getSeconds());
       };
-      localStorage.setItem(LS_KEY, JSON.stringify(payload));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
 
-  function load() {
-    try {
-      const s = localStorage.getItem(LS_KEY);
-      if (!s) return false;
-      const obj = JSON.parse(s);
-      model.state = safeState(obj.state);
-      model.raw = typeof obj.raw === "string" ? obj.raw : "";
-      model.guide = typeof obj.guide === "string" ? obj.guide : "";
-      model.lastAction = typeof obj.lastAction === "string" ? obj.lastAction : "RESTORE";
-      model.updatedAt = typeof obj.updatedAt === "number" ? obj.updatedAt : Date.now();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function clearAll() {
-    localStorage.removeItem(LS_KEY);
-    model.state = "INPUT";
-    model.raw = "";
-    model.guide = "";
-    setAction("CLEAR_STORAGE");
-    render();
-  }
-
-  // ====== Guide Generator (simple but deterministic) ======
-  function makeGuide(raw) {
-    // 최소한의 규칙 기반 (서버/AI 없이)
-    const text = (raw || "").trim();
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-
-    const headerGuess = guessHeader(lines);
-    const keywords = extractKeywords(text);
-
-    const parts = [];
-    parts.push("[WIC 안내서 초안]");
-    parts.push("1) 요약");
-    parts.push("- 요청 핵심: " + (keywords.core || "확인 필요"));
-    parts.push("- 형태: " + (headerGuess.type || "메일/자유문"));
-    parts.push("");
-    parts.push("2) 고객에게 바로 물을 것 (3개)");
-    parts.push("- 기관/부서/담당자 성함");
-    parts.push("- 필요 범위(지역/기간/세부 주제)");
-    parts.push("- 사용 목적(연구/사업/입찰/내부보고)");
-    parts.push("");
-    parts.push("3) 제안 방향");
-    parts.push("- 관련 키워드로 후보 보고서/자료 3~5개 선별");
-    parts.push("- 표/목차/샘플 범위 먼저 확인 후 견적 안내");
-    parts.push("");
-    parts.push("4) 원문 메모");
-    parts.push(text.length > 800 ? text.slice(0, 800) + "\n…(중략)" : text);
-    parts.push("");
-    parts.push("5) 다음 액션");
-    parts.push("- ① 키워드 확정 → ② 후보 리스트 제시 → ③ 견적/납기 안내");
-
-    return parts.join("\n");
-  }
-
-  function guessHeader(lines) {
-    // CSV처럼 보이는지 아주 단순 추정
-    if (!lines.length) return { type: "빈 입력" };
-    const first = lines[0];
-    const commas = (first.match(/,/g) || []).length;
-    const tabs = (first.match(/\t/g) || []).length;
-    if (commas >= 2) return { type: "CSV 가능성 높음" };
-    if (tabs >= 2) return { type: "TSV 가능성 높음" };
-    if (/^from:|^subject:|^sent:/i.test(first)) return { type: "메일 헤더 가능성" };
-    return { type: "자유문" };
-  }
-
-  function extractKeywords(text) {
-    const t = (text || "").toLowerCase();
-    const picks = [];
-    const dict = [
-      "market","report","forecast","price","sample","toc","pdf","excel",
-      "반도체","배터리","접착","유리","태양광","perovskite","glass","adhesive",
-      "견적","납기","샘플","목차","보고서","시장","전망","가격"
-    ];
-    for (const w of dict) if (t.includes(w.toLowerCase())) picks.push(w);
-    const core = picks.slice(0, 3).join(", ");
-    return { core: core || "" };
-  }
-
-  // ====== Render (DOM 락: 상태마다 화면 1개만 보이게) ======
-  function render() {
-    // badges
-    stateBadge.textContent = model.state;
-
-    // strict state screen
-    const isInput = model.state === "INPUT";
-    screenInput.hidden = !isInput;
-    screenGuide.hidden = isInput;
-
-    // input
-    if (isInput) {
-      rawText.value = model.raw || "";
-      evidenceInput.textContent = makeEvidenceText();
-    } else {
-      rawPreview.textContent = model.raw ? model.raw : "—";
-      guidePreview.textContent = model.guide ? model.guide : "—";
-      evidenceGuide.textContent = makeEvidenceText();
-    }
-
-    // store info
-    storeInfo.textContent = makeStoreInfoText();
-  }
-
-  function makeEvidenceText() {
-    const rawLen = (model.raw || "").length;
-    const guideLen = (model.guide || "").length;
-    return [
-      "time: " + nowISO(),
-      "state: " + model.state,
-      "lastAction: " + model.lastAction,
-      "raw_chars: " + rawLen,
-      "guide_chars: " + guideLen,
-      "saved: " + (localStorage.getItem(LS_KEY) ? "YES" : "NO")
-    ].join("\n");
-  }
-
-  function makeStoreInfoText() {
-    const s = localStorage.getItem(LS_KEY);
-    if (!s) {
-      return [
-        "rows_in_db: -",
-        "bundle_in_localStorage: NO",
-        "updatedAt: -",
-        "state: -",
-        "raw_chars: 0",
-        "guide_chars: 0"
-      ].join("\n");
-    }
-    let obj = null;
-    try { obj = JSON.parse(s); } catch (e) { obj = null; }
-    const rawLen = obj && typeof obj.raw === "string" ? obj.raw.length : 0;
-    const guideLen = obj && typeof obj.guide === "string" ? obj.guide.length : 0;
-    const st = obj && obj.state ? obj.state : "?";
-    const up = obj && obj.updatedAt ? new Date(obj.updatedAt).toLocaleString() : "?";
-    return [
-      "bundle_in_localStorage: YES",
-      "state: " + st,
-      "updatedAt: " + up,
-      "raw_chars: " + rawLen,
-      "guide_chars: " + guideLen,
-      "key: " + LS_KEY
-    ].join("\n");
-  }
-
-  // ====== Actions ======
-  btnGenerate.addEventListener("click", () => {
-    model.raw = rawText.value || "";
-    setAction("GENERATE");
-    // 데이터 계약(락): GUIDE로 가려면 raw가 있어야 함
-    if (!model.raw.trim()) {
-      model.guide = "";
-      model.state = "INPUT";
-      setAction("GENERATE_FAIL_EMPTY_RAW");
-      save();
-      render();
-      return;
-    }
-    model.guide = makeGuide(model.raw);
-    model.state = "GUIDE";
-    save();
-    render();
-  });
-
-  btnSaveOnly.addEventListener("click", () => {
-    model.raw = rawText.value || "";
-    setAction("SAVE_ONLY");
-    save();
-    render();
-  });
-
-  btnBack.addEventListener("click", () => {
-    model.state = "INPUT";
-    setAction("BACK_TO_INPUT");
-    save();
-    render();
-  });
-
-  btnCopyGuide.addEventListener("click", async () => {
-    setAction("COPY_GUIDE");
-    const text = model.guide || "";
-    try {
-      await navigator.clipboard.writeText(text);
-      setAction("COPY_GUIDE_OK");
-    } catch (e) {
-      // fallback
-      try {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-        setAction("COPY_GUIDE_OK_FALLBACK");
-      } catch (e2) {
-        setAction("COPY_GUIDE_FAIL");
+      function safeParse(s) {
+        try { return JSON.parse(s); } catch { return null; }
       }
-    }
-    save();
-    render();
-  });
 
-  btnClear.addEventListener("click", clearAll);
-  btnClear2.addEventListener("click", clearAll);
+      function setStateText(s) {
+        elState.textContent = s;
+      }
 
-  function autoTestOnce() {
-    // 네트워크 없이 문자열 규칙만으로 PASS/FAIL
-    // PASS 조건: JS OK + 상태 유효 + (GUIDE이면 guide가 존재) + 저장/복원 가능(JSON)
-    let pass = true;
-    let reason = [];
+      function save(bundle) {
+        localStorage.setItem(LS_KEY, JSON.stringify(bundle));
+      }
 
-    const st = safeState(model.state);
-    if (st !== model.state) { pass = false; reason.push("STATE_INVALID"); }
+      function load() {
+        const raw = localStorage.getItem(LS_KEY);
+        const b = raw ? safeParse(raw) : null;
+        if (!b || typeof b !== "object") return { state: "INPUT", input: "", result: "—", pass: "X" };
+        return {
+          state: (b.state === "GUIDE" || b.state === "INPUT") ? b.state : "INPUT",
+          input: (typeof b.input === "string") ? b.input : "",
+          result: (typeof b.result === "string" && b.result.length) ? b.result : "—",
+          pass: (b.pass === "PASS") ? "PASS" : "X"
+        };
+      }
 
-    if (model.state === "GUIDE" && !(model.guide && model.guide.trim().length > 0)) {
-      pass = false; reason.push("GUIDE_EMPTY");
-    }
+      function render(b) {
+        elInp.value = b.input;
+        elOut.textContent = b.result || "—";
+        setStateText("JS: OK | STATE: " + b.state + " | TEST: " + b.pass);
+      }
 
-    // 저장 후 파싱 가능해야 함
-    const okSave = save();
-    if (!okSave) { pass = false; reason.push("SAVE_FAIL"); }
+      function makeGuide(text) {
+        const raw = String(text || "");
+        const lines = raw.split(/\r?\n/);
+        const first = (lines.find(l => l.trim().length) || "").trim();
+        const excerpt = raw.slice(0, 300).replace(/\s+/g, " ").trim();
+        const guide =
+          "01번 안내서\n" +
+          "time: " + now() + "\n" +
+          "raw_chars: " + raw.length + "\n" +
+          "first_line: " + (first || "-") + "\n" +
+          "excerpt(300): " + (excerpt || "-") + "\n";
+        return guide;
+      }
 
-    try {
-      const s = localStorage.getItem(LS_KEY);
-      JSON.parse(s);
-    } catch (e) {
-      pass = false; reason.push("JSON_BAD");
-    }
+      function autoTest(b) {
+        const hasChange = (b.state === "GUIDE") && (b.result && b.result !== "—");
+        const hasPersist = !!localStorage.getItem(LS_KEY);
+        const stateOk = (b.state === "GUIDE" || b.state === "INPUT");
+        const inputOk = typeof b.input === "string";
+        const resultOk = typeof b.result === "string";
+        return (hasChange && hasPersist && stateOk && inputOk && resultOk) ? "PASS" : "FAIL";
+      }
 
-    // badge reflect
-    stateBadge.textContent = model.state + (pass ? " (PASS)" : " (FAIL)");
-    setAction(pass ? "AUTO_TEST_PASS" : ("AUTO_TEST_FAIL: " + reason.join(",")));
-    save();
-    render();
-  }
+      // BOOT
+      let bundle = load();
+      render(bundle);
+      save(bundle); // 로드시 자동 저장(복원 실패 방지)
 
-  btnTest1.addEventListener("click", autoTestOnce);
-  btnTest2.addEventListener("click", autoTestOnce);
+      btnRun.addEventListener("click", () => {
+        const input = elInp.value || "";
+        const result = makeGuide(input);
+        bundle = { state: "GUIDE", input, result, pass: "X" };
+        render(bundle);
+        save(bundle);
+      });
 
-  // ====== Boot ======
-  jsBadge.textContent = "OK";
-  const restored = load();
-  setAction(restored ? "RESTORE" : "BOOT");
-  render();
+      btnClr.addEventListener("click", () => {
+        localStorage.removeItem(LS_KEY);
+        bundle = { state: "INPUT", input: "", result: "—", pass: "X" };
+        render(bundle);
+        save(bundle);
+      });
 
-})();
-</script>
+      btnTst.addEventListener("click", () => {
+        const b = load();
+        const verdict = autoTest(b);
+        const pass = (verdict === "PASS") ? "PASS" : "X";
+        bundle = { state: b.state, input: b.input, result: b.result, pass };
+        render(bundle);
+        save(bundle);
+      });
+    })();
+  </script>
 </body>
 </html>
