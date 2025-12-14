@@ -3,225 +3,310 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>01 · CSV 필드 매핑 v1</title>
+  <title>01번 도구 · CSV 유입/매핑 v2</title>
+  <style>
+    html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:980px;margin:12px auto;padding:12px}
+    .bar{font-weight:700;margin-bottom:10px}
+    textarea{width:100%;min-height:220px;padding:10px;font-size:14px;line-height:1.35}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    button{padding:8px 12px;font-size:14px;cursor:pointer}
+    pre{white-space:pre-wrap;word-break:break-word;background:#f6f7f8;border:1px solid #ddd;padding:10px;min-height:180px}
+  </style>
 </head>
 <body>
-  <div id="status" style="font:14px system-ui; margin:8px 0;">JS: OK | STATE: INPUT | TEST: X</div>
+<div class="wrap">
+  <div class="bar" id="badge">JS: OK | STATE: INPUT | TEST: X</div>
 
-  <textarea id="raw" placeholder="CSV 또는 텍스트를 그대로 붙여넣기" style="width:100%; height:140px; font:14px system-ui;"></textarea>
+  <textarea id="raw" placeholder="CSV 또는 텍스트를 그대로 붙여넣기"></textarea>
 
-  <div style="margin:8px 0;">
+  <div class="row">
     <button id="run">실행</button>
     <button id="reset">초기화</button>
     <button id="test">자동 테스트 1회</button>
   </div>
 
-  <pre id="out" style="white-space:pre-wrap; border:1px solid #ccc; padding:10px; min-height:120px;">—</pre>
+  <pre id="out">—</pre>
+</div>
 
 <script>
 (() => {
-  const LS_KEY = "wic_tool01_v5";
+  const LS_KEY = "WIC_T01_V2_BUNDLE";
   const $ = (id) => document.getElementById(id);
+  const badge = $("badge"), rawEl = $("raw"), outEl = $("out");
+  const runBtn = $("run"), resetBtn = $("reset"), testBtn = $("test");
 
-  const st = {
-    state: "INPUT",
-    test: "X",
-    lastAction: "BOOT",
-    raw: "",
-    out: "—",
-    updatedAt: ""
+  const nowKST = () => {
+    const d = new Date();
+    const utc = d.getTime() + d.getTimezoneOffset()*60000;
+    const kst = new Date(utc + 9*60*60000);
+    const pad = (n)=>String(n).padStart(2,"0");
+    return `${kst.getFullYear()}-${pad(kst.getMonth()+1)}-${pad(kst.getDate())} ${pad(kst.getHours())}:${pad(kst.getMinutes())}:${pad(kst.getSeconds())}`;
   };
 
-  function nowKST() {
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  }
+  const setBadge = (st, test) => {
+    badge.textContent = `JS: OK | STATE: ${st} | TEST: ${test}`;
+  };
 
-  function save() {
-    st.updatedAt = nowKST();
-    localStorage.setItem(LS_KEY, JSON.stringify(st));
-  }
+  let STATE = "INPUT";
+  let TEST = "X";
+  let LAST_ACTION = "BOOT";
 
-  function load() {
+  const save = () => {
+    const bundle = {
+      v: 2,
+      state: STATE,
+      test: TEST,
+      lastAction: LAST_ACTION,
+      raw: rawEl.value || "",
+      out: outEl.textContent || "—",
+      updatedAt: nowKST()
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(bundle));
+  };
+
+  const restore = () => {
     try {
       const s = localStorage.getItem(LS_KEY);
-      if (!s) return false;
-      const obj = JSON.parse(s);
-      if (!obj || typeof obj !== "object") return false;
-      Object.assign(st, obj);
-      return true;
-    } catch { return false; }
+      if (!s) { setBadge(STATE, TEST); return; }
+      const b = JSON.parse(s);
+      if (!b || typeof b !== "object") { setBadge(STATE, TEST); return; }
+      STATE = (b.state === "GUIDE") ? "GUIDE" : "INPUT";
+      TEST = (b.test === "PASS") ? "PASS" : "X";
+      LAST_ACTION = b.lastAction || "RESTORE";
+      rawEl.value = b.raw || "";
+      outEl.textContent = (typeof b.out === "string" && b.out.length) ? b.out : "—";
+      setBadge(STATE, TEST);
+    } catch {
+      setBadge(STATE, TEST);
+    }
+  };
+
+  function detectDelimiter(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+    const head = lines[0] || "";
+    return (head.includes("\t")) ? "\t" : ",";
   }
 
-  function setStatus() {
-    const js = "OK";
-    $("status").textContent = `JS: ${js} | STATE: ${st.state} | TEST: ${st.test}`;
-  }
+  // RFC4180-ish parser (supports quotes + newlines in quotes)
+  function parseDelimited(text) {
+    const delim = detectDelimiter(text);
+    const rows = [];
+    let row = [];
+    let field = "";
+    let i = 0;
+    let inQuotes = false;
 
-  function splitLine(line) {
-    // delimiter: comma 우선, 없으면 tab, 없으면 semicolon, 없으면 그냥 전체 1열
-    const hasComma = line.includes(",");
-    const hasTab = line.includes("\t");
-    const hasSemi = line.includes(";");
-    const delim = hasComma ? "," : (hasTab ? "\t" : (hasSemi ? ";" : null));
-    if (!delim) return [line];
-    return line.split(delim).map(s => s.trim());
-  }
+    const pushField = () => { row.push(field); field = ""; };
+    const pushRow = () => {
+      // drop fully empty trailing row
+      const allEmpty = row.length === 0 || row.every(v => (v||"").trim() === "");
+      if (!allEmpty) rows.push(row);
+      row = [];
+    };
 
-  function normalize(s) {
-    return (s || "").toString().trim().toLowerCase().replace(/\s+/g, "");
-  }
+    while (i < text.length) {
+      const c = text[i];
 
-  function mapFields(headers, row) {
-    // 우리가 원하는 필드(표준)
-    const wanted = [
-      { key:"기관",     aliases:["기관","소속","company","organization","org","institution"] },
-      { key:"고객명",   aliases:["고객명","성명","이름","name","customername","contactname"] },
-      { key:"관심분야", aliases:["관심분야","관심","interest","interests","keyword","키워드","주제","topic"] },
-      { key:"연구분야", aliases:["연구분야","연구","field","researchfield","분야"] },
-      { key:"예산",     aliases:["예산","budget","연구비","금액","amount","price"] },
-      { key:"핸드폰",   aliases:["핸드폰","휴대폰","mobile","cell","phone","hp"] },
-      { key:"유선",     aliases:["유선","전화","tel","telephone","officephone"] },
-      { key:"이메일1",  aliases:["이메일","email","e-mail","메일","email1"] },
-      { key:"이메일2",  aliases:["이메일2","email2","subemail","추가이메일","secondaryemail"] }
-    ];
-
-    const hNorm = headers.map(h => normalize(h));
-    const result = {};
-    // 1) 헤더 기반 매핑
-    wanted.forEach(w => {
-      let idx = -1;
-      for (let i = 0; i < hNorm.length; i++) {
-        const hn = hNorm[i];
-        if (w.aliases.some(a => hn === normalize(a) || hn.includes(normalize(a)))) { idx = i; break; }
+      if (inQuotes) {
+        if (c === '"') {
+          const next = text[i+1];
+          if (next === '"') { field += '"'; i += 2; continue; }
+          inQuotes = false; i += 1; continue;
+        } else {
+          field += c; i += 1; continue;
+        }
+      } else {
+        if (c === '"') { inQuotes = true; i += 1; continue; }
+        if (c === delim) { pushField(); i += 1; continue; }
+        if (c === "\n") { pushField(); pushRow(); i += 1; continue; }
+        if (c === "\r") { i += 1; continue; }
+        field += c; i += 1; continue;
       }
-      if (idx >= 0) result[w.key] = row[idx] ?? "";
-      else result[w.key] = "";
-    });
-
-    // 2) 헤더가 의미 없거나(1열뿐 등) 전부 비면: “고정 순서” fallback
-    const filled = Object.values(result).some(v => (v || "").trim().length > 0);
-    if (!filled) {
-      const order = ["기관","고객명","관심분야","연구분야","예산","핸드폰","유선","이메일1","이메일2"];
-      for (let i = 0; i < order.length; i++) result[order[i]] = row[i] ?? "";
     }
+    pushField(); pushRow();
 
-    return result;
+    // normalize widths
+    const width = Math.max(0, ...rows.map(r => r.length));
+    for (const r of rows) while (r.length < width) r.push("");
+
+    return { delim, rows };
   }
 
-  function buildOutputFromRaw(rawText) {
-    const raw = (rawText || "").replace(/\r\n/g, "\n");
-    const lines = raw.split("\n").filter(l => l.trim().length > 0);
+  function norm(s){ return String(s||"").trim().replace(/\s+/g," "); }
 
-    let header = [];
-    let firstRow = [];
-    let rows = 0;
-    let cols = 0;
-
-    if (lines.length >= 1) header = splitLine(lines[0]);
-    if (lines.length >= 2) firstRow = splitLine(lines[1]);
-
-    cols = header.length || (firstRow.length || 0);
-
-    // 데이터행 개수(헤더 제외)
-    rows = Math.max(0, lines.length - 1);
-
-    const mapped = mapFields(header, firstRow);
-
-    const previewCount = Math.min(5, rows);
-    const preview = [];
-    for (let i = 0; i < previewCount; i++) {
-      const r = splitLine(lines[i+1] || "");
-      preview.push(r.join(" | "));
+  function findIdx(headers, candidates) {
+    const h = headers.map(norm);
+    for (const cand of candidates) {
+      const c = norm(cand);
+      const idx = h.findIndex(x => x === c);
+      if (idx >= 0) return idx;
     }
+    // partial match fallback
+    for (const cand of candidates) {
+      const c = norm(cand);
+      const idx = h.findIndex(x => x.includes(c) && c.length >= 2);
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  }
 
-    const rawChars = raw.trim().length;
-    const firstLine = (raw.split("\n")[0] || "").trim() || "-";
-    const excerpt = raw.trim().slice(0, 300) || "-";
-    const wordCount = raw.trim().length ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
+  function pick(row, idx){
+    if (idx < 0) return "-";
+    const v = row[idx];
+    const t = norm(v);
+    return t.length ? t : "-";
+  }
 
-    const outText =
+  function wordCount(raw) {
+    const t = String(raw||"").trim();
+    if (!t) return 0;
+    return t.split(/\s+/).filter(Boolean).length;
+  }
+
+  function buildOutput(rawText) {
+    const raw = String(rawText||"");
+    const trimmed = raw.trim();
+    const firstLine = norm((raw.split(/\r?\n/)[0] || ""));
+    const excerpt = raw.slice(0, 300);
+
+    if (!trimmed) {
+      STATE = "INPUT";
+      LAST_ACTION = "RUN_EMPTY";
+      const out =
 `CSV 미리보기
 time: ${nowKST()}
-columns: ${cols}
-rows: ${rows}
+columns: 0
+rows: 0
 
 header:
-${header.join(" | ") || "-"}
+-
 
 mapped(첫 데이터행 → 필드):
-기관: ${mapped["기관"] || "-"}
-고객명: ${mapped["고객명"] || "-"}
-관심분야: ${mapped["관심분야"] || "-"}
-연구분야: ${mapped["연구분야"] || "-"}
-예산: ${mapped["예산"] || "-"}
-핸드폰: ${mapped["핸드폰"] || "-"}
-유선: ${mapped["유선"] || "-"}
-이메일1: ${mapped["이메일1"] || "-"}
-이메일2: ${mapped["이메일2"] || "-"}
+기관: -
+고객명: -
+관심분야: -
+연구분야: -
+예산: -
+핸드폰: -
+유선: -
+이메일1: -
+이메일2: -
 
-preview(${previewCount}):
-${preview.length ? preview.map(x => "- " + x).join("\n") : "-"}
+preview(0):
+-
 
-raw_chars: ${rawChars}
-word_count: ${wordCount}
-first_line: ${firstLine}
-excerpt(300): ${excerpt}`;
+raw_chars: 0
+word_count: 0
+first_line: -
+excerpt(300): -`;
+      return out;
+    }
 
-    return outText;
+    const { rows } = parseDelimited(raw);
+    const headers = (rows[0] || []).map(norm);
+    const dataRows = rows.slice(1);
+
+    const colCount = headers.length;
+    const rowCount = dataRows.length;
+
+    const idxOrg   = findIdx(headers, ["직장명","기관","소속","회사","기관명"]);
+    const idxName  = findIdx(headers, ["성명","고객명","이름","성명(담당자)","담당자"]);
+    const idxInterest = findIdx(headers, ["관심분야","관심 분야","관심","키워드"]);
+    const idxResearch  = findIdx(headers, ["연구분야","연구 분야","연구"]);
+    const idxBudget = findIdx(headers, ["예산","연구비","금액","견적","총액"]);
+    const idxMobile = findIdx(headers, ["핸드폰","휴대폰","휴대전화","휴대폰번호","핸드폰번호","모바일"]);
+    const idxPhone  = findIdx(headers, ["전화번호","유선","유선번호","내선","연락처"]);
+    const idxEmail  = findIdx(headers, ["이메일주소","이메일","Email","E-mail","메일"]);
+    const idxEmail2 = findIdx(headers, ["이메일2","보조이메일","이메일(2)","Email2"]);
+
+    const firstData = dataRows[0] || [];
+
+    const mapped =
+`mapped(첫 데이터행 → 필드):
+기관: ${pick(firstData, idxOrg)}
+고객명: ${pick(firstData, idxName)}
+관심분야: ${pick(firstData, idxInterest)}
+연구분야: ${pick(firstData, idxResearch)}
+예산: ${pick(firstData, idxBudget)}
+핸드폰: ${pick(firstData, idxMobile)}
+유선: ${pick(firstData, idxPhone)}
+이메일1: ${pick(firstData, idxEmail)}
+이메일2: ${pick(firstData, idxEmail2)}`;
+
+    const headerLine = headers.length ? headers.join(" | ") : "-";
+
+    const previewN = Math.min(5, rowCount);
+    const previewLines = [];
+    for (let i=0;i<previewN;i++){
+      const r = dataRows[i] || [];
+      const short = r.map(v => norm(v)).map(v => v.length>40 ? v.slice(0,40)+"…" : v);
+      previewLines.push("- " + short.join(" | "));
+    }
+    const previewBlock = previewLines.length ? previewLines.join("\n") : "-";
+
+    STATE = "GUIDE";
+    LAST_ACTION = "RUN_OK";
+
+    return `CSV 미리보기
+time: ${nowKST()}
+columns: ${colCount}
+rows: ${rowCount}
+
+header:
+${headerLine}
+
+${mapped}
+
+preview(${previewN}):
+${previewBlock}
+
+raw_chars: ${raw.length}
+word_count: ${wordCount(raw)}
+first_line: ${firstLine || "-"}
+excerpt(300): ${excerpt || "-"}`;
   }
 
-  function applyToUI() {
-    $("raw").value = st.raw || "";
-    $("out").textContent = st.out || "—";
-    setStatus();
-  }
-
-  // BOOT
-  if (load()) {
-    applyToUI();
-    st.lastAction = "RESTORE";
+  runBtn.addEventListener("click", () => {
+    TEST = "X";
+    const out = buildOutput(rawEl.value || "");
+    outEl.textContent = out || "—";
+    setBadge(STATE, TEST);
     save();
-  } else {
-    setStatus();
-    save();
-  }
-
-  $("run").addEventListener("click", () => {
-    st.raw = $("raw").value || "";
-    st.out = buildOutputFromRaw(st.raw);
-    st.state = "GUIDE";
-    st.test = "X";
-    st.lastAction = "RUN";
-    save();
-    applyToUI();
   });
 
-  $("reset").addEventListener("click", () => {
-    st.raw = "";
-    st.out = "—";
-    st.state = "INPUT";
-    st.test = "X";
-    st.lastAction = "RESET";
+  resetBtn.addEventListener("click", () => {
+    localStorage.removeItem(LS_KEY);
+    rawEl.value = "";
+    outEl.textContent = "—";
+    STATE = "INPUT";
+    TEST = "X";
+    LAST_ACTION = "RESET";
+    setBadge(STATE, TEST);
     save();
-    applyToUI();
   });
 
-  $("test").addEventListener("click", () => {
-    // PASS 조건: GUIDE 상태 + out에 mapped(첫 데이터행 → 필드) 포함 + localStorage 저장됨
-    const hasBundle = !!localStorage.getItem(LS_KEY);
-    const ok =
-      st.state === "GUIDE" &&
-      typeof st.out === "string" &&
-      st.out.includes("mapped(첫 데이터행 → 필드):") &&
-      hasBundle;
-
-    st.test = ok ? "PASS" : "FAIL";
-    st.lastAction = "TEST";
+  testBtn.addEventListener("click", () => {
+    // PASS 조건: (1) 저장된 번들 존재 (2) STATE/RAW/OUT이 서로 일치 (3) GUIDE면 out에 columns/rows 라인이 있어야 함
+    try {
+      const s = localStorage.getItem(LS_KEY);
+      if (!s) { TEST = "X"; setBadge(STATE, TEST); return; }
+      const b = JSON.parse(s);
+      const raw = String(rawEl.value||"");
+      const out = String(outEl.textContent||"");
+      const stOk = (b.state === STATE);
+      const rawOk = (String(b.raw||"") === raw);
+      const outOk = (String(b.out||"—") === out);
+      const guideOk = (STATE !== "GUIDE") || (out.includes("columns:") && out.includes("rows:") && out.includes("mapped(첫 데이터행 → 필드):"));
+      TEST = (stOk && rawOk && outOk && guideOk) ? "PASS" : "X";
+    } catch {
+      TEST = "X";
+    }
+    setBadge(STATE, TEST);
     save();
-    setStatus();
   });
+
+  restore();
 })();
 </script>
 </body>
