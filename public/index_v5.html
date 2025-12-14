@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>01 · CSV/붙여넣기 고객 데이터 유입</title>
+</head>
+<body>
+  <div id="status"></div>
+
+  <!-- 입력 -->
+  <textarea id="input" placeholder="CSV 또는 텍스트를 그대로 붙여넣기"></textarea>
+  <button id="run">실행</button>
+  <button id="reset">초기화</button>
+  <button id="test">자동 테스트 1회</button>
+
+  <!-- 결과 -->
+  <pre id="output">—</pre>
+
+  <script>
+    (function(){
+      const LS_KEY = "WIC01_CORE_V5";
+      const $ = (id)=>document.getElementById(id);
+
+      const statusEl = $("status");
+      const inputEl  = $("input");
+      const outputEl = $("output");
+
+      function now(){
+        const d=new Date();
+        const z=n=>String(n).padStart(2,"0");
+        return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+
+               " "+z(d.getHours())+":"+z(d.getMinutes())+":"+z(d.getSeconds());
+      }
+
+      function save(state,input,parsed,test){
+        localStorage.setItem(LS_KEY, JSON.stringify({state,input,parsed,test}));
+      }
+
+      function load(){
+        try{
+          return JSON.parse(localStorage.getItem(LS_KEY)) || 
+            {state:"INPUT",input:"",parsed:null,test:"X"};
+        }catch{
+          return {state:"INPUT",input:"",parsed:null,test:"X"};
+        }
+      }
+
+      function setStatus(s){
+        statusEl.textContent = "JS: OK | STATE: "+s.state+" | TEST: "+s.test;
+      }
+
+      function parseCSV(text){
+        const lines = text.trim().split(/\r?\n/);
+        if(lines.length===0) return null;
+
+        const sep = lines[0].includes(",") ? "," : "\t";
+        const rows = lines.map(l=>l.split(sep).map(v=>v.trim()));
+
+        const header = rows[0];
+        const data   = rows.slice(1);
+
+        return {header, rows:data};
+      }
+
+      function renderParsed(p){
+        if(!p){
+          outputEl.textContent = "—";
+          return;
+        }
+        const preview = p.rows.slice(0,5)
+          .map(r=>r.join(" | "))
+          .join("\n");
+
+        outputEl.textContent =
+`CSV 미리보기
+time: ${now()}
+columns: ${p.header.length}
+rows: ${p.rows.length}
+
+header:
+${p.header.join(" | ")}
+
+preview(5):
+${preview || "-"}`;
+      }
+
+      // BOOT
+      let state = load();
+      inputEl.value = state.input;
+      renderParsed(state.parsed);
+      setStatus(state);
+
+      // 실행
+      $("run").onclick = ()=>{
+        const raw = inputEl.value || "";
+        const parsed = parseCSV(raw);
+        state = {state:"GUIDE", input:raw, parsed, test:"X"};
+        renderParsed(parsed);
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
+
+      // 초기화
+      $("reset").onclick = ()=>{
+        localStorage.removeItem(LS_KEY);
+        state = {state:"INPUT", input:"", parsed:null, test:"X"};
+        inputEl.value="";
+        renderParsed(null);
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
+
+      // 자동 테스트
+      $("test").onclick = ()=>{
+        const ok =
+          state.state==="GUIDE" &&
+          state.parsed &&
+          Array.isArray(state.parsed.header) &&
+          Array.isArray(state.parsed.rows);
+
+        state.test = ok ? "PASS" : "X";
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
+    })();
+  </script>
+</body>
+</html>
