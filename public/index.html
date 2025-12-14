@@ -1,122 +1,128 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>01 · 붙여넣기 → 실행 → 결과</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>01 · CSV/붙여넣기 고객 데이터 유입</title>
 </head>
 <body>
-  <div id="state"></div>
-  <textarea id="inp" placeholder="여기에 붙여넣기"></textarea>
+  <div id="status"></div>
+
+  <!-- 입력 -->
+  <textarea id="input" placeholder="CSV 또는 텍스트를 그대로 붙여넣기"></textarea>
   <button id="run">실행</button>
-  <pre id="out">—</pre>
-  <button id="clr">초기화</button>
-  <button id="tst">자동 테스트 1회</button>
+  <button id="reset">초기화</button>
+  <button id="test">자동 테스트 1회</button>
+
+  <!-- 결과 -->
+  <pre id="output">—</pre>
 
   <script>
-    (function () {
-      const LS_KEY = "WIC_01_V1";
-      const $ = (id) => document.getElementById(id);
+    (function(){
+      const LS_KEY = "WIC01_CORE_V5";
+      const $ = (id)=>document.getElementById(id);
 
-      const elState = $("state");
-      const elInp = $("inp");
-      const elOut = $("out");
-      const btnRun = $("run");
-      const btnClr = $("clr");
-      const btnTst = $("tst");
+      const statusEl = $("status");
+      const inputEl  = $("input");
+      const outputEl = $("output");
 
-      const now = () => {
-        const d = new Date();
-        const z = (n) => String(n).padStart(2, "0");
-        return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()) + " " +
-               z(d.getHours()) + ":" + z(d.getMinutes()) + ":" + z(d.getSeconds());
-      };
-
-      function safeParse(s) {
-        try { return JSON.parse(s); } catch { return null; }
+      function now(){
+        const d=new Date();
+        const z=n=>String(n).padStart(2,"0");
+        return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+
+               " "+z(d.getHours())+":"+z(d.getMinutes())+":"+z(d.getSeconds());
       }
 
-      function setStateText(s) {
-        elState.textContent = s;
+      function save(state,input,parsed,test){
+        localStorage.setItem(LS_KEY, JSON.stringify({state,input,parsed,test}));
       }
 
-      function save(bundle) {
-        localStorage.setItem(LS_KEY, JSON.stringify(bundle));
+      function load(){
+        try{
+          return JSON.parse(localStorage.getItem(LS_KEY)) || 
+            {state:"INPUT",input:"",parsed:null,test:"X"};
+        }catch{
+          return {state:"INPUT",input:"",parsed:null,test:"X"};
+        }
       }
 
-      function load() {
-        const raw = localStorage.getItem(LS_KEY);
-        const b = raw ? safeParse(raw) : null;
-        if (!b || typeof b !== "object") return { state: "INPUT", input: "", result: "—", pass: "X" };
-        return {
-          state: (b.state === "GUIDE" || b.state === "INPUT") ? b.state : "INPUT",
-          input: (typeof b.input === "string") ? b.input : "",
-          result: (typeof b.result === "string" && b.result.length) ? b.result : "—",
-          pass: (b.pass === "PASS") ? "PASS" : "X"
-        };
+      function setStatus(s){
+        statusEl.textContent = "JS: OK | STATE: "+s.state+" | TEST: "+s.test;
       }
 
-      function render(b) {
-        elInp.value = b.input;
-        elOut.textContent = b.result || "—";
-        setStateText("JS: OK | STATE: " + b.state + " | TEST: " + b.pass);
+      function parseCSV(text){
+        const lines = text.trim().split(/\r?\n/);
+        if(lines.length===0) return null;
+
+        const sep = lines[0].includes(",") ? "," : "\t";
+        const rows = lines.map(l=>l.split(sep).map(v=>v.trim()));
+
+        const header = rows[0];
+        const data   = rows.slice(1);
+
+        return {header, rows:data};
       }
 
-      function makeGuide(text) {
-        const raw = String(text || "");
-        const lines = raw.split(/\r?\n/);
-        const first = (lines.find(l => l.trim().length) || "").trim();
-        const excerpt = raw.slice(0, 300).replace(/\s+/g, " ").trim();
-        
-        const wordCount = raw.length ? raw.split(/\s+/).filter(Boolean).length : 0;
-        
-        
-        const guide =
-          "01번 안내서\n" +
-          "time: " + now() + "\n" +
-          "raw_chars: " + raw.length + "\n" +
-          "first_line: " + (first || "-") + "\n" +
-          "excerpt(300): " + (excerpt || "-") + "\n";
-        return guide;
-      }
+      function renderParsed(p){
+        if(!p){
+          outputEl.textContent = "—";
+          return;
+        }
+        const preview = p.rows.slice(0,5)
+          .map(r=>r.join(" | "))
+          .join("\n");
 
-      function autoTest(b) {
-        const hasChange = (b.state === "GUIDE") && (b.result && b.result !== "—");
-        const hasPersist = !!localStorage.getItem(LS_KEY);
-        const stateOk = (b.state === "GUIDE" || b.state === "INPUT");
-        const inputOk = typeof b.input === "string";
-        const resultOk = typeof b.result === "string";
-        return (hasChange && hasPersist && stateOk && inputOk && resultOk) ? "PASS" : "FAIL";
+        outputEl.textContent =
+`CSV 미리보기
+time: ${now()}
+columns: ${p.header.length}
+rows: ${p.rows.length}
+
+header:
+${p.header.join(" | ")}
+
+preview(5):
+${preview || "-"}`;
       }
 
       // BOOT
-      let bundle = load();
-      render(bundle);
-      save(bundle); // 로드시 자동 저장(복원 실패 방지)
+      let state = load();
+      inputEl.value = state.input;
+      renderParsed(state.parsed);
+      setStatus(state);
 
-      btnRun.addEventListener("click", () => {
-        const input = elInp.value || "";
-        const result = makeGuide(input);
-        bundle = { state: "GUIDE", input, result, pass: "X" };
-        render(bundle);
-        save(bundle);
-      });
+      // 실행
+      $("run").onclick = ()=>{
+        const raw = inputEl.value || "";
+        const parsed = parseCSV(raw);
+        state = {state:"GUIDE", input:raw, parsed, test:"X"};
+        renderParsed(parsed);
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
 
-      btnClr.addEventListener("click", () => {
+      // 초기화
+      $("reset").onclick = ()=>{
         localStorage.removeItem(LS_KEY);
-        bundle = { state: "INPUT", input: "", result: "—", pass: "X" };
-        render(bundle);
-        save(bundle);
-      });
+        state = {state:"INPUT", input:"", parsed:null, test:"X"};
+        inputEl.value="";
+        renderParsed(null);
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
 
-      btnTst.addEventListener("click", () => {
-        const b = load();
-        const verdict = autoTest(b);
-        const pass = (verdict === "PASS") ? "PASS" : "X";
-        bundle = { state: b.state, input: b.input, result: b.result, pass };
-        render(bundle);
-        save(bundle);
-      });
+      // 자동 테스트
+      $("test").onclick = ()=>{
+        const ok =
+          state.state==="GUIDE" &&
+          state.parsed &&
+          Array.isArray(state.parsed.header) &&
+          Array.isArray(state.parsed.rows);
+
+        state.test = ok ? "PASS" : "X";
+        setStatus(state);
+        save(state.state,state.input,state.parsed,state.test);
+      };
     })();
   </script>
 </body>
