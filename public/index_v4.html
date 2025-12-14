@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>01 · 붙여넣기 → 실행 → 결과</title>
+</head>
+<body>
+  <div id="state"></div>
+  <textarea id="inp" placeholder="여기에 붙여넣기"></textarea>
+  <button id="run">실행</button>
+  <pre id="out">—</pre>
+  <button id="clr">초기화</button>
+  <button id="tst">자동 테스트 1회</button>
+
+  <script>
+    (function () {
+      const LS_KEY = "WIC_01_V1";
+      const $ = (id) => document.getElementById(id);
+
+      const elState = $("state");
+      const elInp = $("inp");
+      const elOut = $("out");
+      const btnRun = $("run");
+      const btnClr = $("clr");
+      const btnTst = $("tst");
+
+      const now = () => {
+        const d = new Date();
+        const z = (n) => String(n).padStart(2, "0");
+        return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()) + " " +
+               z(d.getHours()) + ":" + z(d.getMinutes()) + ":" + z(d.getSeconds());
+      };
+
+      function safeParse(s) {
+        try { return JSON.parse(s); } catch { return null; }
+      }
+
+      function setStateText(s) {
+        elState.textContent = s;
+      }
+
+      function save(bundle) {
+        localStorage.setItem(LS_KEY, JSON.stringify(bundle));
+      }
+
+      function load() {
+        const raw = localStorage.getItem(LS_KEY);
+        const b = raw ? safeParse(raw) : null;
+        if (!b || typeof b !== "object") return { state: "INPUT", input: "", result: "—", pass: "X" };
+        return {
+          state: (b.state === "GUIDE" || b.state === "INPUT") ? b.state : "INPUT",
+          input: (typeof b.input === "string") ? b.input : "",
+          result: (typeof b.result === "string" && b.result.length) ? b.result : "—",
+          pass: (b.pass === "PASS") ? "PASS" : "X"
+        };
+      }
+
+      function render(b) {
+        elInp.value = b.input;
+        elOut.textContent = b.result || "—";
+        setStateText("JS: OK | STATE: " + b.state + " | TEST: " + b.pass);
+      }
+
+      function makeGuide(text) {
+        const raw = String(text || "");
+        const lines = raw.split(/\r?\n/);
+        const first = (lines.find(l => l.trim().length) || "").trim();
+        const excerpt = raw.slice(0, 300).replace(/\s+/g, " ").trim();
+        
+        const wordCount = raw.length ? raw.split(/\s+/).filter(Boolean).length : 0;
+        
+        
+        const guide =
+          "01번 안내서\n" +
+          "time: " + now() + "\n" +
+          "raw_chars: " + raw.length + "\n" +
+          "first_line: " + (first || "-") + "\n" +
+          "excerpt(300): " + (excerpt || "-") + "\n";
+        return guide;
+      }
+
+      function autoTest(b) {
+        const hasChange = (b.state === "GUIDE") && (b.result && b.result !== "—");
+        const hasPersist = !!localStorage.getItem(LS_KEY);
+        const stateOk = (b.state === "GUIDE" || b.state === "INPUT");
+        const inputOk = typeof b.input === "string";
+        const resultOk = typeof b.result === "string";
+        return (hasChange && hasPersist && stateOk && inputOk && resultOk) ? "PASS" : "FAIL";
+      }
+
+      // BOOT
+      let bundle = load();
+      render(bundle);
+      save(bundle); // 로드시 자동 저장(복원 실패 방지)
+
+      btnRun.addEventListener("click", () => {
+        const input = elInp.value || "";
+        const result = makeGuide(input);
+        bundle = { state: "GUIDE", input, result, pass: "X" };
+        render(bundle);
+        save(bundle);
+      });
+
+      btnClr.addEventListener("click", () => {
+        localStorage.removeItem(LS_KEY);
+        bundle = { state: "INPUT", input: "", result: "—", pass: "X" };
+        render(bundle);
+        save(bundle);
+      });
+
+      btnTst.addEventListener("click", () => {
+        const b = load();
+        const verdict = autoTest(b);
+        const pass = (verdict === "PASS") ? "PASS" : "X";
+        bundle = { state: b.state, input: b.input, result: b.result, pass };
+        render(bundle);
+        save(bundle);
+      });
+    })();
+  </script>
+</body>
+</html>
