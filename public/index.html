@@ -67,6 +67,10 @@
         const lines = raw.split(/\r?\n/);
         const first = (lines.find(l => l.trim().length) || "").trim();
         const excerpt = raw.slice(0, 300).replace(/\s+/g, " ").trim();
+        
+        const wordCount = raw.length ? raw.split(/\s+/).filter(Boolean).length : 0;
+        
+        
         const guide =
           "01번 안내서\n" +
           "time: " + now() + "\n" +
