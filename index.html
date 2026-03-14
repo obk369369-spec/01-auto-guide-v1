@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1번 고객 자동화 안내서 - 메일용 / 워드저장용</title>
+  <title>1번 고객 자동화 안내서</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -19,16 +19,17 @@
       gap: 12px;
       padding: 12px;
     }
-    .panel, .preview {
+    .panel, .preview-wrap {
       background: #fff;
       border: 1px solid #d8dde6;
       border-radius: 12px;
       padding: 14px;
       overflow: auto;
     }
-    .panel h2 {
+    .panel h2, .preview-title {
       margin: 0 0 12px;
       font-size: 16px;
+      font-weight: 700;
     }
     .field { margin-bottom: 12px; }
     .field label {
@@ -37,11 +38,11 @@
       font-size: 13px;
       font-weight: 700;
     }
-    .field input, .field textarea, .field select {
+    .field select, .field textarea, .field input {
       width: 100%;
+      padding: 10px;
       border: 1px solid #cfd6e2;
       border-radius: 8px;
-      padding: 10px;
       font-size: 14px;
       background: #fff;
     }
@@ -55,7 +56,7 @@
       gap: 8px;
       margin-bottom: 12px;
     }
-    button {
+    .btn {
       border: 1px solid #c8cfdb;
       background: #1f6feb;
       color: #fff;
@@ -65,9 +66,13 @@
       font-size: 14px;
       font-weight: 700;
     }
-    button.secondary {
+    .btn.secondary {
       background: #fff;
       color: #1f2937;
+    }
+    .btn.small {
+      padding: 4px 8px;
+      font-size: 11px;
     }
     .hint {
       font-size: 12px;
@@ -75,24 +80,150 @@
       line-height: 1.5;
       margin-top: 8px;
     }
-    .preview-title {
-      margin: 0 0 12px;
-      font-size: 16px;
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      border: 1px solid #c8cfdb;
+      background: #fff;
+      color: #1f2937;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
       font-weight: 700;
     }
+    .tab-btn.active {
+      background: #1f6feb;
+      color: #fff;
+      border-color: #1f6feb;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
     .mail-stage {
       background: #eef2f7;
       border-radius: 10px;
       padding: 16px;
     }
+
     .guide-wrap {
       width: 760px;
       margin: 0 auto;
       background: #fff;
     }
+
+    .page-stage {
+      position: relative;
+      width: 760px;
+      margin: 0 auto;
+      background: #eef2f7;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .compare-stage {
+      position: relative;
+      width: 760px;
+      min-height: 980px;
+      margin: 0 auto;
+    }
+    .origin-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 760px;
+      opacity: 0.38;
+      z-index: 1;
+      pointer-events: none;
+      display: block;
+    }
+    .guide-layer {
+      position: relative;
+      z-index: 2;
+      background: transparent;
+    }
+    .overlay-root {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .overlay-box {
+      position: absolute;
+      border: 2px solid rgba(239, 68, 68, 0.9);
+      background: rgba(239, 68, 68, 0.06);
+      border-radius: 6px;
+      pointer-events: auto;
+    }
+    .overlay-label {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      pointer-events: auto;
+    }
+    .area-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #ccd5e2;
+      background: #f7f9fc;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #ead08b;
+      background: #fff8e8;
+      color: #8b5a00;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .debug-card {
+      border: 1px solid #d8dde6;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      background: #fbfcfe;
+    }
+    .debug-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .copy-box {
+      background: #0f172a;
+      color: #d7e0ea;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
-      .guide-wrap { width: 760px; }
+      .guide-wrap, .page-stage, .compare-stage, .origin-layer { width: 760px; }
     }
   </style>
 </head>
@@ -102,10 +233,10 @@
       <h2>메일 발송용 / 워드 저장용</h2>
 
       <div class="btn-row">
-        <button id="runBtn">정리/실행</button>
-        <button id="sampleBtn" class="secondary">샘플 넣기</button>
-        <button id="copyMailBtn">메일용 안내서 복사</button>
-        <button id="downloadWordBtn" class="secondary">워드 저장용 다운로드</button>
+        <button id="runBtn" class="btn">정리/실행</button>
+        <button id="sampleBtn" class="btn secondary">샘플 넣기</button>
+        <button id="copyMailBtn" class="btn">메일용 안내서 전체 복사</button>
+        <button id="downloadWordBtn" class="btn secondary">워드 저장용 다운로드</button>
       </div>
 
       <div class="field">
@@ -167,15 +298,34 @@
       </div>
 
       <div class="hint">
-        메일 복사는 안내서 표 전체를 HTML 블록으로 복사합니다.<br>
-        워드 저장은 .html 파일로 저장한 뒤 Word에서 열어 저장하면 됩니다.
+        같은 폴더에 <strong>original-guide.png</strong> 파일을 두면 오류 화면에서 반투명으로 겹쳐집니다.<br>
+        생성 화면은 메일/워드용 블록이고, 오류 화면은 원본 비교용입니다.
       </div>
     </div>
 
-    <div class="preview">
-      <div class="preview-title">메일 붙여넣기용 안내서 미리보기</div>
-      <div class="mail-stage">
-        <div id="guideWrap" class="guide-wrap"></div>
+    <div class="preview-wrap">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="renderTab">생성 화면</button>
+        <button class="tab-btn" data-tab="debugTab">오류 화면</button>
+      </div>
+
+      <div id="renderTab" class="tab-pane active">
+        <div class="preview-title">메일 발송용 안내서 미리보기</div>
+        <div class="mail-stage">
+          <div id="guideWrap" class="guide-wrap"></div>
+        </div>
+      </div>
+
+      <div id="debugTab" class="tab-pane">
+        <div class="preview-title">원본 겹침 비교 + 정밀 분류체계</div>
+        <div class="page-stage">
+          <div class="compare-stage">
+            <img id="originLayer" class="origin-layer" src="./original-guide.png" alt="원본 안내서" />
+            <div id="debugGuideWrap" class="guide-layer"></div>
+            <div id="overlayRoot" class="overlay-root"></div>
+          </div>
+        </div>
+        <div id="debugRoot"></div>
       </div>
     </div>
   </div>
@@ -221,10 +371,6 @@ Production and Supply Forecast
         .replace(/'/g, "&#039;");
     }
 
-    function nl2br(text) {
-      return escapeHtml(text).replace(/\n/g, "<br>");
-    }
-
     function getData() {
       const customerKey = document.getElementById("customerSelect").value;
       const customer = customers[customerKey];
@@ -248,10 +394,10 @@ Production and Supply Forecast
 <div id="mailGuideBlock" style="width:760px; margin:0; background:#ffffff;">
   <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed; font-family:Arial, sans-serif; color:#222; background:#fff;">
     <tr>
-      <td colspan="3" style="padding:0;">
+      <td colspan="3" style="padding:0 0 12px 0;">
         <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed;">
           <tr>
-            <td style="width:58%; border:1px solid #222; border-right:1px solid #222; text-align:center; padding:14px 10px;">
+            <td style="width:58%; border:1px solid #222; text-align:center; padding:14px 10px;">
               <div style="font-size:22px; font-weight:700; line-height:1.2; margin-bottom:4px;">신간자료안내</div>
               <div style="font-size:13px; font-weight:700; text-decoration:underline; line-height:1.2;">www.worldic.co.kr</div>
             </td>
@@ -269,7 +415,7 @@ Production and Supply Forecast
     </tr>
 
     <tr>
-      <td colspan="3" style="border-left:1px solid #222; border-right:1px solid #222; border-bottom:1px solid #999; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.25;">
+      <td colspan="3" style="border-left:1px solid #222; border-right:1px solid #222; border-top:1px solid #222; border-bottom:1px solid #999; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.25;">
         수신 : ${escapeHtml(data.receiver)}
       </td>
     </tr>
@@ -319,15 +465,48 @@ ${escapeHtml(data.tocText)}
 </div>`;
     }
 
-    function renderGuide() {
-      const data = getData();
-      document.getElementById("guideWrap").innerHTML = buildGuideHTML(data);
+    function buildDebugText(item) {
+      return `분류코드: ${item.code}\n위치: ${item.area}\n상태: ${item.status}\n현재값: ${item.value}`;
     }
 
-    async function copyGuideForMail() {
-      const data = getData();
-      const html = buildGuideHTML(data);
+    function buildDebugItems(data) {
+      return [
+        { title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", code: "HEADER.LEFT.BOX", status: "RULE_UPGRADEABLE", value: "좌측 헤더 박스" },
+        { title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", code: "HEADER.RIGHT.BOX", status: "RULE_UPGRADEABLE", value: "우측 헤더 박스" },
+        { title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", code: "RECEIVER.LINE", status: "RULE_UPGRADEABLE", value: data.receiver },
+        { title: "META.LEFT.TEXT.PUBLISHER", area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER", code: "META.LEFT.TEXT.PUBLISHER", status: "RULE_UPGRADEABLE", value: data.publisher },
+        { title: "META.CENTER.TEXT.PAGES", area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES", code: "META.CENTER.TEXT.PAGES", status: "RULE_UPGRADEABLE", value: data.pages },
+        { title: "META.RIGHT.TEXT.PRICE", area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE", code: "META.RIGHT.TEXT.PRICE", status: "RULE_UPGRADEABLE", value: data.price },
+        { title: "LINK.TEXT", area: "T1/S1/C3/W1/LINK.TEXT", code: "LINK.TEXT", status: "RULE_UPGRADEABLE", value: data.reportLink },
+        { title: "TITLE.EN", area: "T1/S1/C3/W1/TITLE.EN", code: "TITLE.EN", status: "RULE_UPGRADEABLE", value: data.titleEn },
+        { title: "TITLE.KO", area: "T1/S1/C3/W1/TITLE.KO", code: "TITLE.KO", status: "RULE_UPGRADEABLE", value: data.titleKo },
+        { title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", code: "TOC.TEXT", status: "RULE_UPGRADEABLE", value: data.tocText.split("\n")[0] || "" }
+      ];
+    }
 
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("복사 완료");
+      } catch (e) {
+        alert(text);
+      }
+    }
+
+    async function copyDebug(index) {
+      const item = window.__debugItems[index];
+      if (!item) return;
+      await copyText(buildDebugText(item));
+    }
+    window.copyDebug = copyDebug;
+
+    async function copyOverlay(area, title) {
+      await copyText(`위치 식별자: ${area}\n구역명: ${title}\n최근 동작: 정리/실행`);
+    }
+    window.copyOverlay = copyOverlay;
+
+    async function copyGuideForMail() {
+      const html = buildGuideHTML(getData());
       try {
         await navigator.clipboard.write([
           new ClipboardItem({
@@ -335,27 +514,21 @@ ${escapeHtml(data.tocText)}
             "text/plain": new Blob([html.replace(/<[^>]+>/g, "")], { type: "text/plain" })
           })
         ]);
-        alert("메일용 안내서 복사 완료");
+        alert("메일용 안내서 전체 복사 완료");
       } catch (e) {
         alert("복사 실패");
       }
     }
 
     function downloadWordHTML() {
-      const data = getData();
-      const docHtml = `
+      const html = `
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>안내서 저장용</title>
-</head>
-<body>
-${buildGuideHTML(data)}
-</body>
+<head><meta charset="UTF-8"><title>guide-save-for-word</title></head>
+<body>${buildGuideHTML(getData())}</body>
 </html>`.trim();
 
-      const blob = new Blob([docHtml], { type: "text/html;charset=utf-8" });
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -364,6 +537,58 @@ ${buildGuideHTML(data)}
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+    }
+
+    function renderDebug(data) {
+      const items = buildDebugItems(data);
+      window.__debugItems = items;
+
+      document.getElementById("debugRoot").innerHTML = items.map((item, idx) => `
+        <div class="debug-card">
+          <div class="debug-top">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong><br>
+              <span class="area-badge">${escapeHtml(item.area)}</span>
+              <span class="status-badge">${item.status}</span>
+            </div>
+            <button class="btn secondary small" onclick="copyDebug(${idx})">복사</button>
+          </div>
+          <div>분류코드: ${escapeHtml(item.code)}</div>
+          <div>현재값: ${escapeHtml(item.value)}</div>
+          <div class="copy-box">${escapeHtml(buildDebugText(item))}</div>
+        </div>
+      `).join("");
+
+      const overlays = [
+        { title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", x: 0, y: 0, w: 441, h: 91 },
+        { title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", x: 441, y: 0, w: 319, h: 91 },
+        { title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", x: 0, y: 103, w: 760, h: 53 },
+        { title: "META.LEFT.TEXT.PUBLISHER", area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER", x: 0, y: 156, w: 380, h: 71 },
+        { title: "META.CENTER.TEXT.PAGES", area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES", x: 380, y: 156, w: 137, h: 71 },
+        { title: "META.RIGHT.TEXT.PRICE", area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE", x: 517, y: 156, w: 243, h: 71 },
+        { title: "LINK.TEXT", area: "T1/S1/C3/W1/LINK.TEXT", x: 0, y: 227, w: 760, h: 54 },
+        { title: "TITLE.EN", area: "T1/S1/C3/W1/TITLE.EN", x: 12, y: 315, w: 736, h: 74 },
+        { title: "TITLE.KO", area: "T1/S1/C3/W1/TITLE.KO", x: 12, y: 389, w: 736, h: 38 },
+        { title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", x: 12, y: 427, w: 736, h: 250 }
+      ];
+
+      document.getElementById("overlayRoot").innerHTML = overlays.map(o => `
+        <div class="overlay-box" style="left:${o.x}px; top:${o.y}px; width:${o.w}px; height:${o.h}px;">
+          <div class="overlay-label">
+            <span class="area-badge">${o.area}</span>
+            <span class="status-badge">${o.title}</span>
+            <button class="btn secondary small" onclick="copyOverlay('${o.area}','${o.title}')">복사</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderAll() {
+      const data = getData();
+      const html = buildGuideHTML(data);
+      document.getElementById("guideWrap").innerHTML = html;
+      document.getElementById("debugGuideWrap").innerHTML = html;
+      renderDebug(data);
     }
 
     function fillSample() {
@@ -378,13 +603,26 @@ ${buildGuideHTML(data)}
       document.getElementById("supplyPrice").value = sample.supplyPrice;
       document.getElementById("reportLink").value = sample.reportLink;
       document.getElementById("tocText").value = sample.tocText;
-      renderGuide();
+      renderAll();
     }
 
-    document.getElementById("runBtn").addEventListener("click", renderGuide);
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    document.getElementById("runBtn").addEventListener("click", renderAll);
     document.getElementById("sampleBtn").addEventListener("click", fillSample);
     document.getElementById("copyMailBtn").addEventListener("click", copyGuideForMail);
     document.getElementById("downloadWordBtn").addEventListener("click", downloadWordHTML);
+
+    document.getElementById("originLayer").addEventListener("error", function() {
+      this.style.display = "none";
+    });
 
     fillSample();
   </script>
