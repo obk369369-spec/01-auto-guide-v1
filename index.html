@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>01번 도구 · CSV 유입 + 필드 매핑 v1</title>
+</head>
+<body>
+  <div id="badge">JS: OK | STATE: INPUT | TEST: X</div>
+
+  <textarea id="raw" rows="10" placeholder="CSV 또는 텍스트를 그대로 붙여넣기" style="width:100%;"></textarea>
+
+  <div>
+    <button id="run">실행</button>
+    <button id="reset">초기화</button>
+    <button id="test">자동 테스트 1회</button>
+  </div>
+
+  <pre id="out">—</pre>
+
+<script>
+(() => {
+  "use strict";
+
+  const KEY = "wic_tool01_v1";
+  const $ = (id) => document.getElementById(id);
+
+  const badge = $("badge");
+  const rawEl = $("raw");
+  const outEl = $("out");
+  const runBtn = $("run");
+  const resetBtn = $("reset");
+  const testBtn = $("test");
+
+  const nowStr = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const da = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    const ss = String(d.getSeconds()).padStart(2, "0");
+    return `${y}-${m}-${da} ${hh}:${mm}:${ss}`;
+  };
+
+  const safe = (v) => (v == null ? "" : String(v));
+  const norm = (s) =>
+    safe(s)
+      .replace(/^\uFEFF/, "")
+      .replace(/^"+|"+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
+  const state = {
+    js: "OK",
+    STATE: "INPUT",
+    TEST: "X",
+    raw: "",
+    out: "—",
+    updatedAt: "",
+  };
+
+  function setBadge() {
+    badge.textContent = `JS: ${state.js} | STATE: ${state.STATE} | TEST: ${state.TEST}`;
+  }
+
+  function save() {
+    try {
+      state.raw = rawEl.value || "";
+      state.out = outEl.textContent || "—";
+      state.updatedAt = nowStr();
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      const s = localStorage.getItem(KEY);
+      if (!s) return;
+      const obj = JSON.parse(s);
+      if (!obj || typeof obj !== "object") return;
+
+      state.STATE = obj.STATE === "GUIDE" ? "GUIDE" : "INPUT";
+      state.TEST = obj.TEST === "PASS" ? "PASS" : "X";
+      rawEl.value = safe(obj.raw);
+      outEl.textContent = safe(obj.out) || "—";
+    } catch (e) {}
+    setBadge();
+  }
+
+  function detectDelimiter(sampleLine) {
+    const t = (sampleLine.match(/\t/g) || []).length;
+    const c = (sampleLine.match(/,/g) || []).length;
+    const s = (sampleLine.match(/;/g) || []).length;
+    if (t >= c && t >= s && t > 0) return "\t";
+    if (c >= t && c >= s && c > 0) return ",";
+    if (s > 0) return ";";
+    return "\t";
+  }
+
+  // CSV/TSV parser with quotes + embedded newlines
+  function parseDelimited(text) {
+    const src = safe(text);
+    if (!src.trim()) return { delim: "\t", rows: [] };
+
+    // pick delimiter based on first non-empty line
+    const lines = src.split(/\r?\n/);
+    let first = "";
+    for (const ln of lines) {
+      if (ln.trim()) { first = ln; break; }
+    }
+    const delim = detectDelimiter(first);
+
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+
+      if (ch === '"') {
+        const next = src[i + 1];
+        if (inQuotes && next === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (!inQuotes && ch === delim) {
+        row.push(field);
+        field = "";
+        continue;
+      }
+
+      if (!inQuotes && (ch === "\n" || ch === "\r")) {
+        // handle CRLF
+        if (ch === "\r" && src[i + 1] === "\n") i++;
+        row.push(field);
+        field = "";
+        // ignore fully empty trailing row
+        if (!(row.length === 1 && safe(row[0]).trim() === "")) rows.push(row);
+        row = [];
+        continue;
+      }
+
+      field += ch;
+    }
+
+    // last field
+    row.push(field);
+    if (!(row.length === 1 && safe(row[0]).trim() === "")) rows.push(row);
+
+    // trim right-empty rows
+    while (rows.length && rows[rows.length - 1].every(v => !safe(v).trim())) rows.pop();
+
+    return { delim, rows };
+  }
+
+  function buildHeaderIndex(headers) {
+    const idx = new Map();
+    headers.forEach((h, i) => idx.set(norm(h), i));
+    return idx;
+  }
+
+  const ALIASES = {
+    기관: ["직장명", "기관", "소속", "회사명", "고객 기관", "고객기관", "단체명"],
+    고객명: ["성명", "고객명", "이름", "담당자", "성명(담당자)"],
+    부서: ["부서", "부서명", "소속부서"],
+    직위: ["직위", "직급", "직책"],
+    관심분야: ["관심분야", "관심 분야", "관심", "키워드", "주제/키워드", "주제", "키워드/주제"],
+    연구분야: ["연구분야", "연구 분야", "전공", "분야"],
+    예산: ["예산", "금액", "총액", "예상금액", "예산(원)", "구매예산"],
+    핸드폰: ["핸드폰", "휴대폰", "휴대폰번호", "휴대", "모바일", "mobile"],
+    유선: ["전화번호", "유선", "유선번호", "사무실전화", "전화"],
+    팩스: ["팩스번호", "팩스", "fax"],
+    이메일1: ["이메일주소", "이메일", "email", "e-mail", "메일"],
+    주소: ["주소", "우편주소", "소재지"],
+    요청원문: ['전무님께 문의할 내용', '문의할 내용', '요청 원문', '원문', '요청', '문의내용', '문의 내용'],
+    자료명: ["자료명", "보고서", "제목", "자료", "품목명"]
+  };
+
+  function pick(headersIdx, row, keys) {
+    for (const k of keys) {
+      const i = headersIdx.get(norm(k));
+      if (typeof i === "number") {
+        const v = safe(row[i]).trim();
+        if (v) return v;
+      }
+    }
+    return "-";
+  }
+
+  function summarize(text) {
+    const raw = safe(text);
+    const trimmed = raw.trim();
+    const firstLine = trimmed ? (trimmed.split(/\r?\n/)[0] || "").trim() : "-";
+    const wordCount = trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
+    const excerpt = trimmed ? trimmed.slice(0, 300) : "-";
+    return {
+      raw_chars: raw.length,
+      word_count: wordCount,
+      first_line: firstLine || "-",
+      excerpt_300: excerpt
+    };
+  }
+
+  function run() {
+    const raw = rawEl.value || "";
+    const parsed = parseDelimited(raw);
+
+    if (!raw.trim()) {
+      state.STATE = "INPUT";
+      outEl.textContent = "—";
+      state.TEST = "X";
+      setBadge();
+      save();
+      return;
+    }
+
+    const rows = parsed.rows;
+    const headers = rows[0] || [];
+    const dataRows = rows.slice(1).filter(r => r.some(v => safe(v).trim() !== ""));
+    const firstData = dataRows[0] || [];
+
+    const headerIdx = buildHeaderIndex(headers);
+
+    const mapped = {
+      기관: pick(headerIdx, firstData, ALIASES.기관),
+      고객명: pick(headerIdx, firstData, ALIASES.고객명),
+      부서: pick(headerIdx, firstData, ALIASES.부서),
+      직위: pick(headerIdx, firstData, ALIASES.직위),
+      관심분야: pick(headerIdx, firstData, ALIASES.관심분야),
+      연구분야: pick(headerIdx, firstData, ALIASES.연구분야),
+      예산: pick(headerIdx, firstData, ALIASES.예산),
+      핸드폰: pick(headerIdx, firstData, ALIASES.핸드폰),
+      유선: pick(headerIdx, firstData, ALIASES.유선),
+      팩스: pick(headerIdx, firstData, ALIASES.팩스),
+      이메일1: pick(headerIdx, firstData, ALIASES.이메일1),
+      주소: pick(headerIdx, firstData, ALIASES.주소),
+      자료명: pick(headerIdx, firstData, ALIASES.자료명),
+      요청원문: pick(headerIdx, firstData, ALIASES.요청원문),
+    };
+
+    const previewN = Math.min(20, dataRows.length);
+    const preview = [];
+    for (let i = 0; i < previewN; i++) {
+      const r = dataRows[i] || [];
+      const cells = headers.map((_, j) => safe(r[j]).replace(/\s+/g, " ").trim()).slice(0, 31);
+      preview.push("- " + cells.map(v => v ? (v.length > 60 ? v.slice(0, 57) + "…" : v) : "").join(" | "));
+    }
+    if (!preview.length) preview.push("-");
+
+    const headText = headers.map(h => safe(h).replace(/\s+/g, " ").trim()).join(" | ") || "-";
+    const sum = summarize(raw);
+
+    const out =
+`CSV 미리보기
+time: ${nowStr()}
+columns: ${headers.length}
+rows: ${dataRows.length}
+
+header:
+${headText || "-"}
+
+mapped(첫 데이터행 → 필드):
+기관: ${mapped.기관}
+고객명: ${mapped.고객명}
+부서: ${mapped.부서}
+직위: ${mapped.직위}
+관심분야: ${mapped.관심분야}
+연구분야: ${mapped.연구분야}
+예산: ${mapped.예산}
+핸드폰: ${mapped.핸드폰}
+유선: ${mapped.유선}
+팩스: ${mapped.팩스}
+이메일1: ${mapped.이메일1}
+주소: ${mapped.주소}
+자료명: ${mapped.자료명}
+요청원문: ${mapped.요청원문}
+
+preview(${previewN}):
+${preview.join("\n")}
+
+raw_chars: ${sum.raw_chars}
+word_count: ${sum.word_count}
+first_line: ${sum.first_line}
+excerpt(300): ${sum.excerpt_300}
+`;
+    outEl.textContent = out;
+
+    state.STATE = "GUIDE";
+    state.TEST = "X";
+    setBadge();
+    save();
+  }
+
+  function reset() {
+    rawEl.value = "";
+    outEl.textContent = "—";
+    state.STATE = "INPUT";
+    state.TEST = "X";
+    setBadge();
+    try { localStorage.removeItem(KEY); } catch (e) {}
+  }
+
+  function autoTest() {
+    // PASS 조건: (1) STATE=GUIDE이면 out이 특정 키 포함 (2) localStorage에 저장됨 (3) 새로고침 복원 가능한 형태(STATE/RAW/OUT)
+    let pass = true;
+    const raw = rawEl.value || "";
+    const out = outEl.textContent || "";
+
+    if (!(state.STATE === "INPUT" || state.STATE === "GUIDE")) pass = false;
+
+    if (state.STATE === "GUIDE") {
+      if (!out.includes("CSV 미리보기")) pass = false;
+      if (!out.includes("mapped(첫 데이터행 → 필드):")) pass = false;
+      if (!out.includes("raw_chars:")) pass = false;
+      if (!raw.trim()) pass = false; // GUIDE인데 입력이 비면 실패
+    }
+
+    // 저장 확인
+    save();
+    try {
+      const s = localStorage.getItem(KEY);
+      if (!s) pass = false;
+      const obj = JSON.parse(s);
+      if (!obj || typeof obj !== "object") pass = false;
+      if ((obj.STATE === "GUIDE") !== (state.STATE === "GUIDE")) pass = false;
+      if (safe(obj.raw) !== raw) pass = false;
+      if (safe(obj.out) !== out) pass = false;
+    } catch (e) {
+      pass = false;
+    }
+
+    state.TEST = pass ? "PASS" : "X";
+    setBadge();
+    save();
+  }
+
+  rawEl.addEventListener("input", () => {
+    // 자동 저장(개입 최소화)
+    state.STATE = rawEl.value.trim() ? state.STATE : "INPUT";
+    setBadge();
+    save();
+  });
+
+  runBtn.addEventListener("click", run);
+  resetBtn.addEventListener("click", reset);
+  testBtn.addEventListener("click", autoTest);
+
+  load();
+})();
+</script>
+</body>
+</html>
