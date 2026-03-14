@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1번 고객 자동화 안내서</title>
+  <title>1번 고객 자동화 안내서 - 좌표 고정판</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -31,7 +31,6 @@
       font-size: 16px;
       font-weight: 700;
     }
-
     .field { margin-bottom: 12px; }
     .field label {
       display: block;
@@ -39,9 +38,7 @@
       font-size: 13px;
       font-weight: 700;
     }
-    .field select,
-    .field textarea,
-    .field input {
+    .field select, .field textarea, .field input {
       width: 100%;
       padding: 10px;
       border: 1px solid #cfd6e2;
@@ -53,11 +50,10 @@
       min-height: 84px;
       resize: vertical;
     }
-
     .btn-row {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 12px;
     }
     .btn {
@@ -78,14 +74,12 @@
       padding: 4px 8px;
       font-size: 11px;
     }
-
     .hint {
       font-size: 12px;
       color: #667085;
       line-height: 1.5;
       margin-top: 8px;
     }
-
     .tabs {
       display: flex;
       gap: 8px;
@@ -109,28 +103,26 @@
     }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-
     .stage {
       background: #eef2f7;
       border-radius: 10px;
       padding: 16px;
     }
-
     .guide-host {
       width: 760px;
       margin: 0 auto;
     }
-
     .guide-block {
       width: 599px;
       margin: 0 auto;
       background: #fff;
+      border: 1px solid #d5dbe6;
     }
 
     .compare-stage {
       position: relative;
       width: 599px;
-      min-height: 871px;
+      height: 871px;
       margin: 0 auto;
       background: #fff;
       border: 1px solid #d5dbe6;
@@ -140,22 +132,17 @@
       position: absolute;
       inset: 0;
       width: 599px;
-      height: auto;
-      opacity: 0.52;
+      height: 871px;
+      object-fit: contain;
+      opacity: 1;
       z-index: 1;
-      pointer-events: none;
       display: block;
+      pointer-events: none;
     }
-    .compare-guide {
-      position: relative;
-      z-index: 2;
-      opacity: 0.82;
-    }
-
     .overlay-root {
       position: absolute;
       inset: 0;
-      z-index: 3;
+      z-index: 2;
       pointer-events: none;
     }
     .overlay-box {
@@ -163,7 +150,7 @@
       border: 2px solid;
       border-radius: 6px;
       pointer-events: auto;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.03);
     }
     .overlay-box.locked {
       border-color: rgba(22,163,74,.95);
@@ -187,7 +174,6 @@
       white-space: nowrap;
       pointer-events: auto;
     }
-
     .area-badge {
       display: inline-flex;
       align-items: center;
@@ -227,14 +213,12 @@
       border-color: #fdba74;
       color: #9a3412;
     }
-
     .legend {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 12px;
     }
-
     .debug-wrap { margin-top: 12px; }
     .debug-card {
       border: 1px solid #d8dde6;
@@ -261,7 +245,6 @@
       line-height: 1.45;
       margin-top: 8px;
     }
-
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
     }
@@ -270,7 +253,7 @@
 <body>
   <div class="app">
     <div class="panel">
-      <h2>메일용 + 워드용 공통 블록</h2>
+      <h2>좌표 고정판</h2>
 
       <div class="btn-row">
         <button id="runBtn" class="btn">정리/실행</button>
@@ -338,8 +321,8 @@
       </div>
 
       <div class="hint">
-        생성 화면은 메일과 워드에서 같이 쓸 순수 안내서 블록입니다.<br>
-        오류 화면은 원본과 비교만 하는 용도입니다.
+        생성 화면은 메일/워드용 순수 안내서 블록입니다.<br>
+        오류 화면은 원본 PNG 기준 좌표 비교용입니다.
       </div>
     </div>
 
@@ -368,7 +351,6 @@
         <div class="stage">
           <div class="compare-stage">
             <img class="origin" src="./original-guide.png" alt="원본 안내서">
-            <div id="debugGuideWrap" class="compare-guide"></div>
             <div id="overlayRoot" class="overlay-root"></div>
           </div>
         </div>
@@ -397,29 +379,78 @@
       tocText: ""
     };
 
-    const BOX = {
-      HEADER_LEFT:   { x: 0,   y: 0,   w: 348, h: 92 },
-      HEADER_RIGHT:  { x: 348, y: 0,   w: 251, h: 92 },
-      RECEIVER:      { x: 0,   y: 104, w: 599, h: 52 },
-      META_LEFT:     { x: 0,   y: 156, w: 300, h: 72 },
-      META_CENTER:   { x: 300, y: 156, w: 96,  h: 72 },
-      META_RIGHT:    { x: 396, y: 156, w: 203, h: 72 },
-      LINK:          { x: 0,   y: 228, w: 599, h: 56 },
-      BODY:          { x: 0,   y: 284, w: 599, h: 587 }
-    };
-
-    const AREA_STATE = {
-      "HEADER.LEFT.BOX": "locked",
-      "HEADER.RIGHT.BOX": "locked",
-      "RECEIVER.LINE": "locked",
-      "META.LEFT.TEXT.PUBLISHER": "locked",
-      "META.CENTER.TEXT.PAGES": "hold",
-      "META.RIGHT.TEXT.PRICE": "manual",
-      "LINK.TEXT": "hold",
-      "TITLE.EN": "manual",
-      "TITLE.KO": "manual",
-      "TOC.TEXT": "manual"
-    };
+    const AREAS = [
+      {
+        key: "HEADER.LEFT.BOX",
+        area: "T1/S1/C3/W1/HEADER.LEFT.BOX",
+        state: "locked",
+        rect: { x: 12, y: 11, w: 282, h: 71 },
+        value: () => "좌측 헤더 박스"
+      },
+      {
+        key: "HEADER.RIGHT.BOX",
+        area: "T1/S1/C3/W1/HEADER.RIGHT.BOX",
+        state: "locked",
+        rect: { x: 294, y: 11, w: 293, h: 71 },
+        value: () => "우측 헤더 박스"
+      },
+      {
+        key: "RECEIVER.LINE",
+        area: "T1/S1/C3/W1/RECEIVER.LINE",
+        state: "locked",
+        rect: { x: 24, y: 108, w: 300, h: 24 },
+        value: data => data.receiver
+      },
+      {
+        key: "META.LEFT.TEXT.PUBLISHER",
+        area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER",
+        state: "locked",
+        rect: { x: 44, y: 150, w: 194, h: 54 },
+        value: data => data.publisher
+      },
+      {
+        key: "META.CENTER.TEXT.PAGES",
+        area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES",
+        state: "hold",
+        rect: { x: 280, y: 150, w: 96, h: 54 },
+        value: data => data.pages
+      },
+      {
+        key: "META.RIGHT.TEXT.PRICE",
+        area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE",
+        state: "manual",
+        rect: { x: 422, y: 150, w: 132, h: 54 },
+        value: data => data.price
+      },
+      {
+        key: "LINK.TEXT",
+        area: "T1/S1/C3/W1/LINK.TEXT",
+        state: "hold",
+        rect: { x: 40, y: 217, w: 500, h: 32 },
+        value: data => data.reportLink
+      },
+      {
+        key: "TITLE.EN",
+        area: "T1/S1/C3/W1/TITLE.EN",
+        state: "manual",
+        rect: { x: 44, y: 304, w: 470, h: 72 },
+        value: data => data.titleEn || "(비움)"
+      },
+      {
+        key: "TITLE.KO",
+        area: "T1/S1/C3/W1/TITLE.KO",
+        state: "manual",
+        rect: { x: 42, y: 379, w: 470, h: 38 },
+        value: data => data.titleKo || "(비움)"
+      },
+      {
+        key: "TOC.TEXT",
+        area: "T1/S1/C3/W1/TOC.TEXT",
+        state: "manual",
+        rect: { x: 40, y: 452, w: 470, h: 176 },
+        value: data => data.tocText ? data.tocText.split("\n")[0] : "(비움)"
+      }
+    ];
 
     const AREA_LABEL = {
       locked: "잠금완료",
@@ -455,6 +486,16 @@
     }
 
     function buildGuideHTML(data) {
+      const titleEnHtml = data.titleEn
+        ? `<div style="font-size:16px; font-weight:700; line-height:1.3; margin-bottom:6px;">${escapeHtml(data.titleEn)}</div>`
+        : "";
+      const titleKoHtml = data.titleKo
+        ? `<div style="font-size:11px; line-height:1.35; margin-bottom:8px;">${escapeHtml(data.titleKo)}</div>`
+        : "";
+      const tocHtml = data.tocText
+        ? `<div style="font-size:11px; line-height:1.32; white-space:pre-line;">${escapeHtml(data.tocText)}</div>`
+        : "";
+
       return `
 <div id="mailGuideBlock" style="width:599px; margin:0 auto; background:#ffffff; font-family:Arial, sans-serif; color:#111;">
   <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed; background:#fff;">
@@ -515,38 +556,21 @@
 
     <tr>
       <td colspan="2" style="border-left:1px solid #222; border-right:1px solid #222; border-bottom:1px solid #222; padding:10px 12px 16px; vertical-align:top; min-height:340px;">
-        ${data.titleEn ? `<div style="font-size:16px; font-weight:700; line-height:1.3; margin-bottom:6px;">${escapeHtml(data.titleEn)}</div>` : ``}
-        ${data.titleKo ? `<div style="font-size:11px; line-height:1.35; margin-bottom:8px;">${escapeHtml(data.titleKo)}</div>` : ``}
-        ${data.tocText ? `<div style="font-size:11px; line-height:1.32; white-space:pre-line;">${escapeHtml(data.tocText)}</div>` : ``}
+        ${titleEnHtml}
+        ${titleKoHtml}
+        ${tocHtml}
       </td>
     </tr>
   </table>
 </div>`;
     }
 
-    function buildDebugItems(data) {
-      return [
-        { key: "HEADER.LEFT.BOX", title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", value: JSON.stringify(BOX.HEADER_LEFT) },
-        { key: "HEADER.RIGHT.BOX", title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", value: JSON.stringify(BOX.HEADER_RIGHT) },
-        { key: "RECEIVER.LINE", title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", value: data.receiver },
-        { key: "META.LEFT.TEXT.PUBLISHER", title: "META.LEFT.TEXT.PUBLISHER", area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER", value: data.publisher },
-        { key: "META.CENTER.TEXT.PAGES", title: "META.CENTER.TEXT.PAGES", area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES", value: data.pages },
-        { key: "META.RIGHT.TEXT.PRICE", title: "META.RIGHT.TEXT.PRICE", area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE", value: data.price },
-        { key: "LINK.TEXT", title: "LINK.TEXT", area: "T1/S1/C3/W1/LINK.TEXT", value: data.reportLink },
-        { key: "TITLE.EN", title: "TITLE.EN", area: "T1/S1/C3/W1/TITLE.EN", value: data.titleEn || "(비움)" },
-        { key: "TITLE.KO", title: "TITLE.KO", area: "T1/S1/C3/W1/TITLE.KO", value: data.titleKo || "(비움)" },
-        { key: "TOC.TEXT", title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", value: data.tocText ? data.tocText.split("\n")[0] : "(비움)" }
-      ].map(item => ({
-        ...item,
-        status: AREA_STATE[item.key]
-      }));
-    }
-
-    function buildDebugText(item) {
+    function buildDebugText(item, data) {
       return `위치 식별자: ${item.area}
-구역명: ${item.title}
-상태: ${AREA_LABEL[item.status]}
-현재값: ${item.value}`;
+구역명: ${item.key}
+상태: ${AREA_LABEL[item.state]}
+좌표: x=${item.rect.x}, y=${item.rect.y}, w=${item.rect.w}, h=${item.rect.h}
+현재값: ${item.value(data)}`;
     }
 
     async function copyText(text) {
@@ -561,78 +585,61 @@
     async function copyDebug(index) {
       const item = window.__debugItems[index];
       if (!item) return;
-      await copyText(buildDebugText(item));
+      const data = getData();
+      await copyText(buildDebugText(item, data));
     }
     window.copyDebug = copyDebug;
 
-    async function copyOverlay(area, title, status, rect) {
+    async function copyOverlay(area, key, state, rect) {
       await copyText(`위치 식별자: ${area}
-구역명: ${title}
-상태: ${AREA_LABEL[status]}
+구역명: ${key}
+상태: ${AREA_LABEL[state]}
 좌표: x=${rect.x}, y=${rect.y}, w=${rect.w}, h=${rect.h}`);
     }
     window.copyOverlay = copyOverlay;
 
     function renderDebug(data) {
-      const items = buildDebugItems(data);
-      window.__debugItems = items;
+      window.__debugItems = AREAS;
 
-      document.getElementById("debugRoot").innerHTML = items.map((item, idx) => `
+      document.getElementById("debugRoot").innerHTML = AREAS.map((item, idx) => `
         <div class="debug-card">
           <div class="debug-top">
             <div>
-              <strong>${escapeHtml(item.title)}</strong><br>
+              <strong>${escapeHtml(item.key)}</strong><br>
               <span class="area-badge">${escapeHtml(item.area)}</span>
-              <span class="status-badge ${item.status}">${AREA_LABEL[item.status]}</span>
+              <span class="status-badge ${item.state}">${AREA_LABEL[item.state]}</span>
             </div>
             <button class="btn secondary small" onclick="copyDebug(${idx})">복사</button>
           </div>
-          <div class="copy-box">${escapeHtml(buildDebugText(item))}</div>
+          <div class="copy-box">${escapeHtml(buildDebugText(item, data))}</div>
         </div>
       `).join("");
 
-      const overlayItems = [
-        { key: "HEADER.LEFT.BOX", rect: BOX.HEADER_LEFT },
-        { key: "HEADER.RIGHT.BOX", rect: BOX.HEADER_RIGHT },
-        { key: "RECEIVER.LINE", rect: BOX.RECEIVER },
-        { key: "META.LEFT.TEXT.PUBLISHER", rect: BOX.META_LEFT },
-        { key: "META.CENTER.TEXT.PAGES", rect: BOX.META_CENTER },
-        { key: "META.RIGHT.TEXT.PRICE", rect: BOX.META_RIGHT },
-        { key: "LINK.TEXT", rect: BOX.LINK },
-        { key: "TITLE.EN", rect: { x: 20, y: 300, w: 520, h: 78 } },
-        { key: "TITLE.KO", rect: { x: 20, y: 378, w: 520, h: 42 } },
-        { key: "TOC.TEXT", rect: { x: 20, y: 420, w: 520, h: 190 } }
-      ];
-
-      document.getElementById("overlayRoot").innerHTML = overlayItems.map(o => {
-        const status = AREA_STATE[o.key];
-        return `
-          <div class="overlay-box ${status}" style="left:${o.rect.x}px; top:${o.rect.y}px; width:${o.rect.w}px; height:${o.rect.h}px;">
-            <div class="overlay-label">
-              <span class="area-badge">T1/S1/C3/W1/${o.key}</span>
-              <span class="status-badge ${status}">${AREA_LABEL[status]}</span>
-              <button class="btn secondary small" onclick='copyOverlay("T1/S1/C3/W1/${o.key}","${o.key}","${status}",${JSON.stringify(o.rect)})'>복사</button>
-            </div>
+      document.getElementById("overlayRoot").innerHTML = AREAS.map(item => `
+        <div class="overlay-box ${item.state}" style="left:${item.rect.x}px; top:${item.rect.y}px; width:${item.rect.w}px; height:${item.rect.h}px;">
+          <div class="overlay-label">
+            <span class="area-badge">${item.area}</span>
+            <span class="status-badge ${item.state}">${AREA_LABEL[item.state]}</span>
+            <button class="btn secondary small" onclick='copyOverlay("${item.area}","${item.key}","${item.state}",${JSON.stringify(item.rect)})'>복사</button>
           </div>
-        `;
-      }).join("");
+        </div>
+      `).join("");
     }
 
     function renderAll() {
       const data = getData();
-      const html = buildGuideHTML(data);
-      document.getElementById("guideWrap").innerHTML = html;
-      document.getElementById("debugGuideWrap").innerHTML = html;
+      document.getElementById("guideWrap").innerHTML = buildGuideHTML(data);
       renderDebug(data);
     }
 
     async function copyGuideHTML() {
       const html = document.getElementById("guideWrap").innerHTML;
+      const plain = document.getElementById("guideWrap").innerText;
       try {
         await navigator.clipboard.write([
           new ClipboardItem({
             "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([html.replace(/<[^>]+>/g, "")], { type: "text/plain" })
+            "text/plain": new Blob([plain], { type: "text/plain" })
           })
         ]);
         alert("안내서 전체 복사 완료");
