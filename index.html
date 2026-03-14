@@ -1,360 +1,431 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>01번 도구 · CSV 유입 + 필드 매핑 v1</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1번 고객 자동화 안내서</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #d8dde6;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .btn {
+      border: 1px solid #c8cfdb;
+      background: #1f6feb;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .btn:hover { opacity: 0.95; }
+    .layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+    .panel {
+      background: #fff;
+      border: 1px solid #d8dde6;
+      border-radius: 12px;
+      padding: 14px;
+      overflow: auto;
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #cfd6e2;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+    .field textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 8px 10px;
+      border: 1px solid #ccd4e0;
+      border-radius: 999px;
+      background: #f7f9fc;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .chip.active {
+      background: #1f6feb;
+      border-color: #1f6feb;
+      color: #fff;
+    }
+    .preview-card {
+      border: 1px solid #d8dde6;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff;
+      margin-bottom: 12px;
+    }
+    .preview-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e5e9f0;
+      padding-bottom: 8px;
+    }
+    .row {
+      margin-bottom: 10px;
+      line-height: 1.55;
+    }
+    .row strong { display: inline-block; min-width: 110px; }
+    .subsection {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px dashed #d8dde6;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d4dbe7;
+      background: #f7f9fc;
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+    .log-box {
+      background: #0f172a;
+      color: #d7e0ea;
+      border-radius: 10px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .error-item {
+      border: 1px solid #ead2d2;
+      background: #fff7f7;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .muted { color: #666; }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <div id="badge">JS: OK | STATE: INPUT | TEST: X</div>
+  <div class="app">
+    <div class="topbar" data-area-id="T1/S1/C1/W1/E0/B0" data-area-name-ko="상단바">
+      <div class="title">1번 고객 자동화 안내서</div>
+      <button id="runBtn" class="btn" data-area-id="T1/S1/C1/W2/E1/B1" data-area-name-ko="정리실행버튼">정리/실행</button>
+    </div>
 
-  <textarea id="raw" rows="10" placeholder="CSV 또는 텍스트를 그대로 붙여넣기" style="width:100%;"></textarea>
+    <div class="layout">
+      <div class="panel" data-area-id="T1/S1/C2/W1/E0/B0" data-area-name-ko="입력영역">
+        <h2>입력 데이터</h2>
 
-  <div>
-    <button id="run">실행</button>
-    <button id="reset">초기화</button>
-    <button id="test">자동 테스트 1회</button>
+        <div class="field">
+          <label for="orgName">기관명</label>
+          <input id="orgName" value="한국화학연구원" />
+        </div>
+
+        <div class="field">
+          <label for="deptName">부서명</label>
+          <input id="deptName" value="광에너지연구센터" />
+        </div>
+
+        <div class="field">
+          <label for="managerName">담당자명</label>
+          <input id="managerName" placeholder="있을 때만 입력" />
+        </div>
+
+        <div class="field">
+          <label>연구분야</label>
+          <div id="researchFieldChips" class="chips"></div>
+        </div>
+
+        <div class="field">
+          <label>관심분야</label>
+          <div id="interestFieldChips" class="chips"></div>
+        </div>
+
+        <div class="field">
+          <label for="materialType">자료 형태</label>
+          <select id="materialType">
+            <option value="영문 시장 보고서">영문 시장 보고서</option>
+            <option value="영문 공학도서">영문 공학도서</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="title">보고서명 또는 자료명</label>
+          <input id="title" value="Global Solar Materials Market Outlook 2026" />
+        </div>
+
+        <div class="field">
+          <label for="publisher">발행사</label>
+          <input id="publisher" value="Example Research" />
+        </div>
+
+        <div class="field">
+          <label for="publishDate">발행일</label>
+          <input id="publishDate" value="2026-03-01" />
+        </div>
+
+        <div class="field">
+          <label for="link">직링크</label>
+          <input id="link" value="https://example.com/report" />
+        </div>
+
+        <div class="field">
+          <label for="reason">추천 이유 1줄</label>
+          <textarea id="reason">광에너지와 소재 응용 흐름을 빠르게 파악하는 데 도움이 되는 자료입니다.</textarea>
+        </div>
+
+        <div class="field">
+          <label for="insertOrder">삽입 순서 번호</label>
+          <input id="insertOrder" value="1" />
+        </div>
+      </div>
+
+      <div class="panel" data-area-id="T1/S1/C3/W1/E0/B0" data-area-name-ko="미리보기로그영역">
+        <h2>워드 안내서 미리보기 + 로그</h2>
+        <div id="previewRoot"></div>
+        <div id="errorRoot"></div>
+        <div class="subsection">
+          <h2>AUTO_LOG / CORE_LOG</h2>
+          <div id="logRoot" class="log-box"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <pre id="out">—</pre>
+  <script>
+    const researchOptions = ["태양광", "이차전지", "반도체", "광소재", "수소", "환경소재"];
+    const interestOptions = ["시장동향", "기술개발", "경쟁사", "신제품", "세미나", "도서"];
 
-<script>
-(() => {
-  "use strict";
-
-  const KEY = "wic_tool01_v1";
-  const $ = (id) => document.getElementById(id);
-
-  const badge = $("badge");
-  const rawEl = $("raw");
-  const outEl = $("out");
-  const runBtn = $("run");
-  const resetBtn = $("reset");
-  const testBtn = $("test");
-
-  const nowStr = () => {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const da = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    const ss = String(d.getSeconds()).padStart(2, "0");
-    return `${y}-${m}-${da} ${hh}:${mm}:${ss}`;
-  };
-
-  const safe = (v) => (v == null ? "" : String(v));
-  const norm = (s) =>
-    safe(s)
-      .replace(/^\uFEFF/, "")
-      .replace(/^"+|"+$/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
-
-  const state = {
-    js: "OK",
-    STATE: "INPUT",
-    TEST: "X",
-    raw: "",
-    out: "—",
-    updatedAt: "",
-  };
-
-  function setBadge() {
-    badge.textContent = `JS: ${state.js} | STATE: ${state.STATE} | TEST: ${state.TEST}`;
-  }
-
-  function save() {
-    try {
-      state.raw = rawEl.value || "";
-      state.out = outEl.textContent || "—";
-      state.updatedAt = nowStr();
-      localStorage.setItem(KEY, JSON.stringify(state));
-    } catch (e) {}
-  }
-
-  function load() {
-    try {
-      const s = localStorage.getItem(KEY);
-      if (!s) return;
-      const obj = JSON.parse(s);
-      if (!obj || typeof obj !== "object") return;
-
-      state.STATE = obj.STATE === "GUIDE" ? "GUIDE" : "INPUT";
-      state.TEST = obj.TEST === "PASS" ? "PASS" : "X";
-      rawEl.value = safe(obj.raw);
-      outEl.textContent = safe(obj.out) || "—";
-    } catch (e) {}
-    setBadge();
-  }
-
-  function detectDelimiter(sampleLine) {
-    const t = (sampleLine.match(/\t/g) || []).length;
-    const c = (sampleLine.match(/,/g) || []).length;
-    const s = (sampleLine.match(/;/g) || []).length;
-    if (t >= c && t >= s && t > 0) return "\t";
-    if (c >= t && c >= s && c > 0) return ",";
-    if (s > 0) return ";";
-    return "\t";
-  }
-
-  // CSV/TSV parser with quotes + embedded newlines
-  function parseDelimited(text) {
-    const src = safe(text);
-    if (!src.trim()) return { delim: "\t", rows: [] };
-
-    // pick delimiter based on first non-empty line
-    const lines = src.split(/\r?\n/);
-    let first = "";
-    for (const ln of lines) {
-      if (ln.trim()) { first = ln; break; }
-    }
-    const delim = detectDelimiter(first);
-
-    const rows = [];
-    let row = [];
-    let field = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < src.length; i++) {
-      const ch = src[i];
-
-      if (ch === '"') {
-        const next = src[i + 1];
-        if (inQuotes && next === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-        continue;
-      }
-
-      if (!inQuotes && ch === delim) {
-        row.push(field);
-        field = "";
-        continue;
-      }
-
-      if (!inQuotes && (ch === "\n" || ch === "\r")) {
-        // handle CRLF
-        if (ch === "\r" && src[i + 1] === "\n") i++;
-        row.push(field);
-        field = "";
-        // ignore fully empty trailing row
-        if (!(row.length === 1 && safe(row[0]).trim() === "")) rows.push(row);
-        row = [];
-        continue;
-      }
-
-      field += ch;
-    }
-
-    // last field
-    row.push(field);
-    if (!(row.length === 1 && safe(row[0]).trim() === "")) rows.push(row);
-
-    // trim right-empty rows
-    while (rows.length && rows[rows.length - 1].every(v => !safe(v).trim())) rows.pop();
-
-    return { delim, rows };
-  }
-
-  function buildHeaderIndex(headers) {
-    const idx = new Map();
-    headers.forEach((h, i) => idx.set(norm(h), i));
-    return idx;
-  }
-
-  const ALIASES = {
-    기관: ["직장명", "기관", "소속", "회사명", "고객 기관", "고객기관", "단체명"],
-    고객명: ["성명", "고객명", "이름", "담당자", "성명(담당자)"],
-    부서: ["부서", "부서명", "소속부서"],
-    직위: ["직위", "직급", "직책"],
-    관심분야: ["관심분야", "관심 분야", "관심", "키워드", "주제/키워드", "주제", "키워드/주제"],
-    연구분야: ["연구분야", "연구 분야", "전공", "분야"],
-    예산: ["예산", "금액", "총액", "예상금액", "예산(원)", "구매예산"],
-    핸드폰: ["핸드폰", "휴대폰", "휴대폰번호", "휴대", "모바일", "mobile"],
-    유선: ["전화번호", "유선", "유선번호", "사무실전화", "전화"],
-    팩스: ["팩스번호", "팩스", "fax"],
-    이메일1: ["이메일주소", "이메일", "email", "e-mail", "메일"],
-    주소: ["주소", "우편주소", "소재지"],
-    요청원문: ['전무님께 문의할 내용', '문의할 내용', '요청 원문', '원문', '요청', '문의내용', '문의 내용'],
-    자료명: ["자료명", "보고서", "제목", "자료", "품목명"]
-  };
-
-  function pick(headersIdx, row, keys) {
-    for (const k of keys) {
-      const i = headersIdx.get(norm(k));
-      if (typeof i === "number") {
-        const v = safe(row[i]).trim();
-        if (v) return v;
-      }
-    }
-    return "-";
-  }
-
-  function summarize(text) {
-    const raw = safe(text);
-    const trimmed = raw.trim();
-    const firstLine = trimmed ? (trimmed.split(/\r?\n/)[0] || "").trim() : "-";
-    const wordCount = trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
-    const excerpt = trimmed ? trimmed.slice(0, 300) : "-";
-    return {
-      raw_chars: raw.length,
-      word_count: wordCount,
-      first_line: firstLine || "-",
-      excerpt_300: excerpt
-    };
-  }
-
-  function run() {
-    const raw = rawEl.value || "";
-    const parsed = parseDelimited(raw);
-
-    if (!raw.trim()) {
-      state.STATE = "INPUT";
-      outEl.textContent = "—";
-      state.TEST = "X";
-      setBadge();
-      save();
-      return;
-    }
-
-    const rows = parsed.rows;
-    const headers = rows[0] || [];
-    const dataRows = rows.slice(1).filter(r => r.some(v => safe(v).trim() !== ""));
-    const firstData = dataRows[0] || [];
-
-    const headerIdx = buildHeaderIndex(headers);
-
-    const mapped = {
-      기관: pick(headerIdx, firstData, ALIASES.기관),
-      고객명: pick(headerIdx, firstData, ALIASES.고객명),
-      부서: pick(headerIdx, firstData, ALIASES.부서),
-      직위: pick(headerIdx, firstData, ALIASES.직위),
-      관심분야: pick(headerIdx, firstData, ALIASES.관심분야),
-      연구분야: pick(headerIdx, firstData, ALIASES.연구분야),
-      예산: pick(headerIdx, firstData, ALIASES.예산),
-      핸드폰: pick(headerIdx, firstData, ALIASES.핸드폰),
-      유선: pick(headerIdx, firstData, ALIASES.유선),
-      팩스: pick(headerIdx, firstData, ALIASES.팩스),
-      이메일1: pick(headerIdx, firstData, ALIASES.이메일1),
-      주소: pick(headerIdx, firstData, ALIASES.주소),
-      자료명: pick(headerIdx, firstData, ALIASES.자료명),
-      요청원문: pick(headerIdx, firstData, ALIASES.요청원문),
+    let state = {
+      researchField: "광소재",
+      interestField: "시장동향"
     };
 
-    const previewN = Math.min(20, dataRows.length);
-    const preview = [];
-    for (let i = 0; i < previewN; i++) {
-      const r = dataRows[i] || [];
-      const cells = headers.map((_, j) => safe(r[j]).replace(/\s+/g, " ").trim()).slice(0, 31);
-      preview.push("- " + cells.map(v => v ? (v.length > 60 ? v.slice(0, 57) + "…" : v) : "").join(" | "));
-    }
-    if (!preview.length) preview.push("-");
-
-    const headText = headers.map(h => safe(h).replace(/\s+/g, " ").trim()).join(" | ") || "-";
-    const sum = summarize(raw);
-
-    const out =
-`CSV 미리보기
-time: ${nowStr()}
-columns: ${headers.length}
-rows: ${dataRows.length}
-
-header:
-${headText || "-"}
-
-mapped(첫 데이터행 → 필드):
-기관: ${mapped.기관}
-고객명: ${mapped.고객명}
-부서: ${mapped.부서}
-직위: ${mapped.직위}
-관심분야: ${mapped.관심분야}
-연구분야: ${mapped.연구분야}
-예산: ${mapped.예산}
-핸드폰: ${mapped.핸드폰}
-유선: ${mapped.유선}
-팩스: ${mapped.팩스}
-이메일1: ${mapped.이메일1}
-주소: ${mapped.주소}
-자료명: ${mapped.자료명}
-요청원문: ${mapped.요청원문}
-
-preview(${previewN}):
-${preview.join("\n")}
-
-raw_chars: ${sum.raw_chars}
-word_count: ${sum.word_count}
-first_line: ${sum.first_line}
-excerpt(300): ${sum.excerpt_300}
-`;
-    outEl.textContent = out;
-
-    state.STATE = "GUIDE";
-    state.TEST = "X";
-    setBadge();
-    save();
-  }
-
-  function reset() {
-    rawEl.value = "";
-    outEl.textContent = "—";
-    state.STATE = "INPUT";
-    state.TEST = "X";
-    setBadge();
-    try { localStorage.removeItem(KEY); } catch (e) {}
-  }
-
-  function autoTest() {
-    // PASS 조건: (1) STATE=GUIDE이면 out이 특정 키 포함 (2) localStorage에 저장됨 (3) 새로고침 복원 가능한 형태(STATE/RAW/OUT)
-    let pass = true;
-    const raw = rawEl.value || "";
-    const out = outEl.textContent || "";
-
-    if (!(state.STATE === "INPUT" || state.STATE === "GUIDE")) pass = false;
-
-    if (state.STATE === "GUIDE") {
-      if (!out.includes("CSV 미리보기")) pass = false;
-      if (!out.includes("mapped(첫 데이터행 → 필드):")) pass = false;
-      if (!out.includes("raw_chars:")) pass = false;
-      if (!raw.trim()) pass = false; // GUIDE인데 입력이 비면 실패
+    function makeChips(rootId, options, key) {
+      const root = document.getElementById(rootId);
+      root.innerHTML = "";
+      options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (state[key] === option ? " active" : "");
+        btn.textContent = option;
+        btn.addEventListener("click", () => {
+          state[key] = option;
+          makeChips(rootId, options, key);
+        });
+        root.appendChild(btn);
+      });
     }
 
-    // 저장 확인
-    save();
-    try {
-      const s = localStorage.getItem(KEY);
-      if (!s) pass = false;
-      const obj = JSON.parse(s);
-      if (!obj || typeof obj !== "object") pass = false;
-      if ((obj.STATE === "GUIDE") !== (state.STATE === "GUIDE")) pass = false;
-      if (safe(obj.raw) !== raw) pass = false;
-      if (safe(obj.out) !== out) pass = false;
-    } catch (e) {
-      pass = false;
+    function getInputValues() {
+      return {
+        orgName: document.getElementById("orgName").value.trim(),
+        deptName: document.getElementById("deptName").value.trim(),
+        managerName: document.getElementById("managerName").value.trim(),
+        researchField: state.researchField,
+        interestField: state.interestField,
+        materialType: document.getElementById("materialType").value,
+        title: document.getElementById("title").value.trim(),
+        publisher: document.getElementById("publisher").value.trim(),
+        publishDate: document.getElementById("publishDate").value.trim(),
+        link: document.getElementById("link").value.trim(),
+        reason: document.getElementById("reason").value.trim(),
+        insertOrder: document.getElementById("insertOrder").value.trim()
+      };
     }
 
-    state.TEST = pass ? "PASS" : "X";
-    setBadge();
-    save();
-  }
+    function validate(data) {
+      const errors = [];
 
-  rawEl.addEventListener("input", () => {
-    // 자동 저장(개입 최소화)
-    state.STATE = rawEl.value.trim() ? state.STATE : "INPUT";
-    setBadge();
-    save();
-  });
+      if (!data.orgName) errors.push({ code: "FIELD.MISSING", area: "기관명", fix: "① 지금 수동 보정" });
+      if (!data.deptName) errors.push({ code: "FIELD.MISSING", area: "부서명", fix: "① 지금 수동 보정" });
+      if (!data.title) errors.push({ code: "FIELD.MISSING", area: "보고서명 또는 자료명", fix: "① 지금 수동 보정" });
+      if (!data.publisher) errors.push({ code: "FIELD.MISSING", area: "발행사", fix: "① 지금 수동 보정" });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(data.publishDate)) {
+        errors.push({ code: "YEAR.INVALID", area: "발행일", fix: "② 규칙 추가 시 개선 가능" });
+      }
+      if (data.link && !/^https?:\/\//i.test(data.link)) {
+        errors.push({ code: "URL.BAD", area: "직링크", fix: "① 지금 수동 보정" });
+      }
+      if (!data.reason) {
+        errors.push({ code: "FIELD.MISSING", area: "추천 이유", fix: "③ 외부 툴 붙이면 좋아질 가능성 있음" });
+      }
 
-  runBtn.addEventListener("click", run);
-  resetBtn.addEventListener("click", reset);
-  testBtn.addEventListener("click", autoTest);
+      return errors;
+    }
 
-  load();
-})();
-</script>
+    function renderPreview(data, errors) {
+      const previewRoot = document.getElementById("previewRoot");
+      const managerText = data.managerName || "MANUAL_REQUIRED";
+      const linkHtml = data.link
+        ? `<a href="${escapeHtml(data.link)}" target="_blank">${escapeHtml(data.link)}</a>`
+        : "MANUAL_REQUIRED";
+
+      previewRoot.innerHTML = `
+        <div class="preview-card">
+          <div class="preview-title">고객 맞춤 자료 안내서 미리보기</div>
+          <div class="row"><strong>기관명</strong> ${escapeHtml(data.orgName || "MANUAL_REQUIRED")}</div>
+          <div class="row"><strong>부서명</strong> ${escapeHtml(data.deptName || "MANUAL_REQUIRED")}</div>
+          <div class="row"><strong>담당자명</strong> ${escapeHtml(managerText)}</div>
+          <div class="row"><strong>연구분야</strong> ${escapeHtml(data.researchField || "MANUAL_REQUIRED")}</div>
+          <div class="row"><strong>관심분야</strong> ${escapeHtml(data.interestField || "MANUAL_REQUIRED")}</div>
+          <div class="row"><strong>자료 형태</strong> <span class="tag">${escapeHtml(data.materialType)}</span></div>
+
+          <div class="subsection">
+            <div class="row"><strong>자료명</strong> ${escapeHtml(data.title || "MANUAL_REQUIRED")}</div>
+            <div class="row"><strong>발행사</strong> ${escapeHtml(data.publisher || "MANUAL_REQUIRED")}</div>
+            <div class="row"><strong>발행일</strong> ${escapeHtml(data.publishDate || "MANUAL_REQUIRED")}</div>
+            <div class="row"><strong>직링크</strong> ${linkHtml}</div>
+            <div class="row"><strong>추천 이유</strong> ${escapeHtml(data.reason || "MANUAL_REQUIRED")}</div>
+            <div class="row"><strong>삽입 순서</strong> ${escapeHtml(data.insertOrder || "MANUAL_REQUIRED")}</div>
+          </div>
+
+          <div class="subsection">
+            <div class="row"><strong>상태</strong> ${errors.length === 0 ? "PASS" : "FAIL"}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderErrors(errors) {
+      const errorRoot = document.getElementById("errorRoot");
+      if (errors.length === 0) {
+        errorRoot.innerHTML = "<div class='preview-card'><strong>오류 표시 영역</strong><div class='muted'>현재 오류가 없습니다.</div></div>";
+        return;
+      }
+      errorRoot.innerHTML = `<div class="preview-card"><strong>오류 표시 영역</strong>${errors.map(err => `
+        <div class="error-item">
+          <div><strong>${escapeHtml(err.code)}</strong></div>
+          <div>위치: ${escapeHtml(err.area)}</div>
+          <div>처리: ${escapeHtml(err.fix)}</div>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function renderLogs(data, errors) {
+      const status = errors.length === 0 ? "PASS" : "FAIL";
+      const autoLog = {
+        FAIL: status === "FAIL",
+        오류명: errors[0]?.code || "NONE",
+        AREA_ID: errors[0]?.area || "NONE",
+        observed: JSON.stringify(data, null, 2),
+        expected: "고정 필드 매핑 + 미리보기 정상 출력",
+        last_action: "정리/실행"
+      };
+
+      const coreLog = {
+        gate_id: "GATE_1",
+        module_id: "TOOL_1_PREVIEW",
+        rule_id: status === "PASS" ? "RULE_PASS" : "RULE_FIELD_VALIDATE",
+        area_id: errors[0]?.area || "PREVIEW_ROOT",
+        evidence: errors.length === 0 ? "모든 필수 필드 통과" : errors.map(e => `${e.code}:${e.area}`).join(", "),
+        next_fix: errors.length === 0 ? "다음 기능 1개 추가 가능" : errors[0].fix
+      };
+
+      document.getElementById("logRoot").textContent =
+`AUTO_LOG\n${JSON.stringify(autoLog, null, 2)}\n\nCORE_LOG\n${JSON.stringify(coreLog, null, 2)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function run() {
+      const data = getInputValues();
+      const errors = validate(data);
+      renderPreview(data, errors);
+      renderErrors(errors);
+      renderLogs(data, errors);
+      localStorage.setItem("tool1_preview_state", JSON.stringify({ ...data, ...state }));
+    }
+
+    function restore() {
+      const saved = localStorage.getItem("tool1_preview_state");
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        document.getElementById("orgName").value = data.orgName || "";
+        document.getElementById("deptName").value = data.deptName || "";
+        document.getElementById("managerName").value = data.managerName || "";
+        document.getElementById("materialType").value = data.materialType || "영문 시장 보고서";
+        document.getElementById("title").value = data.title || "";
+        document.getElementById("publisher").value = data.publisher || "";
+        document.getElementById("publishDate").value = data.publishDate || "";
+        document.getElementById("link").value = data.link || "";
+        document.getElementById("reason").value = data.reason || "";
+        document.getElementById("insertOrder").value = data.insertOrder || "";
+        state.researchField = data.researchField || state.researchField;
+        state.interestField = data.interestField || state.interestField;
+      } catch (e) {}
+    }
+
+    document.getElementById("runBtn").addEventListener("click", run);
+
+    restore();
+    makeChips("researchFieldChips", researchOptions, "researchField");
+    makeChips("interestFieldChips", interestOptions, "interestField");
+    run();
+  </script>
 </body>
 </html>
