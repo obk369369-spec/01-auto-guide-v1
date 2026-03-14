@@ -118,38 +118,42 @@
     }
 
     .page-stage {
-      position: relative;
-      width: 760px;
-      margin: 0 auto;
       background: #eef2f7;
       border-radius: 10px;
       padding: 16px;
+      overflow: auto;
     }
+
+    /* 원본 겹침 비교 */
     .compare-stage {
       position: relative;
-      width: 760px;
-      min-height: 980px;
       margin: 0 auto;
+      background: #fff;
+      border: 1px solid #cfd6e2;
     }
     .origin-layer {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 760px;
+      inset: 0 auto auto 0;
+      z-index: 3;
       opacity: 0.38;
-      z-index: 1;
       pointer-events: none;
-      display: block;
+      display: none;
     }
-    .guide-layer {
-      position: relative;
+    .debug-guide-scale {
+      position: absolute;
+      inset: 0 auto auto 0;
       z-index: 2;
+      transform-origin: top left;
+      pointer-events: none;
+    }
+    .debug-guide-scale .guide-wrap {
+      margin: 0;
       background: transparent;
     }
     .overlay-root {
       position: absolute;
       inset: 0;
-      z-index: 3;
+      z-index: 4;
       pointer-events: none;
     }
     .overlay-box {
@@ -223,7 +227,7 @@
 
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
-      .guide-wrap, .page-stage, .compare-stage, .origin-layer { width: 760px; }
+      .guide-wrap { width: 760px; }
     }
   </style>
 </head>
@@ -298,8 +302,8 @@
       </div>
 
       <div class="hint">
-        같은 폴더에 <strong>original-guide.png</strong> 파일을 두면 오류 화면에서 반투명으로 겹쳐집니다.<br>
-        생성 화면은 메일/워드용 블록이고, 오류 화면은 원본 비교용입니다.
+        같은 폴더에 <strong>original-guide.png</strong> 파일을 둡니다.<br>
+        오류 화면에서는 원본 PNG가 생성 안내서 위에 반투명으로 보여야 정상입니다.
       </div>
     </div>
 
@@ -319,9 +323,9 @@
       <div id="debugTab" class="tab-pane">
         <div class="preview-title">원본 겹침 비교 + 정밀 분류체계</div>
         <div class="page-stage">
-          <div class="compare-stage">
-            <img id="originLayer" class="origin-layer" src="./original-guide.png" alt="원본 안내서" />
-            <div id="debugGuideWrap" class="guide-layer"></div>
+          <div id="compareStage" class="compare-stage">
+            <img id="originLayer" class="origin-layer" src="./original-guide.png" alt="원본 안내서">
+            <div id="debugGuideScale" class="debug-guide-scale"></div>
             <div id="overlayRoot" class="overlay-root"></div>
           </div>
         </div>
@@ -331,6 +335,8 @@
   </div>
 
   <script>
+    const MAIL_WIDTH = 760;
+
     const customers = {
       kric: { orgName: "한국화학연구원", deptName: "광에너지연구센터" },
       kimm: { orgName: "한국기계연구원", deptName: "친환경에너지기계연구실" }
@@ -391,7 +397,7 @@ Production and Supply Forecast
 
     function buildGuideHTML(data) {
       return `
-<div id="mailGuideBlock" style="width:760px; margin:0; background:#ffffff;">
+<div id="mailGuideBlock" style="width:${MAIL_WIDTH}px; margin:0; background:#ffffff;">
   <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed; font-family:Arial, sans-serif; color:#222; background:#fff;">
     <tr>
       <td colspan="3" style="padding:0 0 12px 0;">
@@ -558,8 +564,10 @@ ${escapeHtml(data.tocText)}
           <div class="copy-box">${escapeHtml(buildDebugText(item))}</div>
         </div>
       `).join("");
+    }
 
-      const overlays = [
+    function renderOverlay(scale) {
+      const base = [
         { title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", x: 0, y: 0, w: 441, h: 91 },
         { title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", x: 441, y: 0, w: 319, h: 91 },
         { title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", x: 0, y: 103, w: 760, h: 53 },
@@ -572,8 +580,13 @@ ${escapeHtml(data.tocText)}
         { title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", x: 12, y: 427, w: 736, h: 250 }
       ];
 
-      document.getElementById("overlayRoot").innerHTML = overlays.map(o => `
-        <div class="overlay-box" style="left:${o.x}px; top:${o.y}px; width:${o.w}px; height:${o.h}px;">
+      const html = base.map(o => `
+        <div class="overlay-box" style="
+          left:${o.x * scale}px;
+          top:${o.y * scale}px;
+          width:${o.w * scale}px;
+          height:${o.h * scale}px;
+        ">
           <div class="overlay-label">
             <span class="area-badge">${o.area}</span>
             <span class="status-badge">${o.title}</span>
@@ -581,14 +594,40 @@ ${escapeHtml(data.tocText)}
           </div>
         </div>
       `).join("");
+
+      document.getElementById("overlayRoot").innerHTML = html;
+    }
+
+    function syncDebugStage() {
+      const origin = document.getElementById("originLayer");
+      const stage = document.getElementById("compareStage");
+      const debugScale = document.getElementById("debugGuideScale");
+
+      const originWidth = origin.naturalWidth || 599;
+      const originHeight = origin.naturalHeight || 871;
+      const scale = originWidth / MAIL_WIDTH;
+
+      stage.style.width = originWidth + "px";
+      stage.style.height = originHeight + "px";
+
+      origin.style.display = "block";
+      origin.style.width = originWidth + "px";
+      origin.style.height = originHeight + "px";
+
+      debugScale.style.transform = `scale(${scale})`;
+      debugScale.style.width = MAIL_WIDTH + "px";
+      debugScale.style.height = "0px";
+
+      renderOverlay(scale);
     }
 
     function renderAll() {
       const data = getData();
       const html = buildGuideHTML(data);
       document.getElementById("guideWrap").innerHTML = html;
-      document.getElementById("debugGuideWrap").innerHTML = html;
+      document.getElementById("debugGuideScale").innerHTML = html;
       renderDebug(data);
+      syncDebugStage();
     }
 
     function fillSample() {
@@ -620,8 +659,14 @@ ${escapeHtml(data.tocText)}
     document.getElementById("copyMailBtn").addEventListener("click", copyGuideForMail);
     document.getElementById("downloadWordBtn").addEventListener("click", downloadWordHTML);
 
+    document.getElementById("originLayer").addEventListener("load", syncDebugStage);
     document.getElementById("originLayer").addEventListener("error", function() {
       this.style.display = "none";
+      const stage = document.getElementById("compareStage");
+      stage.style.width = MAIL_WIDTH + "px";
+      stage.style.height = "980px";
+      document.getElementById("debugGuideScale").style.transform = "scale(1)";
+      renderOverlay(1);
     });
 
     fillSample();
