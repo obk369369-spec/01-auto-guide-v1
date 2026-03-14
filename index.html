@@ -3,55 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1번 고객 자동화 안내서</title>
+  <title>1번 고객 자동화 안내서 - 원본 겹침 비교</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f7fb;
+      background: #f3f5f8;
       color: #222;
     }
     .app {
-      width: 100%;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid #d8dde6;
-      background: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .title {
-      font-size: 18px;
-      font-weight: 700;
-    }
-    .btn {
-      border: 1px solid #c8cfdb;
-      background: #1f6feb;
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px 16px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-    }
-    .btn:hover { opacity: 0.95; }
-    .layout {
-      flex: 1;
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 280px 1fr;
       gap: 12px;
       padding: 12px;
     }
-    .panel {
+    .panel, .preview-wrap {
       background: #fff;
       border: 1px solid #d8dde6;
       border-radius: 12px;
@@ -63,7 +31,7 @@
       font-size: 16px;
     }
     .field {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .field label {
       display: block;
@@ -71,361 +39,789 @@
       font-size: 13px;
       font-weight: 700;
     }
-    .field input,
     .field select,
-    .field textarea {
+    .field textarea,
+    .field input {
       width: 100%;
-      padding: 9px 10px;
+      padding: 10px;
       border: 1px solid #cfd6e2;
       border-radius: 8px;
       font-size: 14px;
       background: #fff;
     }
     .field textarea {
-      min-height: 72px;
+      min-height: 84px;
       resize: vertical;
     }
-    .chips {
+    .btn-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      margin-bottom: 10px;
     }
-    .chip {
-      padding: 8px 10px;
-      border: 1px solid #ccd4e0;
-      border-radius: 999px;
-      background: #f7f9fc;
+    .btn {
+      border: 1px solid #c8cfdb;
+      background: #1f6feb;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: #1f2937;
+    }
+    .btn.small {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .hint {
+      font-size: 12px;
+      color: #667085;
+      line-height: 1.5;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      border: 1px solid #c8cfdb;
+      background: #fff;
+      color: #1f2937;
+      border-radius: 8px;
+      padding: 8px 12px;
       cursor: pointer;
       font-size: 13px;
+      font-weight: 700;
     }
-    .chip.active {
+    .tab-btn.active {
       background: #1f6feb;
-      border-color: #1f6feb;
       color: #fff;
+      border-color: #1f6feb;
     }
-    .preview-card {
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .page {
+      width: 595px;
+      min-height: 842px;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #d5dbe6;
+      padding: 18px 18px 24px;
+      position: relative;
+    }
+    .sheet-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .header-frame {
+      border: 1.4px solid #222;
+      display: grid;
+      grid-template-columns: 1fr 230px;
+      min-height: 78px;
+    }
+    .header-left,
+    .header-right {
+      padding: 8px 10px;
+    }
+    .header-left {
+      border-right: 1.4px solid #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .doc-title {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-bottom: 5px;
+      line-height: 1.15;
+    }
+    .doc-url {
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: underline;
+      line-height: 1.1;
+    }
+    .company-kr {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      line-height: 1.15;
+    }
+    .company-en {
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.15;
+    }
+    .company-meta {
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
+    .body-frame {
+      border: 1.4px solid #222;
+      min-height: 620px;
+      position: relative;
+    }
+    .receiver-row {
+      border-bottom: 1px solid #999;
+      padding: 10px 14px;
+      min-height: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .meta-table {
+      display: grid;
+      grid-template-columns: 1.15fr 92px 132px;
+      border-bottom: 1px solid #999;
+      min-height: 66px;
+    }
+    .meta-cell {
+      padding: 8px 10px;
+      min-height: 64px;
+      position: relative;
+    }
+    .meta-cell + .meta-cell {
+      border-left: 1px solid #999;
+    }
+    .meta-line {
+      font-size: 12px;
+      line-height: 1.42;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .meta-label {
+      font-weight: 700;
+      min-width: 58px;
+      white-space: nowrap;
+    }
+    .value-box {
+      display: inline-flex;
+      align-items: flex-start;
+      min-height: 18px;
+      padding: 0 2px;
+      line-height: 1.35;
+    }
+    .center {
+      text-align: center;
+      justify-content: center;
+    }
+
+    .link-row {
+      border-bottom: 1px solid #999;
+      padding: 8px 12px;
+      min-height: 48px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      position: relative;
+    }
+    .link-dot {
+      font-size: 20px;
+      line-height: 1;
+      margin-top: 1px;
+    }
+    .link-line {
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-all;
+      flex: 1;
+    }
+    .link-line a {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+
+    .content-row {
+      padding: 10px 12px;
+      min-height: 370px;
+      position: relative;
+    }
+    .content-line {
+      margin-bottom: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .title-en {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .title-ko {
+      font-size: 11px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+    .toc-box {
+      font-size: 11px;
+      line-height: 1.32;
+      white-space: pre-wrap;
+    }
+
+    .debug-card {
       border: 1px solid #d8dde6;
       border-radius: 10px;
-      padding: 16px;
-      background: #fff;
-      margin-bottom: 12px;
-    }
-    .preview-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      border-bottom: 1px solid #e5e9f0;
-      padding-bottom: 8px;
-    }
-    .row {
+      padding: 12px;
       margin-bottom: 10px;
-      line-height: 1.55;
+      background: #fbfcfe;
     }
-    .row strong { display: inline-block; min-width: 110px; }
-    .subsection {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px dashed #d8dde6;
+    .debug-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
     }
-    .tag {
-      display: inline-block;
-      font-size: 12px;
+    .area-badge {
+      display: inline-flex;
+      align-items: center;
       padding: 4px 8px;
       border-radius: 999px;
-      border: 1px solid #d4dbe7;
+      border: 1px solid #ccd5e2;
       background: #f7f9fc;
-      margin-right: 6px;
-      margin-top: 6px;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
     }
-    .log-box {
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #ead08b;
+      background: #fff8e8;
+      color: #8b5a00;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .copy-box {
       background: #0f172a;
       color: #d7e0ea;
-      border-radius: 10px;
-      padding: 12px;
+      border-radius: 8px;
+      padding: 8px 10px;
       font-family: Consolas, monospace;
       font-size: 12px;
       white-space: pre-wrap;
-      line-height: 1.5;
+      line-height: 1.45;
+      margin-top: 8px;
     }
-    .error-item {
-      border: 1px solid #ead2d2;
-      background: #fff7f7;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 8px;
-      font-size: 13px;
+
+    .overlay-stage {
+      position: relative;
+      width: 595px;
+      min-height: 842px;
+      margin: 0 auto;
     }
-    .muted { color: #666; }
+    .overlay-original {
+      position: absolute;
+      inset: 0;
+      width: 595px;
+      height: auto;
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .overlay-page {
+      position: relative;
+      z-index: 2;
+    }
+    .overlay-root {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .overlay-box {
+      position: absolute;
+      border: 2px solid rgba(239, 68, 68, 0.9);
+      background: rgba(239, 68, 68, 0.06);
+      border-radius: 6px;
+      pointer-events: auto;
+    }
+    .overlay-label {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      pointer-events: auto;
+    }
+
     @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
+      .app { grid-template-columns: 1fr; }
+      .page, .overlay-stage { width: 100%; min-width: 595px; }
+      .overlay-original { width: 100%; }
+      .header-frame { grid-template-columns: 1fr; }
+      .header-left { border-right: 0; border-bottom: 1.4px solid #222; }
+      .meta-table { grid-template-columns: 1fr; }
+      .meta-cell + .meta-cell { border-left: 0; border-top: 1px solid #999; }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="topbar" data-area-id="T1/S1/C1/W1/E0/B0" data-area-name-ko="상단바">
-      <div class="title">1번 고객 자동화 안내서</div>
-      <button id="runBtn" class="btn" data-area-id="T1/S1/C1/W2/E1/B1" data-area-name-ko="정리실행버튼">정리/실행</button>
+    <div class="panel">
+      <h2>생성 화면 전용</h2>
+
+      <div class="btn-row">
+        <button id="runBtn" class="btn">정리/실행</button>
+        <button id="sampleBtn" class="btn secondary">샘플 넣기</button>
+      </div>
+
+      <div class="field">
+        <label for="customerSelect">고객 선택</label>
+        <select id="customerSelect">
+          <option value="kric">한국화학연구원 / 광에너지연구센터</option>
+          <option value="kimm">한국기계연구원 / 친환경에너지기계연구실</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="titleEn">영문 제목</label>
+        <textarea id="titleEn"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="titleKo">한글 제목</label>
+        <textarea id="titleKo"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="publisher">발행사</label>
+        <input id="publisher" />
+      </div>
+
+      <div class="field">
+        <label for="pages">페이지</label>
+        <input id="pages" />
+      </div>
+
+      <div class="field">
+        <label for="price">정가</label>
+        <input id="price" />
+      </div>
+
+      <div class="field">
+        <label for="publishDate">발행일</label>
+        <input id="publishDate" />
+      </div>
+
+      <div class="field">
+        <label for="pdfType">PDF</label>
+        <input id="pdfType" />
+      </div>
+
+      <div class="field">
+        <label for="supplyPrice">공급가격</label>
+        <input id="supplyPrice" />
+      </div>
+
+      <div class="field">
+        <label for="reportLink">보고서 링크</label>
+        <input id="reportLink" />
+      </div>
+
+      <div class="field">
+        <label for="tocText">본문 / 목차 영역</label>
+        <textarea id="tocText"></textarea>
+      </div>
+
+      <div class="hint">
+        같은 폴더에 <strong>original-guide.png</strong> 파일을 두면 오류 화면에서 원본과 겹쳐 비교됩니다.
+      </div>
     </div>
 
-    <div class="layout">
-      <div class="panel" data-area-id="T1/S1/C2/W1/E0/B0" data-area-name-ko="입력영역">
-        <h2>입력 데이터</h2>
+    <div class="preview-wrap">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="renderTab">생성 화면</button>
+        <button class="tab-btn" data-tab="debugTab">오류 화면</button>
+      </div>
 
-        <div class="field">
-          <label for="orgName">기관명</label>
-          <input id="orgName" value="한국화학연구원" />
-        </div>
+      <div id="renderTab" class="tab-pane active">
+        <div class="page">
+          <div class="sheet-box">
+            <div class="header-frame">
+              <div class="header-left">
+                <div class="doc-title">신간자료안내</div>
+                <div class="doc-url">www.worldic.co.kr</div>
+              </div>
+              <div class="header-right">
+                <div class="company-kr">(주)월드산업정보센터</div>
+                <div class="company-en">WORLD INDUSTRIAL INFORMATION CENTER</div>
+                <div class="company-meta">T:(02)333-8331 / F:(02)333-8330<br>E-mail : info@worldic.co.kr</div>
+              </div>
+            </div>
+          </div>
 
-        <div class="field">
-          <label for="deptName">부서명</label>
-          <input id="deptName" value="광에너지연구센터" />
-        </div>
+          <div class="sheet-box">
+            <div class="body-frame">
+              <div class="receiver-row">
+                <span>수신 :</span>
+                <span id="slotReceiver"></span>
+              </div>
 
-        <div class="field">
-          <label for="managerName">담당자명</label>
-          <input id="managerName" placeholder="있을 때만 입력" />
-        </div>
+              <div class="meta-table">
+                <div class="meta-cell">
+                  <div class="meta-line">
+                    <span class="meta-label">◇ 발행사:</span>
+                    <span id="slotPublisher" class="value-box"></span>
+                  </div>
+                  <div class="meta-line">
+                    <span class="meta-label">◇ 발행일:</span>
+                    <span id="slotDate" class="value-box"></span>
+                  </div>
+                </div>
 
-        <div class="field">
-          <label>연구분야</label>
-          <div id="researchFieldChips" class="chips"></div>
-        </div>
+                <div class="meta-cell">
+                  <div class="meta-line center">
+                    <span id="slotPages" class="value-box center"></span>
+                  </div>
+                  <div class="meta-line center">
+                    <span id="slotPdf" class="value-box center"></span>
+                  </div>
+                </div>
 
-        <div class="field">
-          <label>관심분야</label>
-          <div id="interestFieldChips" class="chips"></div>
-        </div>
+                <div class="meta-cell">
+                  <div class="meta-line">
+                    <span class="meta-label">◇ 정가:</span>
+                    <span id="slotPrice" class="value-box"></span>
+                  </div>
+                  <div class="meta-line">
+                    <span class="meta-label">◆ 공급가격:</span>
+                    <span id="slotSupply" class="value-box"></span>
+                  </div>
+                </div>
+              </div>
 
-        <div class="field">
-          <label for="materialType">자료 형태</label>
-          <select id="materialType">
-            <option value="영문 시장 보고서">영문 시장 보고서</option>
-            <option value="영문 공학도서">영문 공학도서</option>
-          </select>
-        </div>
+              <div class="link-row">
+                <span class="link-dot">•</span>
+                <div class="link-line">보고서 링크 : <span id="slotLink"></span></div>
+              </div>
 
-        <div class="field">
-          <label for="title">보고서명 또는 자료명</label>
-          <input id="title" value="Global Solar Materials Market Outlook 2026" />
-        </div>
-
-        <div class="field">
-          <label for="publisher">발행사</label>
-          <input id="publisher" value="Example Research" />
-        </div>
-
-        <div class="field">
-          <label for="publishDate">발행일</label>
-          <input id="publishDate" value="2026-03-01" />
-        </div>
-
-        <div class="field">
-          <label for="link">직링크</label>
-          <input id="link" value="https://example.com/report" />
-        </div>
-
-        <div class="field">
-          <label for="reason">추천 이유 1줄</label>
-          <textarea id="reason">광에너지와 소재 응용 흐름을 빠르게 파악하는 데 도움이 되는 자료입니다.</textarea>
-        </div>
-
-        <div class="field">
-          <label for="insertOrder">삽입 순서 번호</label>
-          <input id="insertOrder" value="1" />
+              <div class="content-row">
+                <div class="content-line">귀 기관의 연구 및 관심 분야와 관련된 시장 보고서를 아래와 같이 안내드립니다.</div>
+                <div id="slotTitleEn" class="title-en"></div>
+                <div id="slotTitleKo" class="title-ko"></div>
+                <div id="slotToc" class="toc-box"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="panel" data-area-id="T1/S1/C3/W1/E0/B0" data-area-name-ko="미리보기로그영역">
-        <h2>워드 안내서 미리보기 + 로그</h2>
-        <div id="previewRoot"></div>
-        <div id="errorRoot"></div>
-        <div class="subsection">
-          <h2>AUTO_LOG / CORE_LOG</h2>
-          <div id="logRoot" class="log-box"></div>
+      <div id="debugTab" class="tab-pane">
+        <div class="overlay-stage">
+          <img src="./original-guide.png" alt="원본 안내서" class="overlay-original" onerror="this.style.display='none'">
+          <div class="page overlay-page">
+            <div class="sheet-box">
+              <div class="header-frame">
+                <div class="header-left">
+                  <div class="doc-title">신간자료안내</div>
+                  <div class="doc-url">www.worldic.co.kr</div>
+                </div>
+                <div class="header-right">
+                  <div class="company-kr">(주)월드산업정보센터</div>
+                  <div class="company-en">WORLD INDUSTRIAL INFORMATION CENTER</div>
+                  <div class="company-meta">T:(02)333-8331 / F:(02)333-8330<br>E-mail : info@worldic.co.kr</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sheet-box">
+              <div class="body-frame">
+                <div class="receiver-row">
+                  <span>수신 :</span>
+                  <span id="debugReceiver"></span>
+                </div>
+
+                <div class="meta-table">
+                  <div class="meta-cell">
+                    <div class="meta-line">
+                      <span class="meta-label">◇ 발행사:</span>
+                      <span id="debugPublisher" class="value-box"></span>
+                    </div>
+                    <div class="meta-line">
+                      <span class="meta-label">◇ 발행일:</span>
+                      <span id="debugDate" class="value-box"></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-cell">
+                    <div class="meta-line center">
+                      <span id="debugPages" class="value-box center"></span>
+                    </div>
+                    <div class="meta-line center">
+                      <span id="debugPdf" class="value-box center"></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-cell">
+                    <div class="meta-line">
+                      <span class="meta-label">◇ 정가:</span>
+                      <span id="debugPrice" class="value-box"></span>
+                    </div>
+                    <div class="meta-line">
+                      <span class="meta-label">◆ 공급가격:</span>
+                      <span id="debugSupply" class="value-box"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="link-row">
+                  <span class="link-dot">•</span>
+                  <div class="link-line">보고서 링크 : <span id="debugLink"></span></div>
+                </div>
+
+                <div class="content-row">
+                  <div class="content-line">귀 기관의 연구 및 관심 분야와 관련된 시장 보고서를 아래와 같이 안내드립니다.</div>
+                  <div id="debugTitleEn" class="title-en"></div>
+                  <div id="debugTitleKo" class="title-ko"></div>
+                  <div id="debugToc" class="toc-box"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="overlayRoot" class="overlay-root"></div>
         </div>
+
+        <div id="debugRoot" style="margin-top:12px;"></div>
       </div>
     </div>
   </div>
 
   <script>
-    const researchOptions = ["태양광", "이차전지", "반도체", "광소재", "수소", "환경소재"];
-    const interestOptions = ["시장동향", "기술개발", "경쟁사", "신제품", "세미나", "도서"];
-
-    let state = {
-      researchField: "광소재",
-      interestField: "시장동향"
+    const customers = {
+      kric: { orgName: "한국화학연구원", deptName: "광에너지연구센터" },
+      kimm: { orgName: "한국기계연구원", deptName: "친환경에너지기계연구실" }
     };
 
-    function makeChips(rootId, options, key) {
-      const root = document.getElementById(rootId);
-      root.innerHTML = "";
-      options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "chip" + (state[key] === option ? " active" : "");
-        btn.textContent = option;
-        btn.addEventListener("click", () => {
-          state[key] = option;
-          makeChips(rootId, options, key);
-        });
-        root.appendChild(btn);
-      });
-    }
-
-    function getInputValues() {
-      return {
-        orgName: document.getElementById("orgName").value.trim(),
-        deptName: document.getElementById("deptName").value.trim(),
-        managerName: document.getElementById("managerName").value.trim(),
-        researchField: state.researchField,
-        interestField: state.interestField,
-        materialType: document.getElementById("materialType").value,
-        title: document.getElementById("title").value.trim(),
-        publisher: document.getElementById("publisher").value.trim(),
-        publishDate: document.getElementById("publishDate").value.trim(),
-        link: document.getElementById("link").value.trim(),
-        reason: document.getElementById("reason").value.trim(),
-        insertOrder: document.getElementById("insertOrder").value.trim()
-      };
-    }
-
-    function validate(data) {
-      const errors = [];
-
-      if (!data.orgName) errors.push({ code: "FIELD.MISSING", area: "기관명", fix: "① 지금 수동 보정" });
-      if (!data.deptName) errors.push({ code: "FIELD.MISSING", area: "부서명", fix: "① 지금 수동 보정" });
-      if (!data.title) errors.push({ code: "FIELD.MISSING", area: "보고서명 또는 자료명", fix: "① 지금 수동 보정" });
-      if (!data.publisher) errors.push({ code: "FIELD.MISSING", area: "발행사", fix: "① 지금 수동 보정" });
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(data.publishDate)) {
-        errors.push({ code: "YEAR.INVALID", area: "발행일", fix: "② 규칙 추가 시 개선 가능" });
-      }
-      if (data.link && !/^https?:\/\//i.test(data.link)) {
-        errors.push({ code: "URL.BAD", area: "직링크", fix: "① 지금 수동 보정" });
-      }
-      if (!data.reason) {
-        errors.push({ code: "FIELD.MISSING", area: "추천 이유", fix: "③ 외부 툴 붙이면 좋아질 가능성 있음" });
-      }
-
-      return errors;
-    }
-
-    function renderPreview(data, errors) {
-      const previewRoot = document.getElementById("previewRoot");
-      const managerText = data.managerName || "MANUAL_REQUIRED";
-      const linkHtml = data.link
-        ? `<a href="${escapeHtml(data.link)}" target="_blank">${escapeHtml(data.link)}</a>`
-        : "MANUAL_REQUIRED";
-
-      previewRoot.innerHTML = `
-        <div class="preview-card">
-          <div class="preview-title">고객 맞춤 자료 안내서 미리보기</div>
-          <div class="row"><strong>기관명</strong> ${escapeHtml(data.orgName || "MANUAL_REQUIRED")}</div>
-          <div class="row"><strong>부서명</strong> ${escapeHtml(data.deptName || "MANUAL_REQUIRED")}</div>
-          <div class="row"><strong>담당자명</strong> ${escapeHtml(managerText)}</div>
-          <div class="row"><strong>연구분야</strong> ${escapeHtml(data.researchField || "MANUAL_REQUIRED")}</div>
-          <div class="row"><strong>관심분야</strong> ${escapeHtml(data.interestField || "MANUAL_REQUIRED")}</div>
-          <div class="row"><strong>자료 형태</strong> <span class="tag">${escapeHtml(data.materialType)}</span></div>
-
-          <div class="subsection">
-            <div class="row"><strong>자료명</strong> ${escapeHtml(data.title || "MANUAL_REQUIRED")}</div>
-            <div class="row"><strong>발행사</strong> ${escapeHtml(data.publisher || "MANUAL_REQUIRED")}</div>
-            <div class="row"><strong>발행일</strong> ${escapeHtml(data.publishDate || "MANUAL_REQUIRED")}</div>
-            <div class="row"><strong>직링크</strong> ${linkHtml}</div>
-            <div class="row"><strong>추천 이유</strong> ${escapeHtml(data.reason || "MANUAL_REQUIRED")}</div>
-            <div class="row"><strong>삽입 순서</strong> ${escapeHtml(data.insertOrder || "MANUAL_REQUIRED")}</div>
-          </div>
-
-          <div class="subsection">
-            <div class="row"><strong>상태</strong> ${errors.length === 0 ? "PASS" : "FAIL"}</div>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderErrors(errors) {
-      const errorRoot = document.getElementById("errorRoot");
-      if (errors.length === 0) {
-        errorRoot.innerHTML = "<div class='preview-card'><strong>오류 표시 영역</strong><div class='muted'>현재 오류가 없습니다.</div></div>";
-        return;
-      }
-      errorRoot.innerHTML = `<div class="preview-card"><strong>오류 표시 영역</strong>${errors.map(err => `
-        <div class="error-item">
-          <div><strong>${escapeHtml(err.code)}</strong></div>
-          <div>위치: ${escapeHtml(err.area)}</div>
-          <div>처리: ${escapeHtml(err.fix)}</div>
-        </div>
-      `).join("")}</div>`;
-    }
-
-    function renderLogs(data, errors) {
-      const status = errors.length === 0 ? "PASS" : "FAIL";
-      const autoLog = {
-        FAIL: status === "FAIL",
-        오류명: errors[0]?.code || "NONE",
-        AREA_ID: errors[0]?.area || "NONE",
-        observed: JSON.stringify(data, null, 2),
-        expected: "고정 필드 매핑 + 미리보기 정상 출력",
-        last_action: "정리/실행"
-      };
-
-      const coreLog = {
-        gate_id: "GATE_1",
-        module_id: "TOOL_1_PREVIEW",
-        rule_id: status === "PASS" ? "RULE_PASS" : "RULE_FIELD_VALIDATE",
-        area_id: errors[0]?.area || "PREVIEW_ROOT",
-        evidence: errors.length === 0 ? "모든 필수 필드 통과" : errors.map(e => `${e.code}:${e.area}`).join(", "),
-        next_fix: errors.length === 0 ? "다음 기능 1개 추가 가능" : errors[0].fix
-      };
-
-      document.getElementById("logRoot").textContent =
-`AUTO_LOG\n${JSON.stringify(autoLog, null, 2)}\n\nCORE_LOG\n${JSON.stringify(coreLog, null, 2)}`;
-    }
+    const sample = {
+      titleEn: "2026-2031 Global Biocarbon Outlook Market Size, Share & Trends Analysis Report By Player, Type, Application and Region Enhanced Version.",
+      titleKo: "(글로벌 바이오 카본 시장 전망 보고서 2026-2031년: 시장 규모, 점유율 및 트렌드 분석 (플레이어, 유형, 응용 분야 및 지역별 향상 버전))",
+      publisher: "HNY Research",
+      pages: "125 Pages",
+      price: "$ 5,000",
+      publishDate: "2026년 01월 02일",
+      pdfType: "PDF",
+      supplyPrice: "7,400,000원",
+      reportLink: "https://www.hnyresearch.com/report/2026-2031-Global-Biocarbon-Outlook-Market-Size-Share-Trends-Analysis-Report-By-Player-Type-Application-and-Region-Enhanced-Version/3484731",
+      tocText:
+`Report Overview
+Market Competition by Manufacturers
+Biocarbon Regional Market Analysis
+Biocarbon Sales Market by Type (2020-2031)
+5.1. Global Biocarbon Historic Market Size by Type (2020-2025)
+5.2. Global Biocarbon Forecasted Market Size by Type (2026-2031)
+Biocarbon Consumption Market by Application (2020-2031)
+6.1. Global Biocarbon Historic Market Size by Application (2020-2025)
+6.2. Global Biocarbon Forecasted Market Size by Application (2026-2031)
+Company Profiles and Key Figures in Biocarbon Business
+Production and Supply Forecast
+8.1. Global Forecasted Production of Biocarbon (2026-2031)`
+    };
 
     function escapeHtml(value) {
       return String(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
+        .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
 
-    function run() {
-      const data = getInputValues();
-      const errors = validate(data);
-      renderPreview(data, errors);
-      renderErrors(errors);
-      renderLogs(data, errors);
-      localStorage.setItem("tool1_preview_state", JSON.stringify({ ...data, ...state }));
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("복사 완료");
+      } catch (e) {
+        alert(text);
+      }
     }
 
-    function restore() {
-      const saved = localStorage.getItem("tool1_preview_state");
-      if (!saved) return;
-      try {
-        const data = JSON.parse(saved);
-        document.getElementById("orgName").value = data.orgName || "";
-        document.getElementById("deptName").value = data.deptName || "";
-        document.getElementById("managerName").value = data.managerName || "";
-        document.getElementById("materialType").value = data.materialType || "영문 시장 보고서";
-        document.getElementById("title").value = data.title || "";
-        document.getElementById("publisher").value = data.publisher || "";
-        document.getElementById("publishDate").value = data.publishDate || "";
-        document.getElementById("link").value = data.link || "";
-        document.getElementById("reason").value = data.reason || "";
-        document.getElementById("insertOrder").value = data.insertOrder || "";
-        state.researchField = data.researchField || state.researchField;
-        state.interestField = data.interestField || state.interestField;
-      } catch (e) {}
+    function fillSample() {
+      document.getElementById("titleEn").value = sample.titleEn;
+      document.getElementById("titleKo").value = sample.titleKo;
+      document.getElementById("publisher").value = sample.publisher;
+      document.getElementById("pages").value = sample.pages;
+      document.getElementById("price").value = sample.price;
+      document.getElementById("publishDate").value = sample.publishDate;
+      document.getElementById("pdfType").value = sample.pdfType;
+      document.getElementById("supplyPrice").value = sample.supplyPrice;
+      document.getElementById("reportLink").value = sample.reportLink;
+      document.getElementById("tocText").value = sample.tocText;
+      run();
     }
+
+    function collectData() {
+      const customerKey = document.getElementById("customerSelect").value;
+      const customer = customers[customerKey];
+      return {
+        receiver: `( ${customer.orgName} ) ${customer.deptName}`,
+        titleEn: document.getElementById("titleEn").value.trim(),
+        titleKo: document.getElementById("titleKo").value.trim(),
+        publisher: document.getElementById("publisher").value.trim(),
+        pages: document.getElementById("pages").value.trim(),
+        price: document.getElementById("price").value.trim(),
+        publishDate: document.getElementById("publishDate").value.trim(),
+        pdfType: document.getElementById("pdfType").value.trim(),
+        supplyPrice: document.getElementById("supplyPrice").value.trim(),
+        reportLink: document.getElementById("reportLink").value.trim(),
+        tocText: document.getElementById("tocText").value.trim()
+      };
+    }
+
+    function buildDebugText(item) {
+      return `분류코드: ${item.code}\n위치: ${item.area}\n상태: ${item.status}\n현재값: ${item.value}`;
+    }
+
+    function buildDebugItems(data) {
+      return [
+        { title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", code: "HEADER.LEFT.BOX", status: "RULE_UPGRADEABLE", value: "좌측 헤더 박스" },
+        { title: "HEADER.LEFT.TEXT", area: "T1/S1/C3/W1/HEADER.LEFT.TEXT", code: "HEADER.LEFT.TEXT", status: "RULE_UPGRADEABLE", value: "신간자료안내 / www.worldic.co.kr" },
+        { title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", code: "HEADER.RIGHT.BOX", status: "RULE_UPGRADEABLE", value: "우측 회사정보 박스" },
+        { title: "HEADER.RIGHT.TEXT", area: "T1/S1/C3/W1/HEADER.RIGHT.TEXT", code: "HEADER.RIGHT.TEXT", status: "RULE_UPGRADEABLE", value: "(주)월드산업정보센터 / 연락처" },
+        { title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", code: "RECEIVER.LINE", status: "RULE_UPGRADEABLE", value: data.receiver },
+        { title: "META.LEFT.TEXT.PUBLISHER", area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER", code: "META.LEFT.TEXT.PUBLISHER", status: "RULE_UPGRADEABLE", value: data.publisher },
+        { title: "META.LEFT.TEXT.DATE", area: "T1/S1/C3/W1/META.LEFT.TEXT.DATE", code: "META.LEFT.TEXT.DATE", status: "RULE_UPGRADEABLE", value: data.publishDate },
+        { title: "META.CENTER.TEXT.PAGES", area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES", code: "META.CENTER.TEXT.PAGES", status: "RULE_UPGRADEABLE", value: data.pages },
+        { title: "META.CENTER.TEXT.PDF", area: "T1/S1/C3/W1/META.CENTER.TEXT.PDF", code: "META.CENTER.TEXT.PDF", status: "RULE_UPGRADEABLE", value: data.pdfType },
+        { title: "META.RIGHT.TEXT.PRICE", area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE", code: "META.RIGHT.TEXT.PRICE", status: "RULE_UPGRADEABLE", value: data.price },
+        { title: "META.RIGHT.TEXT.SUPPLY", area: "T1/S1/C3/W1/META.RIGHT.TEXT.SUPPLY", code: "META.RIGHT.TEXT.SUPPLY", status: "RULE_UPGRADEABLE", value: data.supplyPrice },
+        { title: "LINK.TEXT", area: "T1/S1/C3/W1/LINK.TEXT", code: "LINK.TEXT", status: "RULE_UPGRADEABLE", value: data.reportLink },
+        { title: "TITLE.EN", area: "T1/S1/C3/W1/TITLE.EN", code: "TITLE.EN", status: "RULE_UPGRADEABLE", value: data.titleEn },
+        { title: "TITLE.KO", area: "T1/S1/C3/W1/TITLE.KO", code: "TITLE.KO", status: "RULE_UPGRADEABLE", value: data.titleKo },
+        { title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", code: "TOC.TEXT", status: "RULE_UPGRADEABLE", value: data.tocText.split("\n")[0] || "" }
+      ];
+    }
+
+    async function copyDebug(index) {
+      const item = window.__debugItems[index];
+      if (!item) return;
+      await copyText(buildDebugText(item));
+    }
+    window.copyDebug = copyDebug;
+
+    async function copyOverlay(area, title) {
+      await copyText(`위치 식별자: ${area}\n구역명: ${title}\n최근 동작: 정리/실행`);
+    }
+    window.copyOverlay = copyOverlay;
+
+    function renderDebug(data) {
+      const items = buildDebugItems(data);
+      window.__debugItems = items;
+
+      document.getElementById("debugRoot").innerHTML = items.map((item, idx) => `
+        <div class="debug-card">
+          <div class="debug-top">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong><br>
+              <span class="area-badge">${escapeHtml(item.area)}</span>
+              <span class="status-badge">${item.status}</span>
+            </div>
+            <button class="btn secondary small" onclick="copyDebug(${idx})">복사</button>
+          </div>
+          <div>분류코드: ${escapeHtml(item.code)}</div>
+          <div>현재값: ${escapeHtml(item.value)}</div>
+          <div class="copy-box">${escapeHtml(buildDebugText(item))}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("debugReceiver").textContent = data.receiver;
+      document.getElementById("debugPublisher").textContent = data.publisher;
+      document.getElementById("debugPages").textContent = data.pages;
+      document.getElementById("debugPrice").textContent = data.price;
+      document.getElementById("debugDate").textContent = data.publishDate;
+      document.getElementById("debugPdf").textContent = data.pdfType;
+      document.getElementById("debugSupply").textContent = data.supplyPrice;
+      document.getElementById("debugLink").innerHTML = data.reportLink ? `<a href="${escapeHtml(data.reportLink)}" target="_blank">${escapeHtml(data.reportLink)}</a>` : "";
+      document.getElementById("debugTitleEn").textContent = data.titleEn;
+      document.getElementById("debugTitleKo").textContent = data.titleKo;
+      document.getElementById("debugToc").textContent = data.tocText;
+
+      const overlays = [
+        { title: "HEADER.LEFT.BOX", area: "T1/S1/C3/W1/HEADER.LEFT.BOX", x: 18, y: 18, w: 328, h: 78 },
+        { title: "HEADER.RIGHT.BOX", area: "T1/S1/C3/W1/HEADER.RIGHT.BOX", x: 346, y: 18, w: 230, h: 78 },
+        { title: "RECEIVER.LINE", area: "T1/S1/C3/W1/RECEIVER.LINE", x: 18, y: 108, w: 559, h: 50 },
+        { title: "META.LEFT.TEXT.PUBLISHER", area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER", x: 18, y: 158, w: 303, h: 64 },
+        { title: "META.CENTER.TEXT.PAGES", area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES", x: 321, y: 158, w: 92, h: 64 },
+        { title: "META.RIGHT.TEXT.PRICE", area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE", x: 413, y: 158, w: 164, h: 64 },
+        { title: "LINK.TEXT", area: "T1/S1/C3/W1/LINK.TEXT", x: 18, y: 222, w: 559, h: 48 },
+        { title: "TITLE.EN", area: "T1/S1/C3/W1/TITLE.EN", x: 30, y: 304, w: 535, h: 62 },
+        { title: "TITLE.KO", area: "T1/S1/C3/W1/TITLE.KO", x: 30, y: 366, w: 535, h: 34 },
+        { title: "TOC.TEXT", area: "T1/S1/C3/W1/TOC.TEXT", x: 30, y: 402, w: 535, h: 220 }
+      ];
+
+      document.getElementById("overlayRoot").innerHTML = overlays.map(o => `
+        <div class="overlay-box" style="left:${o.x}px; top:${o.y}px; width:${o.w}px; height:${o.h}px;">
+          <div class="overlay-label">
+            <span class="area-badge">${o.area}</span>
+            <span class="status-badge">${o.title}</span>
+            <button class="btn secondary small" style="pointer-events:auto;" onclick="copyOverlay('${o.area}','${o.title}')">복사</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function run() {
+      const data = collectData();
+
+      document.getElementById("slotReceiver").textContent = data.receiver;
+      document.getElementById("slotPublisher").textContent = data.publisher;
+      document.getElementById("slotPages").textContent = data.pages;
+      document.getElementById("slotPrice").textContent = data.price;
+      document.getElementById("slotDate").textContent = data.publishDate;
+      document.getElementById("slotPdf").textContent = data.pdfType;
+      document.getElementById("slotSupply").textContent = data.supplyPrice;
+      document.getElementById("slotLink").innerHTML = data.reportLink ? `<a href="${escapeHtml(data.reportLink)}" target="_blank">${escapeHtml(data.reportLink)}</a>` : "";
+      document.getElementById("slotTitleEn").textContent = data.titleEn;
+      document.getElementById("slotTitleKo").textContent = data.titleKo;
+      document.getElementById("slotToc").textContent = data.tocText;
+
+      renderDebug(data);
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
 
     document.getElementById("runBtn").addEventListener("click", run);
+    document.getElementById("sampleBtn").addEventListener("click", fillSample);
 
-    restore();
-    makeChips("researchFieldChips", researchOptions, "researchField");
-    makeChips("interestFieldChips", interestOptions, "interestField");
-    run();
+    fillSample();
   </script>
 </body>
 </html>
