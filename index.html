@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1번 고객 자동화 안내서 - 좌표 고정판</title>
+  <title>1번 고객 자동화 안내서 - 동기화 고정판</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial, "Malgun Gothic", sans-serif;
       background: #f3f5f8;
       color: #222;
     }
@@ -117,6 +117,7 @@
       margin: 0 auto;
       background: #fff;
       border: 1px solid #d5dbe6;
+      position: relative;
     }
 
     .compare-stage {
@@ -139,10 +140,11 @@
       display: block;
       pointer-events: none;
     }
+
     .overlay-root {
       position: absolute;
       inset: 0;
-      z-index: 2;
+      z-index: 5;
       pointer-events: none;
     }
     .overlay-box {
@@ -245,6 +247,155 @@
       line-height: 1.45;
       margin-top: 8px;
     }
+
+    /* 생성/오류 공통 안내서 틀 */
+    .mail-guide {
+      position: relative;
+      width: 599px;
+      min-height: 871px;
+      background: #fff;
+      margin: 0 auto;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      color: #111;
+    }
+    .sheet-frame {
+      position: absolute;
+      left: 12px;
+      top: 11px;
+      width: 575px;
+      height: 849px;
+      border: 1px solid #222;
+      background: #fff;
+    }
+
+    .header-row {
+      position: absolute;
+      left: 12px;
+      top: 11px;
+      width: 575px;
+      height: 71px;
+      display: flex;
+    }
+    .header-left {
+      width: 282px;
+      height: 71px;
+      border-right: 1px solid #222;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .header-right {
+      width: 293px;
+      height: 71px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 8px;
+    }
+
+    .receiver-line {
+      position: absolute;
+      left: 12px;
+      top: 82px;
+      width: 575px;
+      height: 32px;
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #999;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 18px;
+      display: flex;
+      align-items: center;
+    }
+
+    .meta-row {
+      position: absolute;
+      left: 12px;
+      top: 114px;
+      width: 575px;
+      height: 54px;
+      border-bottom: 1px solid #999;
+      display: flex;
+    }
+    .meta-left {
+      width: 268px;
+      height: 54px;
+      padding: 6px 10px 4px 12px;
+      border-right: 1px solid #999;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .meta-center {
+      width: 108px;
+      height: 54px;
+      padding: 6px 4px 4px;
+      border-right: 1px solid #999;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.35;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .meta-right {
+      width: 199px;
+      height: 54px;
+      padding: 6px 8px 4px 12px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .link-row {
+      position: absolute;
+      left: 12px;
+      top: 168px;
+      width: 575px;
+      min-height: 48px;
+      border-top: 1px solid #999;
+      border-bottom: 1px solid #999;
+      padding: 6px 12px 6px;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .link-line-1 {
+      margin-bottom: 4px;
+    }
+    .link-line-2 {
+      font-size: 10px;
+      color: #444;
+      word-break: break-all;
+      padding-left: 2px;
+    }
+
+    .body-row {
+      position: absolute;
+      left: 12px;
+      top: 216px;
+      width: 575px;
+      min-height: 644px;
+      padding: 12px 12px 16px;
+    }
+    .title-en {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .title-ko {
+      font-size: 11px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+    .toc-text {
+      font-size: 11px;
+      line-height: 1.32;
+      white-space: pre-line;
+    }
+
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
     }
@@ -253,7 +404,7 @@
 <body>
   <div class="app">
     <div class="panel">
-      <h2>좌표 고정판</h2>
+      <h2>좌표 동기화 고정판</h2>
 
       <div class="btn-row">
         <button id="runBtn" class="btn">정리/실행</button>
@@ -321,8 +472,8 @@
       </div>
 
       <div class="hint">
-        생성 화면은 메일/워드용 순수 안내서 블록입니다.<br>
-        오류 화면은 원본 PNG 기준 좌표 비교용입니다.
+        생성 화면과 오류 화면이 같은 좌표를 함께 씁니다.<br>
+        원본 파일은 <b>original-guide.png</b> 이름으로 같은 폴더에 있어야 합니다.
       </div>
     </div>
 
@@ -351,6 +502,7 @@
         <div class="stage">
           <div class="compare-stage">
             <img class="origin" src="./original-guide.png" alt="원본 안내서">
+            <div id="debugGuideWrap" style="position:absolute; inset:0; z-index:2; opacity:.18;"></div>
             <div id="overlayRoot" class="overlay-root"></div>
           </div>
         </div>
@@ -486,82 +638,58 @@
     }
 
     function buildGuideHTML(data) {
-      const titleEnHtml = data.titleEn
-        ? `<div style="font-size:16px; font-weight:700; line-height:1.3; margin-bottom:6px;">${escapeHtml(data.titleEn)}</div>`
-        : "";
-      const titleKoHtml = data.titleKo
-        ? `<div style="font-size:11px; line-height:1.35; margin-bottom:8px;">${escapeHtml(data.titleKo)}</div>`
-        : "";
-      const tocHtml = data.tocText
-        ? `<div style="font-size:11px; line-height:1.32; white-space:pre-line;">${escapeHtml(data.tocText)}</div>`
-        : "";
-
       return `
-<div id="mailGuideBlock" style="width:599px; margin:0 auto; background:#ffffff; font-family:Arial, sans-serif; color:#111;">
-  <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed; background:#fff;">
-    <tr>
-      <td style="width:58.1%; border:1px solid #222; text-align:center; padding:14px 10px;">
-        <div style="font-size:22px; font-weight:700; line-height:1.2; margin-bottom:4px;">신간자료안내</div>
-        <div style="font-size:13px; font-weight:700; text-decoration:underline; line-height:1.2;">www.worldic.co.kr</div>
-      </td>
-      <td style="width:41.9%; border:1px solid #222; text-align:center; padding:10px 8px;">
-        <div style="font-size:16px; font-weight:700; line-height:1.2;">(주)월드산업정보센터</div>
-        <div style="font-size:10px; font-weight:700; line-height:1.2; margin-top:2px;">WORLD INDUSTRIAL INFORMATION CENTER</div>
-        <div style="font-size:11px; line-height:1.45; margin-top:6px;">
-          T:(02)333-8331 / F:(02)333-8330<br>
-          E-mail : info@worldic.co.kr
-        </div>
-      </td>
-    </tr>
+<div id="mailGuideBlock" class="mail-guide">
+  <div class="sheet-frame"></div>
 
-    <tr>
-      <td colspan="2" style="border-left:1px solid #222; border-right:1px solid #222; border-top:1px solid #222; border-bottom:1px solid #999; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.25;">
-        수신 : ${escapeHtml(data.receiver)}
-      </td>
-    </tr>
+  <div class="header-row">
+    <div class="header-left">
+      <div style="font-size:20px; font-weight:700; line-height:1.1; margin-bottom:4px;">신간자료안내</div>
+      <div style="font-size:12px; font-weight:700; text-decoration:underline; line-height:1.1;">www.worldic.co.kr</div>
+    </div>
+    <div class="header-right">
+      <div style="font-size:15px; font-weight:700; line-height:1.15;">(주)월드산업정보센터</div>
+      <div style="font-size:9px; font-weight:700; line-height:1.15; margin-top:2px;">WORLD INDUSTRIAL INFORMATION CENTER</div>
+      <div style="font-size:10px; line-height:1.3; margin-top:5px;">
+        T:(02)333-8331 / F:(02)333-8330<br>
+        E-mail : info@worldic.co.kr
+      </div>
+    </div>
+  </div>
 
-    <tr>
-      <td style="width:50.1%; border-left:1px solid #222; border-right:1px solid #999; border-bottom:1px solid #999; padding:8px 10px; vertical-align:top;">
-        <div style="font-size:12px; line-height:1.45; margin-bottom:3px;">◇ 발행사: ${escapeHtml(data.publisher)}</div>
-        <div style="font-size:12px; line-height:1.45;">◇ 발행일: ${escapeHtml(data.publishDate)}</div>
-      </td>
+  <div class="receiver-line">
+    수신 : ${escapeHtml(data.receiver)}
+  </div>
 
-      <td style="padding:0; border-right:1px solid #222; border-bottom:1px solid #999;">
-        <table cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; table-layout:fixed;">
-          <tr>
-            <td style="width:32.1%; border-right:1px solid #999; padding:8px 10px; vertical-align:top; text-align:center;">
-              <div style="font-size:12px; line-height:1.45; margin-bottom:3px;">${escapeHtml(data.pages)}</div>
-              <div style="font-size:12px; line-height:1.45;">${escapeHtml(data.pdfType)}</div>
-            </td>
-            <td style="width:67.9%; padding:8px 10px; vertical-align:top;">
-              <div style="font-size:12px; line-height:1.45; margin-bottom:3px;">◇ 정가: ${escapeHtml(data.price)}</div>
-              <div style="font-size:12px; line-height:1.45;">◆ 공급가격: ${escapeHtml(data.supplyPrice)}</div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+  <div class="meta-row">
+    <div class="meta-left">
+      <div style="margin-bottom:4px;">◇ 발행사: ${escapeHtml(data.publisher)}</div>
+      <div>◇ 발행일: ${escapeHtml(data.publishDate)}</div>
+    </div>
 
-    <tr>
-      <td colspan="2" style="border-left:1px solid #222; border-right:1px solid #222; border-bottom:1px solid #999; padding:8px 12px; vertical-align:top;">
-        <div style="font-size:12px; line-height:1.35;">
-          <span style="font-size:18px; vertical-align:top;">•</span>
-          보고서 링크 <a href="${escapeHtml(data.reportLink)}" style="color:#1d4ed8; text-decoration:underline;">[바로가기]</a>
-        </div>
-        <div style="font-size:11px; line-height:1.35; margin-top:4px; word-break:break-all;">
-          ${escapeHtml(data.reportLink)}
-        </div>
-      </td>
-    </tr>
+    <div class="meta-center">
+      <div style="margin-bottom:4px;">${escapeHtml(data.pages)}</div>
+      <div>${escapeHtml(data.pdfType)}</div>
+    </div>
 
-    <tr>
-      <td colspan="2" style="border-left:1px solid #222; border-right:1px solid #222; border-bottom:1px solid #222; padding:10px 12px 16px; vertical-align:top; min-height:340px;">
-        ${titleEnHtml}
-        ${titleKoHtml}
-        ${tocHtml}
-      </td>
-    </tr>
-  </table>
+    <div class="meta-right">
+      <div style="margin-bottom:4px;">◇ 정가: ${escapeHtml(data.price)}</div>
+      <div>◆ 공급가격: ${escapeHtml(data.supplyPrice)}</div>
+    </div>
+  </div>
+
+  <div class="link-row">
+    <div class="link-line-1">
+      ● 보고서 링크 <a href="${escapeHtml(data.reportLink)}" style="color:#1d4ed8; text-decoration:underline;">[바로가기]</a>
+    </div>
+    <div class="link-line-2">${escapeHtml(data.reportLink)}</div>
+  </div>
+
+  <div class="body-row">
+    ${data.titleEn ? `<div class="title-en">${escapeHtml(data.titleEn)}</div>` : ""}
+    ${data.titleKo ? `<div class="title-ko">${escapeHtml(data.titleKo)}</div>` : ""}
+    ${data.tocText ? `<div class="toc-text">${escapeHtml(data.tocText)}</div>` : ""}
+  </div>
 </div>`;
     }
 
@@ -628,7 +756,9 @@
 
     function renderAll() {
       const data = getData();
-      document.getElementById("guideWrap").innerHTML = buildGuideHTML(data);
+      const html = buildGuideHTML(data);
+      document.getElementById("guideWrap").innerHTML = html;
+      document.getElementById("debugGuideWrap").innerHTML = html;
       renderDebug(data);
     }
 
@@ -652,7 +782,10 @@
       const html = `
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="UTF-8"><title>guide-save-for-word</title></head>
+<head>
+<meta charset="UTF-8">
+<title>guide-save-for-word</title>
+</head>
 <body>${document.getElementById("guideWrap").innerHTML}</body>
 </html>`.trim();
 
