@@ -1,0 +1,9 @@
+{
+  "name": "01-auto-guide-v1",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check_tool1.mjs"
+  }
+}
