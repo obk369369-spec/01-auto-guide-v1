@@ -1,0 +1,35 @@
+name: tool1-smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run smoke check
+        run: |
+          npm run check
+
+      - name: Commit log update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logs/AUTO_LOG_tool1.json
+          git diff --cached --quiet || git commit -m "chore: update tool1 smoke log"
+          git push
