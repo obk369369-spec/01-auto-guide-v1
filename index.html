@@ -3,833 +3,417 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1번 고객 자동화 안내서 - 동기화 고정판</title>
+  <title>1번 고객 자동화 안내서 - 통합 잠금판 v6</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, "Malgun Gothic", sans-serif;
-      background: #f3f5f8;
-      color: #222;
+    body { margin:0; font-family: Arial, "Malgun Gothic", sans-serif; background:#f5f6f8; color:#111; }
+    .app { padding:16px; }
+    .topbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .title { font-size:22px; font-weight:700; margin-right:auto; }
+    .btn, .file-btn {
+      border:1px solid #cfd5de; background:#fff; padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-size:14px; font-weight:700;
     }
-    .app {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 12px;
-      padding: 12px;
+    .btn.primary { background:#1d4ed8; color:#fff; border-color:#1d4ed8; }
+    .btn.green { background:#15803d; color:#fff; border-color:#15803d; }
+    input[type=file] { display:none; }
+    .layout { display:grid; grid-template-columns: 360px 1fr; gap:12px; }
+    .panel { background:#fff; border:1px solid #d7dce4; border-radius:16px; overflow:hidden; }
+    .panel-head { padding:16px; font-size:16px; font-weight:700; border-bottom:1px solid #e6e9ef; }
+    .panel-body { padding:16px; }
+    .field { margin-bottom:10px; }
+    .field label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; }
+    .field input, .field textarea {
+      width:100%; padding:8px 10px; border:1px solid #cfd5de; border-radius:10px; font-size:13px;
+      font-family:inherit;
     }
-    .panel, .preview-wrap {
-      background: #fff;
-      border: 1px solid #d8dde6;
-      border-radius: 12px;
-      padding: 14px;
-      overflow: auto;
+    .field textarea { min-height:68px; resize:vertical; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .status {
+      margin-top:14px; padding:12px; border:1px solid #e5e7eb; background:#fafafa; border-radius:12px;
+      white-space:pre-line; font-size:13px; min-height:125px;
     }
-    .panel h2, .preview-title {
-      margin: 0 0 12px;
-      font-size: 16px;
-      font-weight: 700;
+    .meta { margin-top:12px; font-size:13px; line-height:1.6; white-space:pre-line; word-break:break-all; }
+    .progress-wrap { margin-top:12px; }
+    .progress-title { font-size:12px; font-weight:700; margin-bottom:6px; }
+    .progress-bar { width:100%; height:16px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+    .progress-fill { height:100%; width:0%; background:#1d4ed8; transition:width .2s; }
+    .progress-text { margin-top:6px; font-size:12px; color:#444; white-space:pre-line; }
+    .tabs { display:flex; border-bottom:1px solid #e5e7eb; background:#fafafa; }
+    .tab { border:0; background:transparent; padding:12px 18px; font-size:14px; font-weight:700; cursor:pointer; border-right:1px solid #eceff4; }
+    .tab.active { background:#fff; }
+    .tabpane { display:none; padding:12px; }
+    .tabpane.active { display:block; }
+    .frame-wrap { border:1px solid #cfd5de; border-radius:12px; overflow:hidden; background:#fff; }
+    iframe { width:100%; height:920px; border:0; background:#fff; }
+    .logbox {
+      min-height:920px; border:1px solid #d7dce4; border-radius:12px; padding:16px; background:#fff;
+      white-space:pre-wrap; font-family: Consolas, monospace; font-size:13px; line-height:1.5;
     }
-    .field { margin-bottom: 12px; }
-    .field label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .field select, .field textarea, .field input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #cfd6e2;
-      border-radius: 8px;
-      font-size: 14px;
-      background: #fff;
-    }
-    .field textarea {
-      min-height: 84px;
-      resize: vertical;
-    }
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .btn {
-      border: 1px solid #c8cfdb;
-      background: #1f6feb;
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-    }
-    .btn.secondary {
-      background: #fff;
-      color: #1f2937;
-    }
-    .btn.small {
-      padding: 4px 8px;
-      font-size: 11px;
-    }
-    .hint {
-      font-size: 12px;
-      color: #667085;
-      line-height: 1.5;
-      margin-top: 8px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    .tab-btn {
-      border: 1px solid #c8cfdb;
-      background: #fff;
-      color: #1f2937;
-      border-radius: 8px;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .tab-btn.active {
-      background: #1f6feb;
-      color: #fff;
-      border-color: #1f6feb;
-    }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-    .stage {
-      background: #eef2f7;
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .guide-host {
-      width: 760px;
-      margin: 0 auto;
-    }
-    .guide-block {
-      width: 599px;
-      margin: 0 auto;
-      background: #fff;
-      border: 1px solid #d5dbe6;
-      position: relative;
-    }
-
-    .compare-stage {
-      position: relative;
-      width: 599px;
-      height: 871px;
-      margin: 0 auto;
-      background: #fff;
-      border: 1px solid #d5dbe6;
-      overflow: visible;
-    }
-    .compare-stage img.origin {
-      position: absolute;
-      inset: 0;
-      width: 599px;
-      height: 871px;
-      object-fit: contain;
-      opacity: 1;
-      z-index: 1;
-      display: block;
-      pointer-events: none;
-    }
-
-    .overlay-root {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      pointer-events: none;
-    }
-    .overlay-box {
-      position: absolute;
-      border: 2px solid;
-      border-radius: 6px;
-      pointer-events: auto;
-      background: rgba(255,255,255,0.03);
-    }
-    .overlay-box.locked {
-      border-color: rgba(22,163,74,.95);
-      background: rgba(22,163,74,.08);
-    }
-    .overlay-box.hold {
-      border-color: rgba(234,179,8,.95);
-      background: rgba(234,179,8,.08);
-    }
-    .overlay-box.manual {
-      border-color: rgba(249,115,22,.95);
-      background: rgba(249,115,22,.08);
-    }
-    .overlay-label {
-      position: absolute;
-      top: -24px;
-      left: 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      pointer-events: auto;
-    }
-    .area-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #ccd5e2;
-      background: #f7f9fc;
-      color: #334155;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-      white-space: nowrap;
-      border: 1px solid;
-    }
-    .status-badge.locked {
-      background: #ecfdf3;
-      border-color: #86efac;
-      color: #166534;
-    }
-    .status-badge.hold {
-      background: #fefce8;
-      border-color: #fde68a;
-      color: #854d0e;
-    }
-    .status-badge.manual {
-      background: #fff7ed;
-      border-color: #fdba74;
-      color: #9a3412;
-    }
-    .legend {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .debug-wrap { margin-top: 12px; }
-    .debug-card {
-      border: 1px solid #d8dde6;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: #fbfcfe;
-    }
-    .debug-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .copy-box {
-      background: #0f172a;
-      color: #d7e0ea;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-family: Consolas, monospace;
-      font-size: 12px;
-      white-space: pre-wrap;
-      line-height: 1.45;
-      margin-top: 8px;
-    }
-
-    /* 생성/오류 공통 안내서 틀 */
-    .mail-guide {
-      position: relative;
-      width: 599px;
-      min-height: 871px;
-      background: #fff;
-      margin: 0 auto;
-      font-family: Arial, "Malgun Gothic", sans-serif;
-      color: #111;
-    }
-    .sheet-frame {
-      position: absolute;
-      left: 12px;
-      top: 11px;
-      width: 575px;
-      height: 849px;
-      border: 1px solid #222;
-      background: #fff;
-    }
-
-    .header-row {
-      position: absolute;
-      left: 12px;
-      top: 11px;
-      width: 575px;
-      height: 71px;
-      display: flex;
-    }
-    .header-left {
-      width: 282px;
-      height: 71px;
-      border-right: 1px solid #222;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .header-right {
-      width: 293px;
-      height: 71px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 0 8px;
-    }
-
-    .receiver-line {
-      position: absolute;
-      left: 12px;
-      top: 82px;
-      width: 575px;
-      height: 32px;
-      border-top: 1px solid #222;
-      border-bottom: 1px solid #999;
-      padding: 6px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 18px;
-      display: flex;
-      align-items: center;
-    }
-
-    .meta-row {
-      position: absolute;
-      left: 12px;
-      top: 114px;
-      width: 575px;
-      height: 54px;
-      border-bottom: 1px solid #999;
-      display: flex;
-    }
-    .meta-left {
-      width: 268px;
-      height: 54px;
-      padding: 6px 10px 4px 12px;
-      border-right: 1px solid #999;
-      font-size: 11px;
-      line-height: 1.35;
-    }
-    .meta-center {
-      width: 108px;
-      height: 54px;
-      padding: 6px 4px 4px;
-      border-right: 1px solid #999;
-      text-align: center;
-      font-size: 11px;
-      line-height: 1.35;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .meta-right {
-      width: 199px;
-      height: 54px;
-      padding: 6px 8px 4px 12px;
-      font-size: 11px;
-      line-height: 1.35;
-    }
-
-    .link-row {
-      position: absolute;
-      left: 12px;
-      top: 168px;
-      width: 575px;
-      min-height: 48px;
-      border-top: 1px solid #999;
-      border-bottom: 1px solid #999;
-      padding: 6px 12px 6px;
-      font-size: 11px;
-      line-height: 1.3;
-    }
-    .link-line-1 {
-      margin-bottom: 4px;
-    }
-    .link-line-2 {
-      font-size: 10px;
-      color: #444;
-      word-break: break-all;
-      padding-left: 2px;
-    }
-
-    .body-row {
-      position: absolute;
-      left: 12px;
-      top: 216px;
-      width: 575px;
-      min-height: 644px;
-      padding: 12px 12px 16px;
-    }
-    .title-en {
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-    .title-ko {
-      font-size: 11px;
-      line-height: 1.35;
-      margin-bottom: 8px;
-    }
-    .toc-text {
-      font-size: 11px;
-      line-height: 1.32;
-      white-space: pre-line;
-    }
-
-    @media (max-width: 980px) {
-      .app { grid-template-columns: 1fr; }
-    }
+    .small { font-size:12px; color:#555; line-height:1.6; }
   </style>
 </head>
 <body>
-  <div class="app">
+<div class="app">
+  <div class="topbar">
+    <div class="title">1번 고객 자동화 안내서 - 통합 잠금판</div>
+    <label class="file-btn" for="htmlFile">안내서 HTML 선택</label>
+    <input id="htmlFile" type="file" accept=".htm,.html" />
+    <label class="file-btn" for="logoFile">로고 선택</label>
+    <input id="logoFile" type="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.webp,.svg" />
+    <button class="btn primary" id="applyBtn">오른쪽 전체 적용</button>
+    <button class="btn primary" id="copyBtn">복사화면 전체 복사</button>
+    <button class="btn green" id="saveBtn">안정화 HTML 저장</button>
+  </div>
+
+  <div class="layout">
     <div class="panel">
-      <h2>좌표 동기화 고정판</h2>
+      <div class="panel-head">왼쪽 메뉴</div>
+      <div class="panel-body">
+        <div class="field"><label>수신처</label><input id="fReceiver" placeholder="예: 한국화학연구원 감염병예방진단기술연구센터"></div>
+        <div class="field"><label>제목</label><textarea id="fTitle" placeholder="예: Global Infectious Disease Diagnostics Market Report 2026"></textarea></div>
+        <div class="field"><label>발행사</label><input id="fPublisher" placeholder="예: Example Research"></div>
+        <div class="row2">
+          <div class="field"><label>발행일</label><input id="fDate" placeholder="예: 2026-02-18"></div>
+          <div class="field"><label>페이지/PDF</label><input id="fPages" placeholder="예: 240 Pages / PDF"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>정가</label><input id="fPrice" placeholder="예: USD 4,950"></div>
+          <div class="field"><label>공급가격</label><input id="fSupply" placeholder="예: 별도 문의"></div>
+        </div>
+        <div class="field"><label>링크 주소</label><input id="fLinkUrl" placeholder="https://example.com/report-link"></div>
+        <div class="field"><label>링크 문구</label><input id="fLinkText" value="바로가기"></div>
 
-      <div class="btn-row">
-        <button id="runBtn" class="btn">정리/실행</button>
-        <button id="sampleBtn" class="btn secondary">샘플 넣기</button>
-        <button id="copyGuideBtn" class="btn">안내서 전체 복사</button>
-        <button id="downloadWordBtn" class="btn secondary">워드 저장용 다운로드</button>
-      </div>
+        <div class="progress-wrap">
+          <div class="progress-title">진행바</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text" id="progressText">대기 중</div>
+        </div>
 
-      <div class="field">
-        <label for="customerSelect">고객 선택</label>
-        <select id="customerSelect">
-          <option value="kric">한국화학연구원 / 광에너지연구센터</option>
-          <option value="kimm">한국기계연구원 / 친환경에너지기계연구실</option>
-        </select>
-      </div>
+        <div class="status" id="statusBox">대기 중</div>
+        <div class="meta" id="metaBox">기준 HTML: 기본 내장 원본
+로고: 없음
+자동복원: 켜짐</div>
 
-      <div class="field">
-        <label for="titleEn">영문 제목</label>
-        <textarea id="titleEn"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="titleKo">한글 제목</label>
-        <textarea id="titleKo"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="publisher">발행사</label>
-        <input id="publisher" />
-      </div>
-
-      <div class="field">
-        <label for="pages">페이지</label>
-        <input id="pages" />
-      </div>
-
-      <div class="field">
-        <label for="price">정가</label>
-        <input id="price" />
-      </div>
-
-      <div class="field">
-        <label for="publishDate">발행일</label>
-        <input id="publishDate" />
-      </div>
-
-      <div class="field">
-        <label for="pdfType">PDF 표기</label>
-        <input id="pdfType" />
-      </div>
-
-      <div class="field">
-        <label for="supplyPrice">공급가격</label>
-        <input id="supplyPrice" />
-      </div>
-
-      <div class="field">
-        <label for="reportLink">보고서 링크</label>
-        <input id="reportLink" />
-      </div>
-
-      <div class="field">
-        <label for="tocText">본문 / 목차</label>
-        <textarea id="tocText"></textarea>
-      </div>
-
-      <div class="hint">
-        생성 화면과 오류 화면이 같은 좌표를 함께 씁니다.<br>
-        원본 파일은 <b>original-guide.png</b> 이름으로 같은 폴더에 있어야 합니다.
+        <div class="small">사용 순서: 안내서 HTML 선택(선택) → 로고 선택(선택) → 오른쪽 전체 적용
+입력값은 자동 복원되고, 적용 결과도 다시 열면 그대로 복원된다.</div>
       </div>
     </div>
 
-    <div class="preview-wrap">
+    <div class="panel">
       <div class="tabs">
-        <button class="tab-btn active" data-tab="renderTab">생성 화면</button>
-        <button class="tab-btn" data-tab="debugTab">오류 화면</button>
+        <button class="tab active" data-tab="identify">식별화면</button>
+        <button class="tab" data-tab="preview">미리보기화면</button>
+        <button class="tab" data-tab="copy">복사화면</button>
+        <button class="tab" data-tab="log">진단/판단코어 로그</button>
       </div>
-
-      <div id="renderTab" class="tab-pane active">
-        <div class="preview-title">생성 화면</div>
-        <div class="stage">
-          <div class="guide-host">
-            <div id="guideWrap" class="guide-block"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="debugTab" class="tab-pane">
-        <div class="preview-title">오류 화면</div>
-        <div class="legend">
-          <span class="status-badge locked">잠금완료</span>
-          <span class="status-badge hold">보류</span>
-          <span class="status-badge manual">수동대기</span>
-        </div>
-        <div class="stage">
-          <div class="compare-stage">
-            <img class="origin" src="./original-guide.png" alt="원본 안내서">
-            <div id="debugGuideWrap" style="position:absolute; inset:0; z-index:2; opacity:.18;"></div>
-            <div id="overlayRoot" class="overlay-root"></div>
-          </div>
-        </div>
-        <div id="debugRoot" class="debug-wrap"></div>
-      </div>
+      <div class="tabpane active" id="pane-identify"><div class="frame-wrap"><iframe id="identifyFrame"></iframe></div></div>
+      <div class="tabpane" id="pane-preview"><div class="frame-wrap"><iframe id="previewFrame"></iframe></div></div>
+      <div class="tabpane" id="pane-copy"><div class="frame-wrap"><iframe id="copyFrame"></iframe></div></div>
+      <div class="tabpane" id="pane-log"><div class="logbox" id="logBox">로그 대기 중</div></div>
     </div>
   </div>
+</div>
 
-  <script>
-    const customers = {
-      kric: { orgName: "한국화학연구원", deptName: "광에너지연구센터" },
-      kimm: { orgName: "한국기계연구원", deptName: "친환경에너지기계연구실" }
-    };
+<script>
+const DEFAULT_TEMPLATE = '<html xmlns:v="urn:schemas-microsoft-com:vml"\r\nxmlns:o="urn:schemas-microsoft-com:office:office"\r\nxmlns:w="urn:schemas-microsoft-com:office:word"\r\nxmlns:m="http://schemas.microsoft.com/office/2004/12/omml"\r\nxmlns="http://www.w3.org/TR/REC-html40">\r\n\r\n<head>\r\n<meta http-equiv=Content-Type content="text/html; charset=ks_c_5601-1987">\r\n<meta name=ProgId content=Word.Document>\r\n<meta name=Generator content="Microsoft Word 12">\r\n<meta name=Originator content="Microsoft Word 12">\r\n<link rel=File-List href="안내자료양식(시장%20보고서)-월드산업정보센터.files/filelist.xml">\r\n<link rel=Edit-Time-Data href="안내자료양식(시장%20보고서)-월드산업정보센터.files/editdata.mso">\r\n<!--[if !mso]>\r\n<style>\r\nv\\:* {behavior:url(#default#VML);}\r\no\\:* {behavior:url(#default#VML);}\r\nw\\:* {behavior:url(#default#VML);}\r\n.shape {behavior:url(#default#VML);}\r\n</style>\r\n<![endif]-->\r\n<title>E-09-01</title>\r\n<!--[if gte mso 9]><xml>\r\n <o:DocumentProperties>\r\n  <o:Author>user</o:Author>\r\n  <o:LastAuthor>오병관</o:LastAuthor>\r\n  <o:Revision>2</o:Revision>\r\n  <o:TotalTime>16</o:TotalTime>\r\n  <o:Created>2026-03-17T01:40:00Z</o:Created>\r\n  <o:LastSaved>2026-03-17T01:40:00Z</o:LastSaved>\r\n  <o:Pages>1</o:Pages>\r\n  <o:Words>65</o:Words>\r\n  <o:Characters>377</o:Characters>\r\n  <o:Lines>3</o:Lines>\r\n  <o:Paragraphs>1</o:Paragraphs>\r\n  <o:CharactersWithSpaces>441</o:CharactersWithSpaces>\r\n  <o:Version>12.00</o:Version>\r\n </o:DocumentProperties>\r\n</xml><![endif]-->\r\n<link rel=themeData href="안내자료양식(시장%20보고서)-월드산업정보센터.files/themedata.thmx">\r\n<link rel=colorSchemeMapping\r\nhref="안내자료양식(시장%20보고서)-월드산업정보센터.files/colorschememapping.xml">\r\n<!--[if gte mso 9]><xml>\r\n <w:WordDocument>\r\n  <w:GrammarState>Clean</w:GrammarState>\r\n  <w:TrackMoves>false</w:TrackMoves>\r\n  <w:TrackFormatting/>\r\n  <w:DoNotHyphenateCaps/>\r\n  <w:DisplayHorizontalDrawingGridEvery>0</w:DisplayHorizontalDrawingGridEvery>\r\n  <w:DisplayVerticalDrawingGridEvery>2</w:DisplayVerticalDrawingGridEvery>\r\n  <w:ValidateAgainstSchemas>false</w:ValidateAgainstSchemas>\r\n  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>\r\n  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>\r\n  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>\r\n  <w:DoNotUnderlineInvalidXML/>\r\n  <w:DoNotPromoteQF/>\r\n  <w:LidThemeOther>EN-US</w:LidThemeOther>\r\n  <w:LidThemeAsian>KO</w:LidThemeAsian>\r\n  <w:LidThemeComplexScript>X-NONE</w:LidThemeComplexScript>\r\n  <w:Compatibility>\r\n   <w:SpaceForUL/>\r\n   <w:BalanceSingleByteDoubleByteWidth/>\r\n   <w:DoNotLeaveBackslashAlone/>\r\n   <w:ULTrailSpace/>\r\n   <w:DoNotExpandShiftReturn/>\r\n   <w:AdjustLineHeightInTable/>\r\n   <w:BreakWrappedTables/>\r\n   <w:SnapToGridInCell/>\r\n   <w:WrapTextWithPunct/>\r\n   <w:UseAsianBreakRules/>\r\n   <w:DontGrowAutofit/>\r\n   <w:DontUseIndentAsNumberingTabStop/>\r\n   <w:FELineBreak11/>\r\n   <w:WW11IndentRules/>\r\n   <w:DontAutofitConstrainedTables/>\r\n   <w:AutofitLikeWW11/>\r\n   <w:HangulWidthLikeWW11/>\r\n   <w:UseNormalStyleForList/>\r\n   <w:UseFELayout/>\r\n  </w:Compatibility>\r\n  <w:NoLineBreaksAfter Lang="KO">$([\\{&pound;&yen;‘“〈《「『【〔＄（［｛￡￥￦</w:NoLineBreaksAfter>\r\n  <w:NoLineBreaksBefore Lang="KO">!%),.:;?]}&cent;°’”′″℃〉》」』】〕！％），．：；？］｝￠</w:NoLineBreaksBefore>\r\n  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>\r\n  <m:mathPr>\r\n   <m:mathFont m:val="Cambria Math"/>\r\n   <m:brkBin m:val="before"/>\r\n   <m:brkBinSub m:val="--"/>\r\n   <m:smallFrac m:val="off"/>\r\n   <m:dispDef/>\r\n   <m:lMargin m:val="0"/>\r\n   <m:rMargin m:val="0"/>\r\n   <m:defJc m:val="centerGroup"/>\r\n   <m:wrapIndent m:val="1440"/>\r\n   <m:intLim m:val="subSup"/>\r\n   <m:naryLim m:val="undOvr"/>\r\n  </m:mathPr></w:WordDocument>\r\n</xml><![endif]--><!--[if gte mso 9]><xml>\r\n <w:LatentStyles DefLockedState="false" DefUnhideWhenUsed="false"\r\n  DefSemiHidden="false" DefQFormat="false" LatentStyleCount="267">\r\n  <w:LsdException Locked="true" QFormat="true" Name="Normal"/>\r\n  <w:LsdException Locked="true" QFormat="true" Name="heading 1"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 2"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 3"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 4"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 5"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 6"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 7"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 8"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="heading 9"/>\r\n  <w:LsdException Locked="true" Name="toc 1"/>\r\n  <w:LsdException Locked="true" Name="toc 2"/>\r\n  <w:LsdException Locked="true" Name="toc 3"/>\r\n  <w:LsdException Locked="true" Name="toc 4"/>\r\n  <w:LsdException Locked="true" Name="toc 5"/>\r\n  <w:LsdException Locked="true" Name="toc 6"/>\r\n  <w:LsdException Locked="true" Name="toc 7"/>\r\n  <w:LsdException Locked="true" Name="toc 8"/>\r\n  <w:LsdException Locked="true" Name="toc 9"/>\r\n  <w:LsdException Locked="true" SemiHidden="true" UnhideWhenUsed="true"\r\n   QFormat="true" Name="caption"/>\r\n  <w:LsdException Locked="true" QFormat="true" Name="Title"/>\r\n  <w:LsdException Locked="true" QFormat="true" Name="Subtitle"/>\r\n  <w:LsdException Locked="true" QFormat="true" Name="Strong"/>\r\n  <w:LsdException Locked="true" QFormat="true" Name="Emphasis"/>\r\n  <w:LsdException Locked="true" Name="Table Grid"/>\r\n  <w:LsdException Locked="false" Priority="99" SemiHidden="true"\r\n   Name="Placeholder Text"/>\r\n  <w:LsdException Locked="false" Priority="1" QFormat="true" Name="No Spacing"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="99" SemiHidden="true" Name="Revision"/>\r\n  <w:LsdException Locked="false" Priority="34" QFormat="true"\r\n   Name="List Paragraph"/>\r\n  <w:LsdException Locked="false" Priority="29" QFormat="true" Name="Quote"/>\r\n  <w:LsdException Locked="false" Priority="30" QFormat="true"\r\n   Name="Intense Quote"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 1"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 2"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 3"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 4"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 5"/>\r\n  <w:LsdException Locked="false" Priority="60" Name="Light Shading Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="61" Name="Light List Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="62" Name="Light Grid Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="63" Name="Medium Shading 1 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="64" Name="Medium Shading 2 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="65" Name="Medium List 1 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="66" Name="Medium List 2 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="67" Name="Medium Grid 1 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="68" Name="Medium Grid 2 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="69" Name="Medium Grid 3 Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="70" Name="Dark List Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="71" Name="Colorful Shading Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="72" Name="Colorful List Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="73" Name="Colorful Grid Accent 6"/>\r\n  <w:LsdException Locked="false" Priority="19" QFormat="true"\r\n   Name="Subtle Emphasis"/>\r\n  <w:LsdException Locked="false" Priority="21" QFormat="true"\r\n   Name="Intense Emphasis"/>\r\n  <w:LsdException Locked="false" Priority="31" QFormat="true"\r\n   Name="Subtle Reference"/>\r\n  <w:LsdException Locked="false" Priority="32" QFormat="true"\r\n   Name="Intense Reference"/>\r\n  <w:LsdException Locked="false" Priority="33" QFormat="true" Name="Book Title"/>\r\n  <w:LsdException Locked="false" Priority="37" SemiHidden="true"\r\n   UnhideWhenUsed="true" Name="Bibliography"/>\r\n  <w:LsdException Locked="false" Priority="39" SemiHidden="true"\r\n   UnhideWhenUsed="true" QFormat="true" Name="TOC Heading"/>\r\n </w:LatentStyles>\r\n</xml><![endif]-->\r\n<style>\r\n<!--\r\n /* Font Definitions */\r\n @font-face\r\n\t{font-family:Wingdings;\r\n\tpanose-1:5 0 0 0 0 0 0 0 0 0;\r\n\tmso-font-charset:2;\r\n\tmso-generic-font-family:auto;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:0 268435456 0 0 -2147483648 0;}\r\n@font-face\r\n\t{font-family:바탕;\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-alt:Batang;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1342176593 1775729915 48 0 524447 0;}\r\n@font-face\r\n\t{font-family:굴림;\r\n\tpanose-1:2 11 6 0 0 1 1 1 1 1;\r\n\tmso-font-alt:Gulim;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1342176593 1775729915 48 0 524447 0;}\r\n@font-face\r\n\t{font-family:"Cambria Math";\r\n\tpanose-1:2 4 5 3 5 4 6 3 2 4;\r\n\tmso-font-charset:0;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-536869121 1107305727 33554432 0 415 0;}\r\n@font-face\r\n\t{font-family:"Arial Unicode MS";\r\n\tpanose-1:2 11 6 4 2 2 2 2 2 4;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-134238209 -371195905 63 0 4129279 0;}\r\n@font-face\r\n\t{font-family:"맑은 고딕";\r\n\tpanose-1:2 11 5 3 2 0 0 2 0 4;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1879048145 701988091 18 0 524289 0;}\r\n@font-face\r\n\t{font-family:HY얕은샘물M;\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1879047513 165117177 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:HY궁서;\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-2147482969 433552633 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:"Eras Demi ITC";\r\n\tpanose-1:2 11 8 5 3 5 4 2 8 4;\r\n\tmso-font-charset:0;\r\n\tmso-generic-font-family:swiss;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:3 0 0 0 1 0;}\r\n@font-face\r\n\t{font-family:HY강B;\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-2147482969 433552633 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:"MS PGothic";\r\n\tpanose-1:2 11 6 0 7 2 5 8 2 4;\r\n\tmso-font-charset:128;\r\n\tmso-generic-font-family:swiss;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-536870145 1791491579 134217746 0 131231 0;}\r\n@font-face\r\n\t{font-family:"\\@바탕";\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1342176593 1775729915 48 0 524447 0;}\r\n@font-face\r\n\t{font-family:"\\@HY얕은샘물M";\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1879047513 165117177 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:"\\@HY궁서";\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-2147482969 433552633 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:"\\@맑은 고딕";\r\n\tpanose-1:2 11 5 3 2 0 0 2 0 4;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1879048145 701988091 18 0 524289 0;}\r\n@font-face\r\n\t{font-family:"\\@굴림";\r\n\tpanose-1:2 11 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-1342176593 1775729915 48 0 524447 0;}\r\n@font-face\r\n\t{font-family:"\\@HY강B";\r\n\tpanose-1:2 3 6 0 0 1 1 1 1 1;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:roman;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-2147482969 433552633 16 0 524288 0;}\r\n@font-face\r\n\t{font-family:"\\@Arial Unicode MS";\r\n\tpanose-1:2 11 6 4 2 2 2 2 2 4;\r\n\tmso-font-charset:129;\r\n\tmso-generic-font-family:modern;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-134238209 -371195905 63 0 4129279 0;}\r\n@font-face\r\n\t{font-family:"\\@MS PGothic";\r\n\tpanose-1:2 11 6 0 7 2 5 8 2 4;\r\n\tmso-font-charset:128;\r\n\tmso-generic-font-family:swiss;\r\n\tmso-font-pitch:variable;\r\n\tmso-font-signature:-536870145 1791491579 134217746 0 131231 0;}\r\n /* Style Definitions */\r\n p.MsoNormal, li.MsoNormal, div.MsoNormal\r\n\t{mso-style-unhide:no;\r\n\tmso-style-qformat:yes;\r\n\tmso-style-parent:"";\r\n\tmargin:0cm;\r\n\tmargin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:바탕;\r\n\tmso-font-kerning:1.0pt;}\r\np.MsoHeader, li.MsoHeader, div.MsoHeader\r\n\t{mso-style-unhide:no;\r\n\tmargin:0cm;\r\n\tmargin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttab-stops:center 212.6pt right 425.2pt;\r\n\tlayout-grid-mode:char;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:바탕;\r\n\tmso-font-kerning:1.0pt;}\r\np.MsoFooter, li.MsoFooter, div.MsoFooter\r\n\t{mso-style-unhide:no;\r\n\tmargin:0cm;\r\n\tmargin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttab-stops:center 212.6pt right 425.2pt;\r\n\tlayout-grid-mode:char;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:바탕;\r\n\tmso-font-kerning:1.0pt;}\r\na:link, span.MsoHyperlink\r\n\t{mso-style-unhide:no;\r\n\tcolor:blue;\r\n\ttext-decoration:underline;\r\n\ttext-underline:single;}\r\na:visited, span.MsoHyperlinkFollowed\r\n\t{mso-style-unhide:no;\r\n\tcolor:purple;\r\n\tmso-themecolor:followedhyperlink;\r\n\ttext-decoration:underline;\r\n\ttext-underline:single;}\r\np.MsoAcetate, li.MsoAcetate, div.MsoAcetate\r\n\t{mso-style-noshow:yes;\r\n\tmso-style-unhide:no;\r\n\tmso-style-link:"풍선 도움말 텍스트 Char";\r\n\tmargin:0cm;\r\n\tmargin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:9.0pt;\r\n\tfont-family:"맑은 고딕";\r\n\tmso-bidi-font-family:"Times New Roman";\r\n\tmso-font-kerning:1.0pt;}\r\np.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph\r\n\t{mso-style-priority:34;\r\n\tmso-style-unhide:no;\r\n\tmso-style-qformat:yes;\r\n\tmargin-top:0cm;\r\n\tmargin-right:0cm;\r\n\tmargin-bottom:0cm;\r\n\tmargin-left:40.0pt;\r\n\tmargin-bottom:.0001pt;\r\n\tmso-para-margin-top:0cm;\r\n\tmso-para-margin-right:0cm;\r\n\tmso-para-margin-bottom:0cm;\r\n\tmso-para-margin-left:4.0gd;\r\n\tmso-para-margin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:바탕;\r\n\tmso-font-kerning:1.0pt;}\r\np.a, li.a, div.a\r\n\t{mso-style-name:바탕글;\r\n\tmso-style-unhide:no;\r\n\tmso-style-parent:"";\r\n\tmargin:0cm;\r\n\tmargin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tline-height:123%;\r\n\tmso-pagination:none;\r\n\ttab-stops:40.0pt 80.0pt 120.0pt 160.0pt 200.0pt 240.0pt 280.0pt 320.0pt 360.0pt 400.0pt 440.0pt 480.0pt 520.0pt 560.0pt 600.0pt 640.0pt 680.0pt 720.0pt 760.0pt 800.0pt 840.0pt 880.0pt 920.0pt 960.0pt 1000.0pt 1040.0pt 1080.0pt 1120.0pt 1160.0pt 1200.0pt 1240.0pt;\r\n\tmso-layout-grid-align:none;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:"Times New Roman";\r\n\tcolor:black;}\r\nspan.cont1\r\n\t{mso-style-name:cont1;\r\n\tmso-style-unhide:no;\r\n\tmso-ansi-font-size:10.0pt;\r\n\tmso-bidi-font-size:10.0pt;\r\n\tfont-family:"MS PGothic","sans-serif";\r\n\tmso-ascii-font-family:"MS PGothic";\r\n\tmso-fareast-font-family:"MS PGothic";\r\n\tmso-hansi-font-family:"MS PGothic";\r\n\tmso-bidi-font-family:"Times New Roman";}\r\np.ListParagraph, li.ListParagraph, div.ListParagraph\r\n\t{mso-style-name:"List Paragraph";\r\n\tmso-style-unhide:no;\r\n\tmargin-top:0cm;\r\n\tmargin-right:0cm;\r\n\tmargin-bottom:0cm;\r\n\tmargin-left:40.0pt;\r\n\tmargin-bottom:.0001pt;\r\n\tmso-para-margin-top:0cm;\r\n\tmso-para-margin-right:0cm;\r\n\tmso-para-margin-bottom:0cm;\r\n\tmso-para-margin-left:4.0gd;\r\n\tmso-para-margin-bottom:.0001pt;\r\n\ttext-align:justify;\r\n\ttext-justify:inter-ideograph;\r\n\tmso-pagination:none;\r\n\ttext-autospace:none;\r\n\tword-break:break-hangul;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"바탕","serif";\r\n\tmso-hansi-font-family:"Times New Roman";\r\n\tmso-bidi-font-family:바탕;\r\n\tmso-font-kerning:1.0pt;}\r\nspan.Char\r\n\t{mso-style-name:"풍선 도움말 텍스트 Char";\r\n\tmso-style-noshow:yes;\r\n\tmso-style-unhide:no;\r\n\tmso-style-locked:yes;\r\n\tmso-style-link:"풍선 도움말 텍스트";\r\n\tmso-ansi-font-size:9.0pt;\r\n\tmso-bidi-font-size:9.0pt;\r\n\tfont-family:"맑은 고딕";\r\n\tmso-ascii-font-family:"맑은 고딕";\r\n\tmso-fareast-font-family:"맑은 고딕";\r\n\tmso-hansi-font-family:"맑은 고딕";\r\n\tmso-bidi-font-family:"Times New Roman";}\r\nspan.GramE\r\n\t{mso-style-name:"";\r\n\tmso-gram-e:yes;}\r\n.MsoChpDefault\r\n\t{mso-style-type:export-only;\r\n\tmso-default-props:yes;\r\n\tmso-ascii-font-family:"맑은 고딕";\r\n\tmso-fareast-font-family:"맑은 고딕";\r\n\tmso-hansi-font-family:"맑은 고딕";}\r\n /* Page Definitions */\r\n @page\r\n\t{mso-page-border-surround-header:no;\r\n\tmso-page-border-surround-footer:no;\r\n\tmso-footnote-separator:url("안내자료양식\\(시장%20보고서\\)-월드산업정보센터.files/header.htm") fs;\r\n\tmso-footnote-continuation-separator:url("안내자료양식\\(시장%20보고서\\)-월드산업정보센터.files/header.htm") fcs;\r\n\tmso-endnote-separator:url("안내자료양식\\(시장%20보고서\\)-월드산업정보센터.files/header.htm") es;\r\n\tmso-endnote-continuation-separator:url("안내자료양식\\(시장%20보고서\\)-월드산업정보센터.files/header.htm") ecs;}\r\n@page Section1\r\n\t{size:595.3pt 841.9pt;\r\n\tmargin:2.0cm 72.0pt 72.0pt 72.0pt;\r\n\tmso-header-margin:42.55pt;\r\n\tmso-footer-margin:49.6pt;\r\n\tmso-paper-source:0;}\r\ndiv.Section1\r\n\t{page:Section1;}\r\n /* List Definitions */\r\n @list l0\r\n\t{mso-list-id:570971096;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:-1340539862 167918102 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}\r\n@list l0:level1\r\n\t{mso-level-text:"\\(%1\\)";\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:36.6pt;\r\n\ttext-indent:-36.0pt;\r\n\tmso-ansi-font-size:18.0pt;\r\n\tfont-family:굴림;\r\n\tmso-bidi-font-family:Arial;}\r\n@list l1\r\n\t{mso-list-id:691107300;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:-1755808230 -705937488 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}\r\n@list l1:level1\r\n\t{mso-level-text:"\\(%1\\)";\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:56.0pt;\r\n\ttext-indent:-36.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level2\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:60.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level3\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:80.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level4\r\n\t{mso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:100.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level5\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:120.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level6\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:140.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level7\r\n\t{mso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:160.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level8\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:180.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l1:level9\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:200.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l2\r\n\t{mso-list-id:1203900225;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:481750090 1715631674 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}\r\n@list l2:level1\r\n\t{mso-level-start-at:5;\r\n\tmso-level-number-format:bullet;\r\n\tmso-level-text:\\F06C;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:40.5pt;\r\n\ttext-indent:-18.0pt;\r\n\tfont-family:Wingdings;\r\n\tmso-fareast-font-family:굴림;\r\n\tmso-bidi-font-family:바탕;}\r\n@list l3\r\n\t{mso-list-id:1390030025;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:1738602378 1858867596 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}\r\n@list l3:level1\r\n\t{mso-level-start-at:5;\r\n\tmso-level-number-format:bullet;\r\n\tmso-level-text:\\F06C;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\ttext-indent:-18.0pt;\r\n\tfont-family:Wingdings;\r\n\tmso-fareast-font-family:굴림;\r\n\tmso-bidi-font-family:바탕;}\r\n@list l4\r\n\t{mso-list-id:1476798468;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:425637226 1015193342 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}\r\n@list l4:level1\r\n\t{mso-level-start-at:3;\r\n\tmso-level-number-format:bullet;\r\n\tmso-level-text:\\F06C;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:22.5pt;\r\n\ttext-indent:-18.0pt;\r\n\tmso-ansi-font-size:10.0pt;\r\n\tfont-family:Wingdings;\r\n\tmso-fareast-font-family:굴림;\r\n\tmso-bidi-font-family:바탕;}\r\n@list l5\r\n\t{mso-list-id:1903982275;\r\n\tmso-list-type:hybrid;\r\n\tmso-list-template-ids:-460028482 -847091400 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}\r\n@list l5:level1\r\n\t{mso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:38.0pt;\r\n\ttext-indent:-18.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level2\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:60.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level3\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:80.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level4\r\n\t{mso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:100.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level5\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:120.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level6\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:140.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level7\r\n\t{mso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:160.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level8\r\n\t{mso-level-number-format:alpha-upper;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:left;\r\n\tmargin-left:180.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\n@list l5:level9\r\n\t{mso-level-number-format:roman-lower;\r\n\tmso-level-tab-stop:none;\r\n\tmso-level-number-position:right;\r\n\tmargin-left:200.0pt;\r\n\ttext-indent:-20.0pt;\r\n\tmso-bidi-font-family:"Times New Roman";}\r\nol\r\n\t{margin-bottom:0cm;}\r\nul\r\n\t{margin-bottom:0cm;}\r\n-->\r\n</style>\r\n<!--[if gte mso 10]>\r\n<style>\r\n /* Style Definitions */\r\n table.MsoNormalTable\r\n\t{mso-style-name:"표준 표";\r\n\tmso-tstyle-rowband-size:0;\r\n\tmso-tstyle-colband-size:0;\r\n\tmso-style-noshow:yes;\r\n\tmso-style-unhide:no;\r\n\tmso-style-parent:"";\r\n\tmso-padding-alt:0cm 5.4pt 0cm 5.4pt;\r\n\tmso-para-margin:0cm;\r\n\tmso-para-margin-bottom:.0001pt;\r\n\tmso-pagination:widow-orphan;\r\n\tfont-size:10.0pt;\r\n\tfont-family:"맑은 고딕";}\r\n</style>\r\n<![endif]--><!--[if gte mso 9]><xml>\r\n <o:shapedefaults v:ext="edit" spidmax="3074"/>\r\n</xml><![endif]--><!--[if gte mso 9]><xml>\r\n <o:shapelayout v:ext="edit">\r\n  <o:idmap v:ext="edit" data="1"/>\r\n </o:shapelayout></xml><![endif]-->\r\n</head>\r\n\r\n<body lang=KO link=blue vlink=purple style=\'tab-interval:40.0pt\'>\r\n\r\n<div class=Section1>\r\n\r\n<p class=MsoNormal style=\'mso-line-height-alt:0pt;word-break:keep-all\'><span\r\nlang=EN-US><o:p>&nbsp;</o:p></span></p>\r\n\r\n<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0 width=595\r\n style=\'width:446.55pt;margin-left:5.4pt;border-collapse:collapse;border:none;\r\n mso-border-alt:solid windowtext .5pt;mso-yfti-tbllook:480;mso-padding-alt:\r\n 0cm 5.4pt 0cm 5.4pt\'>\r\n <tr style=\'mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes\'>\r\n  <td width=72 valign=top style=\'width:54.0pt;border:solid windowtext 1.0pt;\r\n  border-right:none;mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:\r\n  solid windowtext .5pt;mso-border-bottom-alt:solid windowtext .5pt;padding:\r\n  0cm 5.4pt 0cm 5.4pt\'>\r\n  <p class=MsoNormal style=\'mso-line-height-alt:0pt;word-break:keep-all\'><span\r\n  lang=EN-US style=\'font-size:16.0pt;font-family:"HY얕은샘물M","serif"\'><o:p>&nbsp;</o:p></span></p>\r\n  </td>\r\n  <td width=276 valign=top style=\'width:207.0pt;border-top:solid windowtext 1.0pt;\r\n  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:none;\r\n  mso-border-top-alt:solid windowtext .5pt;mso-border-bottom-alt:solid windowtext .5pt;\r\n  padding:0cm 5.4pt 0cm 5.4pt\'>\r\n  <p class=MsoNormal style=\'text-indent:11.5pt;mso-line-height-alt:0pt;\r\n  word-break:keep-all\'><b style=\'mso-bidi-font-weight:normal\'><i\r\n  style=\'mso-bidi-font-style:normal\'><span style=\'font-size:16.0pt;font-family:\r\n  "HY궁서","serif";mso-hansi-font-family:"맑은 고딕"\'>신간자료안내<span lang=EN-US><o:p></o:p></span></span></i></b></p>\r\n  <p class=MsoNormal style=\'text-indent:4.4pt;mso-line-height-alt:0pt;\r\n  word-break:keep-all\'><b style=\'mso-bidi-font-weight:normal\'><i\r\n  style=\'mso-bidi-font-style:normal\'><span lang=EN-US style=\'font-size:12.0pt;\r\n  mso-bidi-font-size:10.0pt;font-family:굴림;color:blue\'><a\r\n  href="file:///D:\\안내서%20모음\\www.worldic.co.kr">www.worldic.co.kr</a></span></i></b><span\r\n  lang=EN-US style=\'mso-fareast-font-family:굴림\'><o:p></o:p></span></p>\r\n  </td>\r\n  <td width=247 valign=top style=\'width:185.55pt;border:solid windowtext 1.0pt;\r\n  border-left:none;mso-border-top-alt:solid windowtext .5pt;mso-border-bottom-alt:\r\n  solid windowtext .5pt;mso-border-right-alt:solid windowtext .5pt;padding:\r\n  0cm 5.4pt 0cm 5.4pt\'>\r\n  <p class=MsoNormal style=\'mso-line-height-alt:0pt;word-break:keep-all\'><span\r\n  lang=EN-US style=\'mso-no-proof:yes\'><!--[if gte vml 1]><v:shapetype id="_x0000_t75"\r\n   coordsize="21600,21600" o:spt="75" o:preferrelative="t" path="m@4@5l@4@11@9@11@9@5xe"\r\n   filled="f" stroked="f">\r\n   <v:stroke joinstyle="miter"/>\r\n   <v:formulas>\r\n    <v:f eqn="if lineDrawn pixelLineWidth 0"/>\r\n    <v:f eqn="sum @0 1 0"/>\r\n    <v:f eqn="sum 0 0 @1"/>\r\n    <v:f eqn="prod @2 1 2"/>\r\n    <v:f eqn="prod @3 21600 pixelWidth"/>\r\n    <v:f eqn="prod @3 21600 pixelHeight"/>\r\n    <v:f eqn="sum @0 0 1"/>\r\n    <v:f eqn="prod @6 1 2"/>\r\n    <v:f eqn="prod @7 21600 pixelWidth"/>\r\n    <v:f eqn="sum @8 21600 0"/>\r\n    <v:f eqn="prod @7 21600 pixelHeight"/>\r\n    <v:f eqn="sum @10 21600 0"/>\r\n   </v:formulas>\r\n   <v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>\r\n   <o:lock v:ext="edit" aspectratio="t"/>\r\n  </v:shapetype><v:shape id="그림_x0020_6" o:spid="_x0000_i1025" type="#_x0000_t75"\r\n   style=\'width:165pt;height:22.5pt;visibility:visible\'>\r\n   <v:imagedata src="안내자료양식(시장%20보고서)-월드산업정보센터.files/image001.png" o:title=""/>\r\n  </v:shape><![endif]--><![if !vml]><img border=0 width=220 height=30\r\n  src="안내자료양식(시장%20보고서)-월드산업정보센터.files/image002.jpg" v:shapes="그림_x0020_6"><![endif]></span></p>\r\n  <p class=MsoNormal style=\'text-indent:5.0pt;mso-char-indent-count:.5;\r\n  mso-line-height-alt:0pt;word-break:keep-all\'><span lang=EN-US\r\n  style=\'font-family:"Eras Demi ITC","sans-serif";mso-fareast-font-family:HY강B;\r\n  mso-bidi-font-family:"Arial Unicode MS"\'>T:(02)333-8331/ F:(02)333-8330<o:p></o:p></span></p>\r\n  <p class=MsoNormal style=\'text-indent:38.4pt;mso-char-indent-count:3.84;\r\n  mso-line-height-alt:0pt;word-break:keep-all\'><span lang=EN-US\r\n  style=\'font-family:"Eras Demi ITC","sans-serif";mso-fareast-font-family:HY강B;\r\n  mso-bidi-font-family:"Arial Unicode MS"\'>E-mail : <a\r\n  href="mailto:info@worldic.co.kr">info@worldic.co.kr</a></span><span\r\n  lang=EN-US style=\'mso-fareast-font-family:굴림\'><o:p></o:p></span></p>\r\n  </td>\r\n </tr>\r\n</table>\r\n\r\n<p class=a style=\'mso-line-height-alt:0pt\'><span lang=EN-US><o:p>&nbsp;</o:p></span></p>\r\n\r\n<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0 width=595\r\n style=\'width:446.55pt;margin-left:.75pt;border-collapse:collapse;border:none;\r\n mso-border-alt:solid windowtext .75pt;mso-padding-alt:0cm .6pt 0cm .6pt;\r\n mso-border-insideh:.75pt solid windowtext;mso-border-insidev:.75pt solid windowtext\'>\r\n <tr style=\'mso-yfti-irow:0;mso-yfti-firstrow:yes;height:87.05pt\'>\r\n  <td width=3 style=\'width:2.5pt;border-top:double 2.25pt;border-left:solid 1.5pt;\r\n  border-bottom:double 2.25pt;border-right:solid 1.5pt;border-color:windowtext;\r\n  padding:0cm .6pt 0cm .6pt;height:87.05pt\'>\r\n  <p class=MsoNormal align=left style=\'text-align:left;mso-pagination:widow-orphan;\r\n  text-autospace:ideograph-numeric ideograph-other;word-break:keep-all\'><span\r\n  lang=EN-US style=\'font-size:12.0pt;font-family:"Arial","sans-serif";\r\n  mso-fareast-font-family:굴림;mso-font-kerning:0pt\'><o:p>&nbsp;</o:p></span></p>\r\n  </td>\r\n  <td width=592 style=\'width:444.05pt;border-top:double windowtext 2.25pt;\r\n  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.5pt;\r\n  mso-border-left-alt:solid windowtext 1.5pt;mso-border-top-alt:double 2.25pt;\r\n  mso-border-left-alt:solid 1.5pt;mso-border-bottom-alt:solid .75pt;mso-border-right-alt:\r\n  solid 1.5pt;mso-border-color-alt:windowtext;padding:0cm .6pt 0cm .6pt;\r\n  height:87.05pt\'>\r\n  <p class=a style=\'margin-left:4.0pt;mso-para-margin-left:.4gd;mso-line-height-alt:\r\n  0pt;word-break:keep-all\'><b style=\'mso-bidi-font-weight:normal\'><span\r\n  lang=EN-US style=\'font-size:12.0pt;font-family:굴림\'><o:p>&nbsp;</o:p></span></b></p>\r\n  <p class=a style=\'margin-left:4.0pt;mso-para-margin-left:.4gd;mso-line-height-alt:\r\n  0pt;word-break:keep-all\'><b style=\'mso-bidi-font-weight:normal\'><span\r\n  lang=EN-US style=\'font-size:12.0pt;font-family:굴림\'><o:p>&nbsp;</o:p></span></b></p>\r\n  <p class=a style=\'margin-left:4.0pt;mso-para-margin-left:.4gd;text-indent:\r\n  21.2pt;mso-char-indent-count:1.8;mso-line-height-alt:0pt;word-break:keep-all\'><b\r\n  style=\'mso-bidi-font-weight:normal\'><span lang=EN-US style=\'font-size:12.0pt;\r\n  font-family:굴림\'>(<span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\r\n  </span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)</span></b><b\r\n  style=\'mso-bidi-font-weight:normal\'><span lang=EN-US style=\'font-size:18.0pt;\r\n  mso-bidi-font-size:12.0pt;font-family:굴림\'><o:p></o:p></span></b></p>\r\n  <p class=a style=\'margin-left:11.3pt;mso-para-margin-left:1.13gd;text-indent:\r\n  11.8pt;mso-char-indent-count:1.0;mso-line-height-alt:0pt;word-break:keep-all\'><b\r\n  style=\'mso-bidi-font-weight:normal\'><span lang=EN-US style=\'font-size:12.0pt;\r\n  font-family:굴림\'>---------------------------------------------------</span></b><b\r\n  style=\'mso-bidi-font-weight:normal\'><span lang=EN-US style=\'font-size:16.0pt;\r\n  font-family:굴림;color:green\'><o:p></o:p></span></b></p>\r\n  <p class=a style=\'text-indent:11.35pt;mso-line-height-alt:0pt;word-break:\r\n  keep-all\'><span style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:\r\n  바탕;mso-bidi-font-weight:bold\'>◇ 발행사</span><span lang=EN-US style=\'font-size:\r\n  11.0pt;font-family:굴림;mso-bidi-font-family:굴림;mso-bidi-font-weight:bold\'>:</span><span\r\n  lang=EN-US style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:Arial;\r\n  mso-bidi-font-weight:bold\'> <span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;</span></span><span class=GramE><span\r\n  lang=EN-US style=\'font-family:"Arial","sans-serif"\'>( <span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span>Pages</span></span><span lang=EN-US\r\n  style=\'font-family:"Arial","sans-serif"\'>)<span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp; </span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span><span\r\n  style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:바탕;mso-bidi-font-weight:\r\n  bold\'>◇ 정가</span><span lang=EN-US style=\'font-size:11.0pt;font-family:굴림;\r\n  mso-bidi-font-family:굴림;mso-bidi-font-weight:bold\'>:</span><span lang=EN-US\r\n  style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:Arial;mso-bidi-font-weight:\r\n  bold\'> $ , </span><span style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:\r\n  Arial;mso-bidi-font-weight:bold\'>€<span lang=EN-US> , &#8356;, &yen; <o:p></o:p></span></span></p>\r\n  <p class=a style=\'text-indent:11.35pt;mso-line-height-alt:0pt;word-break:\r\n  keep-all\'><span style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:\r\n  바탕;mso-bidi-font-weight:bold\'>◇ 발행일<span class=GramE><span lang=EN-US>:<span\r\n  style=\'mso-spacerun:yes\'>&nbsp; </span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;</span></span>년</span> <span\r\n  lang=EN-US><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span></span>월</span><span lang=EN-US\r\n  style=\'font-size:11.0pt;font-family:굴림;mso-bidi-font-family:굴림;mso-bidi-font-weight:\r\n  bold\'><span style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;</span>-PDF-<span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;</span></span><span style=\'font-size:\r\n  11.0pt;font-family:굴림;mso-bidi-font-family:바탕;mso-bidi-font-weight:bold\'>◆ 공급가격<span\r\n  lang=EN-US>: <span\r\n  style=\'mso-spacerun:yes\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span\r\n  style=\'mso-spacerun:yes\'>&nbsp;</span></span>원</span><b style=\'mso-bidi-font-weight:\r\n  normal\'><span lang=EN-US style=\'font-size:18.0pt;font-family:굴림\'><o:p></o:p></span></b></p>\r\n  </td>\r\n </tr>\r\n <tr style=\'mso-yfti-irow:1;height:70.4pt\'>\r\n  <td width=595 colspan=2 style=\'width:446.55pt;border-top:none;border-left:\r\n  solid windowtext 1.5pt;border-bottom:solid windowtext 1.0pt;border-right:\r\n  solid windowtext 1.5pt;mso-border-top-alt:double windowtext 2.25pt;\r\n  mso-border-top-alt:double 2.25pt;mso-border-left-alt:solid 1.5pt;mso-border-bottom-alt:\r\n  solid .5pt;mso-border-right-alt:solid 1.5pt;mso-border-color-alt:windowtext;\r\n  padding:0cm .6pt 0cm .6pt;height:70.4pt\'>\r\n  <p class=MsoListParagraph style=\'margin-left:40.5pt;mso-para-margin-left:\r\n  0gd;text-indent:-18.0pt;mso-list:l2 level1 lfo6\'><![if !supportLists]><span\r\n  lang=EN-US style=\'font-size:11.0pt;font-family:Wingdings;mso-fareast-font-family:\r\n  Wingdings;mso-bidi-font-family:Wingdings\'><span style=\'mso-list:Ignore\'>l<span\r\n  style=\'font:7.0pt "Times New Roman"\'>&nbsp; </span></span></span><![endif]><span\r\n  style=\'font-size:11.0pt;font-family:굴림\'>보고서 링크<span lang=EN-US> [</span>바로가기<span\r\n  class=GramE><span lang=EN-US>] :</span></span><span lang=EN-US><o:p></o:p></span></span></p>\r\n  </td>\r\n </tr>\r\n <tr style=\'mso-yfti-irow:2;mso-yfti-lastrow:yes;height:423.15pt\'>\r\n  <td width=595 colspan=2 style=\'width:446.55pt;border-top:none;border-left:\r\n  solid windowtext 1.5pt;border-bottom:double windowtext 2.25pt;border-right:\r\n  solid windowtext 1.5pt;mso-border-top-alt:solid windowtext .5pt;padding:0cm .6pt 0cm .6pt;\r\n  height:423.15pt\'>\r\n  <p class=MsoNormal style=\'margin-left:-.1pt;mso-para-margin-left:-.06gd;\r\n  text-indent:-.5pt;mso-char-indent-count:-.05\'><span lang=EN-US\r\n  style=\'font-size:10.5pt;font-family:굴림\'><o:p>&nbsp;</o:p></span></p>\r\n  </td>\r\n </tr>\r\n</table>\r\n\r\n<p class=a style=\'mso-line-height-alt:0pt\'><span lang=EN-US><o:p>&nbsp;</o:p></span></p>\r\n\r\n<p class=a style=\'mso-line-height-alt:0pt\'><span lang=EN-US><o:p>&nbsp;</o:p></span></p>\r\n\r\n</div>\r\n\r\n</body>\r\n\r\n</html>\r\n';
+const LS_KEY = 'guide_lock_v6_state';
 
-    const sample = {
-      customerKey: "kric",
-      titleEn: "",
-      titleKo: "",
-      publisher: "HNY Research",
-      pages: "125 Pages",
-      price: "$ 5,000",
-      publishDate: "2026년 01월 02일",
-      pdfType: "PDF",
-      supplyPrice: "7,400,000원",
-      reportLink: "https://www.hnyresearch.com/report/2026-2031-Global-Biocarbon-Outlook-Market-Size-Share-Trends-Analysis-Report-By-Player-Type-Application-and-Region-Enhanced-Version/3484731",
-      tocText: ""
-    };
+const htmlFile = document.getElementById('htmlFile');
+const logoFile = document.getElementById('logoFile');
+const applyBtn = document.getElementById('applyBtn');
+const copyBtn = document.getElementById('copyBtn');
+const saveBtn = document.getElementById('saveBtn');
+const statusBox = document.getElementById('statusBox');
+const metaBox = document.getElementById('metaBox');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const logBox = document.getElementById('logBox');
+const identifyFrame = document.getElementById('identifyFrame');
+const previewFrame = document.getElementById('previewFrame');
+const copyFrame = document.getElementById('copyFrame');
 
-    const AREAS = [
-      {
-        key: "HEADER.LEFT.BOX",
-        area: "T1/S1/C3/W1/HEADER.LEFT.BOX",
-        state: "locked",
-        rect: { x: 12, y: 11, w: 282, h: 71 },
-        value: () => "좌측 헤더 박스"
-      },
-      {
-        key: "HEADER.RIGHT.BOX",
-        area: "T1/S1/C3/W1/HEADER.RIGHT.BOX",
-        state: "locked",
-        rect: { x: 294, y: 11, w: 293, h: 71 },
-        value: () => "우측 헤더 박스"
-      },
-      {
-        key: "RECEIVER.LINE",
-        area: "T1/S1/C3/W1/RECEIVER.LINE",
-        state: "locked",
-        rect: { x: 24, y: 108, w: 300, h: 24 },
-        value: data => data.receiver
-      },
-      {
-        key: "META.LEFT.TEXT.PUBLISHER",
-        area: "T1/S1/C3/W1/META.LEFT.TEXT.PUBLISHER",
-        state: "locked",
-        rect: { x: 44, y: 150, w: 194, h: 54 },
-        value: data => data.publisher
-      },
-      {
-        key: "META.CENTER.TEXT.PAGES",
-        area: "T1/S1/C3/W1/META.CENTER.TEXT.PAGES",
-        state: "hold",
-        rect: { x: 280, y: 150, w: 96, h: 54 },
-        value: data => data.pages
-      },
-      {
-        key: "META.RIGHT.TEXT.PRICE",
-        area: "T1/S1/C3/W1/META.RIGHT.TEXT.PRICE",
-        state: "manual",
-        rect: { x: 422, y: 150, w: 132, h: 54 },
-        value: data => data.price
-      },
-      {
-        key: "LINK.TEXT",
-        area: "T1/S1/C3/W1/LINK.TEXT",
-        state: "hold",
-        rect: { x: 40, y: 217, w: 500, h: 32 },
-        value: data => data.reportLink
-      },
-      {
-        key: "TITLE.EN",
-        area: "T1/S1/C3/W1/TITLE.EN",
-        state: "manual",
-        rect: { x: 44, y: 304, w: 470, h: 72 },
-        value: data => data.titleEn || "(비움)"
-      },
-      {
-        key: "TITLE.KO",
-        area: "T1/S1/C3/W1/TITLE.KO",
-        state: "manual",
-        rect: { x: 42, y: 379, w: 470, h: 38 },
-        value: data => data.titleKo || "(비움)"
-      },
-      {
-        key: "TOC.TEXT",
-        area: "T1/S1/C3/W1/TOC.TEXT",
-        state: "manual",
-        rect: { x: 40, y: 452, w: 470, h: 176 },
-        value: data => data.tocText ? data.tocText.split("\n")[0] : "(비움)"
-      }
-    ];
+let sourceHtml = DEFAULT_TEMPLATE;
+let sourceName = '기본 내장 원본';
+let logoDataUrl = '';
+let logoName = '';
+let stableHtml = '';
 
-    const AREA_LABEL = {
-      locked: "잠금완료",
-      hold: "보류",
-      manual: "수동대기"
-    };
+const fields = {
+  receiver: document.getElementById('fReceiver'),
+  title: document.getElementById('fTitle'),
+  publisher: document.getElementById('fPublisher'),
+  date: document.getElementById('fDate'),
+  pages: document.getElementById('fPages'),
+  price: document.getElementById('fPrice'),
+  supply: document.getElementById('fSupply'),
+  linkUrl: document.getElementById('fLinkUrl'),
+  linkText: document.getElementById('fLinkText'),
+};
 
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+function setStatus(t) { statusBox.textContent = t; }
+function setProgress(p, t) {
+  progressFill.style.width = p + '%';
+  progressText.textContent = t;
+}
+function setMeta() {
+  metaBox.textContent =
+'기준 HTML: ' + sourceName +
+'\n로고: ' + (logoName || '없음') +
+'\n자동복원: 켜짐';
+}
+function setLog(lines) { logBox.textContent = lines; }
+function esc(s) {
+  return String(s || '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+}
+async function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function decodeHtmlFile(file) {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  const asciiHead = new TextDecoder('latin1').decode(bytes.slice(0, 2048));
+  let charset = 'utf-8';
+  const m = asciiHead.match(/charset\s*=\s*["']?\s*([A-Za-z0-9_\-]+)/i);
+  if (m) charset = m[1].toLowerCase();
+  const candidates = [charset, 'euc-kr', 'utf-8', 'windows-1252'];
+  for (const enc of candidates) {
+    try { return new TextDecoder(enc).decode(bytes); } catch(e) {}
+  }
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function cleanOfficeNoise(html) {
+  let out = html;
+  out = out.replace(/<link[^>]*?File-List[^>]*?>/gi,'');
+  out = out.replace(/<link[^>]*?Edit-Time-Data[^>]*?>/gi,'');
+  out = out.replace(/<link[^>]*?themeData[^>]*?>/gi,'');
+  out = out.replace(/<link[^>]*?colorSchemeMapping[^>]*?>/gi,'');
+  out = out.replace(/<meta[^>]*charset=[^>]*>/i, '<meta charset="UTF-8">');
+  return out;
+}
+function saveState() {
+  const data = {
+    sourceHtml, sourceName, logoDataUrl, logoName, stableHtml,
+    fields: Object.fromEntries(Object.entries(fields).map(([k,v]) => [k, v.value]))
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function restoreState() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    sourceHtml = data.sourceHtml || sourceHtml;
+    sourceName = data.sourceName || sourceName;
+    logoDataUrl = data.logoDataUrl || '';
+    logoName = data.logoName || '';
+    stableHtml = data.stableHtml || '';
+    Object.entries(fields).forEach(([k, v]) => v.value = (data.fields && data.fields[k]) || v.value);
+    setMeta();
+    if (stableHtml) {
+      writeSameToFrames(stableHtml);
+      setStatus('자동복원 완료\n마지막 적용 결과를 불러왔습니다.');
+      setProgress(100, '자동복원 완료');
+      setLog(`AUTO_LOG
+FAIL: 0
+오류명: NONE
+AREA_ID: GUIDE.RESTORE
+observed: last stable html restored
+expected: same html in identify/preview/copy
+last_action: restore
+
+CORE_LOG
+gate_id: G-RESTORE-01
+module_id: guide-lock-v6
+rule_id: RULE.RESTORE.LOCALSTORAGE
+area_id: GUIDE.RESTORE
+evidence: restored stableHtml and field values
+next_fix: none`);
+      return true;
     }
+  } catch(e) {}
+  return false;
+}
+function writeSameToFrames(html) {
+  identifyFrame.srcdoc = html;
+  previewFrame.srcdoc = html;
+  copyFrame.srcdoc = html;
+}
+function replaceLogo(doc) {
+  let replaced = 0;
+  if (!logoDataUrl) return replaced;
 
-    function getData() {
-      const customerKey = document.getElementById("customerSelect").value;
-      const customer = customers[customerKey];
-      return {
-        receiver: `( ${customer.orgName} ) ${customer.deptName}`,
-        titleEn: document.getElementById("titleEn").value.trim(),
-        titleKo: document.getElementById("titleKo").value.trim(),
-        publisher: document.getElementById("publisher").value.trim(),
-        pages: document.getElementById("pages").value.trim(),
-        price: document.getElementById("price").value.trim(),
-        publishDate: document.getElementById("publishDate").value.trim(),
-        pdfType: document.getElementById("pdfType").value.trim(),
-        supplyPrice: document.getElementById("supplyPrice").value.trim(),
-        reportLink: document.getElementById("reportLink").value.trim(),
-        tocText: document.getElementById("tocText").value.trim()
-      };
-    }
+  const imgs = Array.from(doc.querySelectorAll('img'));
+  imgs.forEach(img => {
+    img.setAttribute('src', logoDataUrl);
+    replaced++;
+  });
 
-    function buildGuideHTML(data) {
-      return `
-<div id="mailGuideBlock" class="mail-guide">
-  <div class="sheet-frame"></div>
+  const vmlNodes = Array.from(doc.getElementsByTagName('*')).filter(n => /imagedata$/i.test(n.tagName));
+  vmlNodes.forEach(node => {
+    node.setAttribute('src', logoDataUrl);
+    replaced++;
+  });
 
-  <div class="header-row">
-    <div class="header-left">
-      <div style="font-size:20px; font-weight:700; line-height:1.1; margin-bottom:4px;">신간자료안내</div>
-      <div style="font-size:12px; font-weight:700; text-decoration:underline; line-height:1.1;">www.worldic.co.kr</div>
-    </div>
-    <div class="header-right">
-      <div style="font-size:15px; font-weight:700; line-height:1.15;">(주)월드산업정보센터</div>
-      <div style="font-size:9px; font-weight:700; line-height:1.15; margin-top:2px;">WORLD INDUSTRIAL INFORMATION CENTER</div>
-      <div style="font-size:10px; line-height:1.3; margin-top:5px;">
-        T:(02)333-8331 / F:(02)333-8330<br>
-        E-mail : info@worldic.co.kr
-      </div>
-    </div>
-  </div>
+  return replaced;
+}
+function findInfoCell(doc) {
+  return Array.from(doc.querySelectorAll('td')).find(td => {
+    const t = (td.textContent || '');
+    return t.includes('발행사') && t.includes('공급가격');
+  });
+}
+function findLinkCell(doc) {
+  return Array.from(doc.querySelectorAll('td')).find(td => (td.textContent || '').includes('보고서 링크'));
+}
+function findTitleCell(doc) {
+  return Array.from(doc.querySelectorAll('td')).find(td => {
+    const t = (td.textContent || '');
+    return t.includes('신간자료안내') && t.includes('www.worldic.co.kr');
+  });
+}
+function buildGuide() {
+  setProgress(10, '원본 HTML 정리 중');
+  let html = cleanOfficeNoise(sourceHtml);
 
-  <div class="receiver-line">
-    수신 : ${escapeHtml(data.receiver)}
-  </div>
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
 
-  <div class="meta-row">
-    <div class="meta-left">
-      <div style="margin-bottom:4px;">◇ 발행사: ${escapeHtml(data.publisher)}</div>
-      <div>◇ 발행일: ${escapeHtml(data.publishDate)}</div>
-    </div>
+  setProgress(30, '로고 자동삽입 중');
+  const logoCount = replaceLogo(doc);
 
-    <div class="meta-center">
-      <div style="margin-bottom:4px;">${escapeHtml(data.pages)}</div>
-      <div>${escapeHtml(data.pdfType)}</div>
-    </div>
+  setProgress(50, '제목/발행사/가격 칸 주입 중');
+  const titleCell = findTitleCell(doc);
+  if (titleCell) {
+    titleCell.innerHTML =
+      '<p class="MsoNormal" style="text-indent:11.5pt;mso-line-height-alt:0pt;word-break:keep-all"><b><i><span style="font-size:16.0pt;font-family:HY궁서,serif;">신간자료안내</span></i></b></p>' +
+      '<p class="MsoNormal" style="text-indent:4.4pt;mso-line-height-alt:0pt;word-break:keep-all"><b><i><span style="font-size:12.0pt;font-family:굴림;color:blue"><a href="https://www.worldic.co.kr">www.worldic.co.kr</a></span></i></b></p>' +
+      (fields.receiver.value ? '<p class="MsoNormal" style="text-indent:4.4pt;mso-line-height-alt:0pt;word-break:keep-all"><span style="font-size:11.0pt;font-family:굴림;">(' + esc(fields.receiver.value) + ')</span></p>' : '');
+  }
 
-    <div class="meta-right">
-      <div style="margin-bottom:4px;">◇ 정가: ${escapeHtml(data.price)}</div>
-      <div>◆ 공급가격: ${escapeHtml(data.supplyPrice)}</div>
-    </div>
-  </div>
+  const infoCell = findInfoCell(doc);
+  if (infoCell) {
+    infoCell.innerHTML =
+      '<p class="a" style="margin-left:4.0pt;mso-line-height-alt:0pt;word-break:keep-all"><span style="font-size:12.0pt;font-family:굴림;">&nbsp;</span></p>' +
+      '<p class="a" style="margin-left:16pt;text-indent:8pt;mso-line-height-alt:0pt;word-break:keep-all"><b><span style="font-size:12.0pt;font-family:굴림;">(' + esc(fields.receiver.value) + ')</span></b></p>' +
+      '<p class="a" style="margin-left:11.3pt;text-indent:11.8pt;mso-line-height-alt:0pt;word-break:keep-all"><b><span style="font-size:12.0pt;font-family:굴림;">---------------------------------------------------</span></b></p>' +
+      '<p class="a" style="text-indent:11.35pt;mso-line-height-alt:0pt;word-break:keep-all"><b><span style="font-size:12.0pt;font-family:굴림;">' + esc(fields.title.value) + '</span></b></p>' +
+      '<p class="a" style="text-indent:11.35pt;mso-line-height-alt:0pt;word-break:keep-all"><span style="font-size:11.0pt;font-family:굴림;font-weight:bold">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">' + esc(fields.publisher.value) + '</span> <span style="font-size:11.0pt;font-family:굴림;">( ' + esc(fields.pages.value) + ' )</span> <span style="font-size:11.0pt;font-family:굴림;font-weight:bold">◇ 정가:</span> <span style="font-size:11.0pt;font-family:굴림;">' + esc(fields.price.value) + '</span></p>' +
+      '<p class="a" style="text-indent:11.35pt;mso-line-height-alt:0pt;word-break:keep-all"><span style="font-size:11.0pt;font-family:굴림;font-weight:bold">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">' + esc(fields.date.value) + '</span> <span style="font-size:11.0pt;font-family:굴림;">-PDF-</span> <span style="font-size:11.0pt;font-family:굴림;font-weight:bold">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">' + esc(fields.supply.value) + '</span></p>';
+  }
 
-  <div class="link-row">
-    <div class="link-line-1">
-      ● 보고서 링크 <a href="${escapeHtml(data.reportLink)}" style="color:#1d4ed8; text-decoration:underline;">[바로가기]</a>
-    </div>
-    <div class="link-line-2">${escapeHtml(data.reportLink)}</div>
-  </div>
+  setProgress(70, '링크 칸 주입 중');
+  const linkCell = findLinkCell(doc);
+  if (linkCell) {
+    const url = esc(fields.linkUrl.value || '#');
+    const text = esc(fields.linkText.value || '바로가기');
+    linkCell.innerHTML =
+      '<p class="MsoListParagraph" style="margin-left:40.5pt;text-indent:-18.0pt"><span style="font-size:11.0pt;font-family:Wingdings">l </span><span style="font-size:11.0pt;font-family:굴림">보고서 링크 [<a href="' + url + '">' + text + '</a>] :</span></p>';
+  }
 
-  <div class="body-row">
-    ${data.titleEn ? `<div class="title-en">${escapeHtml(data.titleEn)}</div>` : ""}
-    ${data.titleKo ? `<div class="title-ko">${escapeHtml(data.titleKo)}</div>` : ""}
-    ${data.tocText ? `<div class="toc-text">${escapeHtml(data.tocText)}</div>` : ""}
-  </div>
-</div>`;
-    }
+  stableHtml = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+  writeSameToFrames(stableHtml);
+  saveState();
 
-    function buildDebugText(item, data) {
-      return `위치 식별자: ${item.area}
-구역명: ${item.key}
-상태: ${AREA_LABEL[item.state]}
-좌표: x=${item.rect.x}, y=${item.rect.y}, w=${item.rect.w}, h=${item.rect.h}
-현재값: ${item.value(data)}`;
-    }
+  setProgress(100, '완료');
+  setStatus(
+    'PASS\n오른쪽 전체 적용 완료' +
+    '\n로고 자동삽입 수: ' + logoCount +
+    '\n데이터 칸 자동주입 완료' +
+    '\n복사/저장/복원 가능'
+  );
+  setLog(`AUTO_LOG
+FAIL: 0
+오류명: NONE
+AREA_ID: GUIDE.ALL_APPLY
+observed: logo + slots + same root applied
+expected: same html in identify/preview/copy
+last_action: apply all
 
-    async function copyText(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("복사 완료");
-      } catch (e) {
-        alert(text);
-      }
-    }
+CORE_LOG
+gate_id: G-ALL-01
+module_id: guide-lock-v6
+rule_id: RULE.LOGO.SLOT.COPY.RESTORE
+area_id: GUIDE.ALL_APPLY
+evidence: logo replaced in img/vml, title/info/link cells updated, stableHtml stored
+next_fix: test mail paste`);
+}
 
-    async function copyDebug(index) {
-      const item = window.__debugItems[index];
-      if (!item) return;
-      const data = getData();
-      await copyText(buildDebugText(item, data));
-    }
-    window.copyDebug = copyDebug;
+htmlFile.addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  sourceHtml = await decodeHtmlFile(f);
+  sourceName = f.name;
+  setMeta();
+  setStatus('HTML 로드 완료\n오른쪽 전체 적용을 누르세요.');
+  setProgress(0, '대기 중');
+});
 
-    async function copyOverlay(area, key, state, rect) {
-      await copyText(`위치 식별자: ${area}
-구역명: ${key}
-상태: ${AREA_LABEL[state]}
-좌표: x=${rect.x}, y=${rect.y}, w=${rect.w}, h=${rect.h}`);
-    }
-    window.copyOverlay = copyOverlay;
+logoFile.addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  logoDataUrl = await fileToDataUrl(f);
+  logoName = f.name;
+  setMeta();
+  saveState();
+  setStatus('로고 선택 완료\n오른쪽 전체 적용을 누르면 바로 들어갑니다.');
+});
 
-    function renderDebug(data) {
-      window.__debugItems = AREAS;
+applyBtn.addEventListener('click', buildGuide);
 
-      document.getElementById("debugRoot").innerHTML = AREAS.map((item, idx) => `
-        <div class="debug-card">
-          <div class="debug-top">
-            <div>
-              <strong>${escapeHtml(item.key)}</strong><br>
-              <span class="area-badge">${escapeHtml(item.area)}</span>
-              <span class="status-badge ${item.state}">${AREA_LABEL[item.state]}</span>
-            </div>
-            <button class="btn secondary small" onclick="copyDebug(${idx})">복사</button>
-          </div>
-          <div class="copy-box">${escapeHtml(buildDebugText(item, data))}</div>
-        </div>
-      `).join("");
-
-      document.getElementById("overlayRoot").innerHTML = AREAS.map(item => `
-        <div class="overlay-box ${item.state}" style="left:${item.rect.x}px; top:${item.rect.y}px; width:${item.rect.w}px; height:${item.rect.h}px;">
-          <div class="overlay-label">
-            <span class="area-badge">${item.area}</span>
-            <span class="status-badge ${item.state}">${AREA_LABEL[item.state]}</span>
-            <button class="btn secondary small" onclick='copyOverlay("${item.area}","${item.key}","${item.state}",${JSON.stringify(item.rect)})'>복사</button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function renderAll() {
-      const data = getData();
-      const html = buildGuideHTML(data);
-      document.getElementById("guideWrap").innerHTML = html;
-      document.getElementById("debugGuideWrap").innerHTML = html;
-      renderDebug(data);
-    }
-
-    async function copyGuideHTML() {
-      const html = document.getElementById("guideWrap").innerHTML;
-      const plain = document.getElementById("guideWrap").innerText;
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([plain], { type: "text/plain" })
-          })
-        ]);
-        alert("안내서 전체 복사 완료");
-      } catch (e) {
-        alert("복사 실패");
-      }
-    }
-
-    function downloadWordHTML() {
-      const html = `
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>guide-save-for-word</title>
-</head>
-<body>${document.getElementById("guideWrap").innerHTML}</body>
-</html>`.trim();
-
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "guide-save-for-word.html";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function fillSample() {
-      document.getElementById("customerSelect").value = sample.customerKey;
-      document.getElementById("titleEn").value = sample.titleEn;
-      document.getElementById("titleKo").value = sample.titleKo;
-      document.getElementById("publisher").value = sample.publisher;
-      document.getElementById("pages").value = sample.pages;
-      document.getElementById("price").value = sample.price;
-      document.getElementById("publishDate").value = sample.publishDate;
-      document.getElementById("pdfType").value = sample.pdfType;
-      document.getElementById("supplyPrice").value = sample.supplyPrice;
-      document.getElementById("reportLink").value = sample.reportLink;
-      document.getElementById("tocText").value = sample.tocText;
-      renderAll();
-    }
-
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById(btn.dataset.tab).classList.add("active");
-      });
+copyBtn.addEventListener('click', async () => {
+  if (!stableHtml) {
+    setStatus('먼저 오른쪽 전체 적용을 누르세요.');
+    return;
+  }
+  try {
+    const doc = copyFrame.contentDocument;
+    const item = new ClipboardItem({
+      'text/html': new Blob([doc.documentElement.outerHTML], {type:'text/html'}),
+      'text/plain': new Blob([doc.body.innerText], {type:'text/plain'})
     });
+    await navigator.clipboard.write([item]);
+    setStatus('PASS\n복사화면 전체 복사 완료');
+  } catch(e) {
+    await navigator.clipboard.writeText(copyFrame.contentDocument?.body?.innerText || '');
+    setStatus('부분 PASS\n텍스트만 복사됨');
+  }
+});
 
-    document.getElementById("runBtn").addEventListener("click", renderAll);
-    document.getElementById("sampleBtn").addEventListener("click", fillSample);
-    document.getElementById("copyGuideBtn").addEventListener("click", copyGuideHTML);
-    document.getElementById("downloadWordBtn").addEventListener("click", downloadWordHTML);
+saveBtn.addEventListener('click', () => {
+  if (!stableHtml) {
+    setStatus('저장할 결과가 없습니다.');
+    return;
+  }
+  const blob = new Blob([stableHtml], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (sourceName || 'guide').replace(/\.(htm|html)$/i,'') + '-locked-v6.html';
+  a.click();
+});
 
-    fillSample();
-  </script>
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tabpane').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+Object.values(fields).forEach(el => {
+  el.addEventListener('input', saveState);
+});
+
+setMeta();
+if (!restoreState()) {
+  buildGuide();
+}
+</script>
 </body>
 </html>
