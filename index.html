@@ -2073,378 +2073,147 @@ function syncMiddleToRight(){
 </script>
 
 
+
 <script>
 function bridgeMiddleToRightFromCurrentSet(){
-  const ids = [
-    'midTitleEn','midTitleKo','bookPub','bookDate','bookPage',
-    'bookListPrice','bookSupplyPrice','midLink','midToc'
-  ];
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    try {
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch (e) {}
-  });
+  try {
+    const ids = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.dispatchEvent(new Event('input', { bubbles:true }));
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+    });
+    if (typeof window.sync === 'function') window.sync();
+  } catch (e) {
+    console.error('bridgeMiddleToRightFromCurrentSet fail', e);
+  }
 }
 
-function bridgeAfterMiddleUpdate(){
-  setTimeout(bridgeMiddleToRightFromCurrentSet, 120);
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  const genBtn = document.getElementById('generateBtn');
-  if (genBtn) genBtn.addEventListener('click', function(){ setTimeout(bridgeAfterMiddleUpdate, 10); });
-  const fillBtn = document.getElementById('fillSampleBtn');
-  if (fillBtn) fillBtn.addEventListener('click', function(){ setTimeout(bridgeAfterMiddleUpdate, 10); });
-  const tabs = document.getElementById('setTabs');
-  if (tabs) tabs.addEventListener('click', function(){ setTimeout(bridgeAfterMiddleUpdate, 10); });
-  setTimeout(bridgeAfterMiddleUpdate, 300);
-});
-</script>
-
-
-<script id="bind-title-slots-only">
-window.addEventListener('DOMContentLoaded', () => {
-  const frame = document.getElementById('rightFrame');
-  const enInput = document.getElementById('midTitleEn');
-  const koInput = document.getElementById('midTitleKo');
-  if (!frame) return;
-
-  function setNodeText(node, value) {
-    if (!node) return;
-    const span = node.querySelector('span') || node;
-    span.textContent = value;
-  }
-
-  function applyTitles() {
-    try {
-      const doc = frame.contentDocument || frame.contentWindow.document;
-      if (!doc) return;
-
-      const en = doc.getElementById('guideTitleEn');
-      const ko = doc.getElementById('guideTitleKo');
-      const enValue = (enInput?.value || '').trim();
-      const koValue = (koInput?.value || '').trim();
-
-      if (en) {
-        setNodeText(en, enValue || ' ');
-      }
-      if (ko) {
-        setNodeText(ko, koValue ? `( ${koValue} )` : '( )');
-      }
-    } catch (e) {}
-  }
-
-  frame.addEventListener('load', () => {
-    setTimeout(applyTitles, 120);
-    setTimeout(applyTitles, 500);
-  });
-  if (enInput) enInput.addEventListener('input', applyTitles);
-  if (koInput) koInput.addEventListener('input', applyTitles);
-});
-</script>
-<script id="bind-book-info-only">
-window.addEventListener('DOMContentLoaded', () => {
-  const frame = document.getElementById('rightFrame');
-  const pubInput = document.getElementById('bookPub');
-  const dateInput = document.getElementById('bookDate');
-  const pageInput = document.getElementById('bookPage');
-  const listInput = document.getElementById('bookListPrice');
-  const supplyInput = document.getElementById('bookSupplyPrice');
-  if (!frame || !pubInput || !dateInput || !pageInput || !listInput || !supplyInput) return;
-
-  function cut(text, n) {
-    const v = (text || '').trim();
-    return v.length > n ? v.slice(0, n) + '...' : v;
-  }
-
-  function applyBookInfo() {
-    try {
-      const doc = frame.contentDocument || frame.contentWindow.document;
-      if (!doc) return;
-
-      const pubEl = doc.getElementById('guidePub');
-      const pageEl = doc.getElementById('guidePage');
-      const listEl = doc.getElementById('guideListPrice');
-      const dateEl = doc.getElementById('guideDate');
-      const supplyEl = doc.getElementById('guideSupplyPrice');
-
-      const pubVal = cut(pubInput.value, 25);
-      const dateVal = cut(dateInput.value, 12);
-      const pageVal = cut(pageInput.value, 10);
-      const listVal = cut(listInput.value, 10);
-      const supplyVal = cut(supplyInput.value, 10);
-
-      if (pubEl) pubEl.textContent = pubVal;
-      if (dateEl) dateEl.textContent = dateVal;
-      if (pageEl) pageEl.textContent = pageVal ? `(${pageVal})` : '(  )';
-      if (listEl) listEl.textContent = listVal;
-      if (supplyEl) supplyEl.textContent = supplyVal;
-    } catch (e) {}
-  }
-
-  frame.addEventListener('load', () => {
-    setTimeout(applyBookInfo, 100);
-    setTimeout(applyBookInfo, 400);
-  });
-
-  [pubInput, dateInput, pageInput, listInput, supplyInput].forEach(el => {
-    el.addEventListener('input', applyBookInfo);
-    el.addEventListener('change', applyBookInfo);
-  });
-});
-</script>
-<script id="bind-link-only">
-window.addEventListener('DOMContentLoaded', () => {
-  const frame = document.getElementById('rightFrame');
-  const input = document.getElementById('midLink');
-  if (!frame || !input) return;
-
-  function applyLink(){
-    try{
-      const doc = frame.contentDocument || frame.contentWindow.document;
-      if(!doc) return;
-      const a = doc.getElementById('guideLinkAnchor');
-      const t = doc.getElementById('guideLinkText');
-      const v = (input.value||'').trim();
-      if(a){ a.href = v || '#'; }
-      if(t){ t.textContent = v; }
-    }catch(e){}
-  }
-
-  frame.addEventListener('load', () => { setTimeout(applyLink, 120); setTimeout(applyLink, 500); });
-  input.addEventListener('input', applyLink);
-  input.addEventListener('change', applyLink);
-});
-</script>
-
-<script id="bind-toc-only">
-window.addEventListener('DOMContentLoaded', () => {
-  const frame = document.getElementById('rightFrame');
-  const input = document.getElementById('midToc');
-  if (!frame || !input) return;
-
-  let tocTimer = null;
-  let tocToken = 0;
-
-  function classify(line) {
-    const t = (line || '').trim();
-    if (!t) return 'blank';
-    if (/^(chapter|part|section|appendix)\b/i.test(t)) return 'main';
-    if (/^\d+\.\d+\.\d+/.test(t)) return 'sub2';
-    if (/^\d+\.\d+/.test(t)) return 'sub';
-    if (/^\d+[.)]/.test(t)) return 'main';
-    return 'main';
-  }
-
-  function parseLines(raw) {
-    return (raw || '')
-      .replace(/\r/g, '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
-
-  function renderSingleColumn(lines) {
-    return lines.map(line => {
-      const type = classify(line);
-      let style = 'margin:0 0 4px 0;line-height:1.38;';
-      if (type === 'sub') style += 'padding-left:14px;';
-      if (type === 'sub2') style += 'padding-left:28px;';
-      return `<div style="${style}">${line}</div>`;
-    }).join('');
-  }
-
-  function applyTocOnce() {
-    try {
-      const doc = frame.contentDocument || frame.contentWindow.document;
-      if (!doc) return;
-      const left = doc.getElementById('guideTocLeft');
-      const right = doc.getElementById('guideTocRight');
-      const cols = doc.getElementById('guideTocCols');
-      if (!left) return;
-
-      if (cols) cols.style.display = 'block';
-      if (right) {
-        right.innerHTML = '';
-        right.style.display = 'none';
-      }
-
-      const lines = parseLines(input.value);
-      left.innerHTML = renderSingleColumn(lines);
-      left.style.display = 'block';
-      left.style.width = '100%';
-    } catch (e) {}
-  }
-
-  function scheduleToc(delay) {
-    tocToken += 1;
-    const current = tocToken;
-    if (tocTimer) clearTimeout(tocTimer);
-    tocTimer = setTimeout(() => {
-      if (current !== tocToken) return;
-      applyTocOnce();
-    }, delay);
-  }
-
-  frame.addEventListener('load', () => scheduleToc(120));
-  input.addEventListener('input', () => scheduleToc(120));
-  input.addEventListener('change', () => scheduleToc(120));
-  input.addEventListener('paste', () => scheduleToc(120));
-});
-</script>
-
-
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(bridgeAfterMiddleUpdate, 400);
-});
-
-
-
-<script id="v59-middle-to-right-only">
 (function(){
-  function getDoc(){
-    const frame = document.getElementById('rightFrame');
-    if(!frame) return null;
-    return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document) || null;
+  const ALLOWED = new Set([
+    'alliedmarketresearch.com','qy research','markets and markets','bcc research','research in china','technavio',
+    'future markets','rncos','transparency market research','globaldata','inkwood research','accuray research',
+    'globalinfo research','kbv research','coherent market insights','grand view research','kuick research',
+    'prismane consulting','mordor intelligence','lucintel','prof research','analystview market insights',
+    'bizwit research & consulting','blueweave consulting','vantage market research','datam intelligence',
+    'zion market research','koncept analytics','lp information','market monitor global','wishtree insight',
+    '99strategy','maia research','the insight partners','hny research','multimarket insight',
+    'introspective market research','stratview research','360iresearch','p&s intelligence','stats market research',
+    'data bridge market research','fortune business insights','reports and data','rethink technology research',
+    'azoth analytics','global market insights','orion market research','global industry analysts',
+    'next move strategy consulting','persistence market research','stratistics mrc','verified market research',
+    'cognitive market research','credence research','reanin research','industryarc','market research future',
+    'bis research','skyquest technology','mireports','logisticsiq','m14 intelligence','wharry sharpe research',
+    'straits research','asia pacific infoserv','reports and insights','insightace analytic','vpa research',
+    'n-tech research','evolve business intelligence','zhar research','industry experts','market.us',
+    'cervicorn consulting','acumen research','markntel advisors','univdatos market insights',
+    'gartner','idc','omdia','frost & sullivan','marketsandmarkets','globaldata'
+  ]);
+
+  const $ = (id) => document.getElementById(id);
+  const qp = new URL(location.href).searchParams;
+
+  function detectDenoEndpoint() {
+    const fromQuery = qp.get('deno');
+    if (fromQuery) return fromQuery.replace(/\/$/, '');
+    return (localStorage.getItem('__wic_deno_endpoint') || '').replace(/\/$/, '');
   }
+
+  function saveDenoEndpoint(url) {
+    if (!url) return;
+    localStorage.setItem('__wic_deno_endpoint', String(url).replace(/\/$/, ''));
+  }
+
+  function showStatus(txt){
+    const ls = $('leftSummary');
+    if (ls) ls.innerHTML = String(txt).replace(/\n/g, '<br>');
+  }
+
   function val(id){
-    const el = document.getElementById(id);
-    return el ? String(el.value || '').trim() : '';
-  }
-  function esc(s){
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-  function renderToc(text){
-    return String(text || '')
-      .replace(/\r/g, '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean)
-      .map(line => '<div style="margin:0 0 4px 0;line-height:1.38;font-size:11pt;font-family:굴림;">' + esc(line) + '</div>')
-      .join('');
-  }
-  function sync(){
-    const doc = getDoc();
-    if(!doc) return;
-
-    const titleEn = val('midTitleEn');
-    const titleKo = val('midTitleKo');
-    const publisher = val('bookPub');
-    const publishDate = val('bookDate');
-    const pages = val('bookPage');
-    const listPrice = val('bookListPrice');
-    const supplyPrice = val('bookSupplyPrice');
-    const link = val('midLink');
-    const toc = val('midToc');
-
-    const guideTitleEn = doc.getElementById('guideTitleEn');
-    const guideTitleKo = doc.getElementById('guideTitleKo');
-    const guidePub = doc.getElementById('guidePub');
-    const guideDate = doc.getElementById('guideDate');
-    const guidePage = doc.getElementById('guidePage');
-    const guideListPrice = doc.getElementById('guideListPrice') || doc.getElementById('rightPrice');
-    const guideSupplyPrice = doc.getElementById('guideSupplyPrice') || doc.getElementById('rightSupply');
-    const guideLinkText = doc.getElementById('guideLinkText') || doc.getElementById('rightLink');
-    const guideLinkAnchor = doc.getElementById('guideLinkAnchor') || doc.querySelector('a[href]');
-    const guideToc = doc.getElementById('guideTocLeft') || doc.getElementById('rightToc');
-
-    if(guideTitleEn) guideTitleEn.textContent = titleEn;
-    if(guideTitleKo) guideTitleKo.textContent = titleKo;
-    if(guidePub) guidePub.textContent = publisher;
-    if(guideDate) guideDate.textContent = publishDate;
-    if(guidePage) guidePage.textContent = pages;
-    if(guideListPrice) guideListPrice.textContent = listPrice;
-    if(guideSupplyPrice) guideSupplyPrice.textContent = supplyPrice;
-    if(guideLinkText) guideLinkText.textContent = link;
-    if(guideLinkAnchor && link) guideLinkAnchor.setAttribute('href', link);
-    if(guideToc) guideToc.innerHTML = renderToc(toc);
-  }
-  function bind(id){
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('input', sync);
-    el.addEventListener('change', sync);
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(bind);
-    const frame = document.getElementById('rightFrame');
-    if(frame) frame.addEventListener('load', sync);
-    setTimeout(sync, 200);
-    setTimeout(sync, 700);
-  });
-})();
-</script>
-
-
-<script id="deno-bridge-v1">
-window.__DENO_ENDPOINT__ = window.__DENO_ENDPOINT__ || '';
-(function(){
-  const $ = (id)=>document.getElementById(id);
-  const PUBLISHERS = [
-    'alliedmarketresearch.com','QY Research','Markets and Markets','BCC Research','Research in China','Technavio','Future Markets','RNCOS','Transparency Market Research','GlobalData','INKWOOD Research','Accuray Research','GlobalInfo Research','KBV Research','Coherent Market Insights','Grand View Research','Kuick Research','Prismane Consulting','Mordor Intelligence','Lucintel','Prof Research','AnalystView Market Insights','Bizwit Research & Consulting','Blueweave Consulting','Vantage Market Research','DataM Intelligence','Zion Market Research','Koncept Analytics','LP Information','Market Monitor Global','WishTree Insight','99Strategy','Maia Research','The Insight Partners','Hny Research','MultiMarket Insight','Introspective Market Research','Stratview Research','360iResearch','P&S Intelligence','Stats Market Research','Data Bridge Market Research','Fortune Business Insights','Reports And Data','Rethink Technology Research','Azoth Analytics','Global Market Insights','Orion Market Research','Global Industry Analysts','Next Move Strategy Consulting','Persistence Market Research','Stratistics MRC','Verified Market Research','Cognitive Market Research','Credence Research','ReAnIn Research','IndustryARC','Market Research Future','BIS Research','SkyQuest Technology','MIReports','LogisticsIQ','M14 Intelligence','Wharry Sharpe Research','Straits Research','Asia Pacific InfoServ','Reports and Insights','InsightAce Analytic','VPA Research','n-tech Research','Evolve Business Intelligence','Zhar Research','Industry Experts','market.us','Cervicorn Consulting','Acumen Research','MarkNtel Advisors','UnivDatos Market Insights'
-  ];
-  const ALLOWED = new Set(PUBLISHERS.map(v=>String(v).toLowerCase()));
-
-  function detectDenoEndpoint(){
-    const q = new URLSearchParams(location.search).get('deno');
-    return q || window.__DENO_ENDPOINT__ || localStorage.getItem('wic_deno_endpoint') || '';
-  }
-  function saveDenoEndpoint(v){
-    try{ localStorage.setItem('wic_deno_endpoint', v||''); }catch(e){}
-    window.__DENO_ENDPOINT__ = v||'';
-  }
-
-  function parseList(value){
-    return String(value||'').split(/[ ,
-]/).map(s=>s.trim()).filter(Boolean);
+    return ($(id)?.value || '').trim();
   }
 
   function ctx(){
     return {
-      researchField: $('researchField')?.value?.trim() || '',
-      interestField: $('interestField')?.value?.trim() || '',
-      customerRaw: $('customerRaw')?.value?.trim() || '',
-      keyword: $('keyword')?.value?.trim() || '',
-      duty: $('duty')?.value?.trim() || '',
-      yearRange: $('yearRange')?.value?.trim() || '',
-      priceRange: $('priceRange')?.value?.trim() || '',
-      exclude: parseList($('exclude')?.value || ''),
-      pub1: $('pub1')?.value?.trim() || '',
-      pub2: $('pub2')?.value?.trim() || ''
+      customerRaw: val('customerRaw'),
+      researchField: val('researchField'),
+      interestField: val('interestField'),
+      org: val('org'),
+      dept: val('dept'),
+      name: val('name'),
+      title: val('title'),
+      duty: val('duty'),
+      pub1: val('pub1'),
+      pub2: val('pub2'),
+      exclude: val('exclude'),
+      yearRange: val('yearRange'),
+      priceRange: val('priceRange'),
+      publisherMemo: val('publisherMemo'),
+      keyword: val('keyword') || val('researchField')
     };
   }
 
-  function setMiddle(first){
-    if (!first) return;
-    $('midTitleEn').value = first.title_en || first.title || '';
-    $('midTitleKo').value = first.title_ko || '';
-    $('bookPub').value = first.publisher || '';
-    $('bookDate').value = first.date || '';
-    $('bookPage').value = first.pages || '';
-    $('bookListPrice').value = first.list_price || '';
-    $('bookSupplyPrice').value = first.supply_price || '';
-    $('midLink').value = first.link || '';
-    $('midToc').value = first.toc || '';
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(id=>{
-      const el=$(id); if(!el) return;
-      el.dispatchEvent(new Event('input',{bubbles:true}));
-      el.dispatchEvent(new Event('change',{bubbles:true}));
-    });
+  function setInputValue(id, value){
+    const el = $(id);
+    if (!el) return;
+    el.value = value ?? '';
+    el.dispatchEvent(new Event('input', { bubbles:true }));
+    el.dispatchEvent(new Event('change', { bubbles:true }));
+  }
+
+  function normalizeResult(r){
+    const tocVal = Array.isArray(r.toc) ? r.toc.join('\n') : String(r.toc || '').replace(/\\n/g, '\n');
+    return {
+      title: r.title || r.guideTitleEn || '',
+      title_ko: r.title_ko || r.titleKo || r.guideTitleKo || '',
+      publisher: r.publisher || r.bookPub || '',
+      year: r.year || r.bookDate || '',
+      pages: r.pages || r.bookPage || '',
+      listPrice: r.listPrice || r.list_price || r.bookListPrice || '',
+      supplyPrice: r.supplyPrice || r.supply_price || r.bookSupplyPrice || '',
+      link: r.link || r.midLink || '',
+      toc: tocVal
+    };
+  }
+
+  function setMiddle(r){
+    setInputValue('midTitleEn', r.title || '');
+    setInputValue('midTitleKo', r.title_ko || '');
+    setInputValue('bookPub', r.publisher || '');
+    setInputValue('bookDate', r.year || '');
+    setInputValue('bookPage', r.pages || '');
+    setInputValue('bookListPrice', r.listPrice || '');
+    setInputValue('bookSupplyPrice', r.supplyPrice || '');
+    setInputValue('midLink', r.link || '');
+    setInputValue('midToc', r.toc || '');
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
+  }
+
+  function ensureSetTabs(){
+    let wrap = document.getElementById('setTabs');
+    if (wrap) return wrap;
+    const btnrow = document.querySelector('.left .btnrow');
+    if (!btnrow) return null;
+    wrap = document.createElement('div');
+    wrap.id = 'setTabs';
+    wrap.className = 'btnrow';
+    btnrow.parentNode.insertBefore(wrap, btnrow.nextSibling);
+    return wrap;
   }
 
   function renderSets(results){
-    const wrap = document.getElementById('setTabs');
+    const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
-    (results||[]).slice(0,5).forEach((r, i) => {
+    (results || []).slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
-      b.className = 'btn' + (i===0 ? ' active-set' : '');
+      b.className = 'btn' + (i === 0 ? ' active-set' : '');
       b.textContent = `${i+1}세트`;
-      b.addEventListener('click', ()=>{
-        [...wrap.querySelectorAll('.btn')].forEach(x=>x.classList.remove('active-set'));
+      b.addEventListener('click', () => {
+        [...wrap.querySelectorAll('.btn')].forEach(x => x.classList.remove('active-set'));
         b.classList.add('active-set');
         setMiddle(r);
       });
@@ -2452,83 +2221,106 @@ window.__DENO_ENDPOINT__ = window.__DENO_ENDPOINT__ || '';
     });
   }
 
-  function showStatus(txt){
-    const ls = $('leftSummary');
-    if (ls) ls.innerHTML = txt;
-  }
-
   function defaultToc(keyword){
     const k = keyword || '시장';
     return [
       `1. ${k} 시장 개요`,
       `  1.1 ${k} 시장 정의`,
-      `  1.2 조사 범위`,
+      `  1.2 조사 범위 및 구조`,
       `2. ${k} 시장 동향`,
-      `  2.1 시장 규모`,
-      `  2.2 지역별 동향`,
-      `3. 주요 기업 및 경쟁구조`,
-      `4. 시장 전망`
-    ].join('
-');
+      `  2.1 글로벌 시장 규모`,
+      `  2.2 지역별 시장 분석`,
+      `3. ${k} 기술 및 정책`,
+      `  3.1 핵심 기술 동향`,
+      `  3.2 규제 및 정책 변화`,
+      `4. 주요 기업 및 경쟁 구조`,
+      `  4.1 주요 기업 현황`,
+      `  4.2 경쟁 전략`,
+      `5. 시장 전망`,
+      `  5.1 성장 요인`,
+      `  5.2 향후 전망`
+    ].join('\n');
   }
 
   async function generateFromDeno(e){
-    if (e) { e.preventDefault(); e.stopImmediatePropagation(); }
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+
     const endpoint = detectDenoEndpoint();
     if (!endpoint) {
-      showStatus('Deno 주소가 아직 연결되지 않음. HTML URL 뒤에 ?deno=https://... 형태로 넣거나 __saveDenoEndpoint("주소")를 1회 실행해야 함.');
+      showStatus('Deno 주소가 아직 연결되지 않음. URL 뒤에 ?deno=https://... 형태로 넣어라.');
       return false;
     }
+
     const input = ctx();
-    const q = [input.keyword, input.researchField, input.interestField, input.customerRaw].filter(Boolean).join(' ').trim();
+    const q = [input.keyword, input.researchField, input.interestField, input.customerRaw, input.duty]
+      .filter(Boolean).join(' ').trim();
+
     if (!q) {
-      showStatus('연구분야 / 관심분야 / 텍스트 / 키워드 중 하나는 입력해야 함.');
+      showStatus('연구분야 / 관심분야 / 고객 원문 / 담당업무 중 하나는 입력해야 한다.');
       return false;
     }
-    const preferred_publishers = [input.pub1, input.pub2].filter(Boolean);
-    const payload = {
-      query: q,
-      preferred_publishers,
-      exclude_publishers: input.exclude,
-      year_range: input.yearRange,
-      price_range: input.priceRange,
-      limit: 5
-    };
-    showStatus('Deno에서 실제 보고서 데이터 가져오는 중...');
+
+    saveDenoEndpoint(endpoint);
+    showStatus('Deno 데이터 가져오는 중...');
+
     try {
-      const res = await fetch(endpoint.replace(/\/$/, '') + '/search', {
-        method:'POST',
-        headers:{'content-type':'application/json'},
-        body: JSON.stringify(payload)
-      });
+      const preferred_publishers = [input.pub1, input.pub2].filter(Boolean);
+      const url = endpoint + '/search?q=' + encodeURIComponent(q)
+        + (preferred_publishers.length ? '&preferred=' + encodeURIComponent(preferred_publishers.join(',')) : '')
+        + '&limit=5';
+
+      const res = await fetch(url, { method:'GET' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
+
       const data = await res.json();
-      const results = (data.results || []).filter(r => ALLOWED.has(String(r.publisher||'').toLowerCase()));
+      let results = Array.isArray(data.results) ? data.results.map(normalizeResult) : [];
+
+      results = results.filter(r => {
+        const p = String(r.publisher || '').toLowerCase().trim();
+        return !p || ALLOWED.has(p);
+      });
+
       if (!results.length) throw new Error('결과 없음');
-      results.forEach(r=>{ if (!r.toc) r.toc = defaultToc((input.keyword || input.researchField || input.interestField || '시장')); });
+
+      results.forEach(r => {
+        if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
+      });
+
       window.guides = results;
       renderSets(results);
       setMiddle(results[0]);
-      showStatus(`실데이터 ${Math.min(results.length,5)}건 반영 완료 / 대표 발행사: ${results[0].publisher || '-'}`);
+
+      showStatus(
+        `Deno 반영 완료\n대표 자료: ${results[0].title || '-'}\n발행사: ${results[0].publisher || '-'}\n건수: ${results.length}건`
+      );
       return false;
     } catch (err) {
       console.error(err);
-      showStatus('Deno 호출 실패: ' + err.message);
+      showStatus('Deno 호출 실패: ' + (err?.message || err));
       return false;
     }
   }
 
   window.__saveDenoEndpoint = saveDenoEndpoint;
-  document.addEventListener('DOMContentLoaded', ()=>{
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const endpoint = detectDenoEndpoint();
+    if (endpoint) saveDenoEndpoint(endpoint);
+
     const gen = $('generateBtn');
     if (gen) {
       const replacement = gen.cloneNode(true);
       gen.parentNode.replaceChild(replacement, gen);
       replacement.addEventListener('click', generateFromDeno, true);
     }
+
     if (!$('keyword')) {
       const left = document.querySelector('.left');
-      const target = document.querySelector('#customerRaw')?.closest('.field');
+      const target = $('customerRaw')?.closest('.field');
       if (left && target) {
         const field = document.createElement('div');
         field.className = 'field';
