@@ -2065,10 +2065,10 @@ function ensureInteractiveTagging(){
     return packet;
   }
 
-  document.getElementById('runTestBtn').addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
-  document.getElementById('diagBtn').addEventListener('click',()=>{ makeDiagPacket(); });
-  document.getElementById('coordBtn').addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn').addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
+  document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
+  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
   window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
@@ -2153,6 +2153,10 @@ function bridgeMiddleToRightFromCurrentSet(){
   }
 
   function val(id){
+    return ($(id)?.value || '').trim();
+  }
+
+  function valueOf(id){
     return ($(id)?.value || '').trim();
   }
 
