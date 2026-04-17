@@ -194,6 +194,7 @@
 
   <div class="field"><label>링크</label><textarea id="midLink" rows="3" placeholder="링크"></textarea></div>
   <div class="field"><label>목차</label><textarea id="midToc" rows="12" placeholder="목차"></textarea></div>
+  <div class="card" id="bridgeStatus">M1 대기 / M2 대기 / M3 대기</div>
 </div>
 <div class="right">
       <iframe id="rightFrame" srcdoc="&lt;!DOCTYPE html&gt;
@@ -2235,6 +2236,12 @@ function bridgeMiddleToRightFromCurrentSet(){
     el.dispatchEvent(new Event('change', { bubbles:true }));
   }
 
+  function setBridgeStatus(m1, m2, m3) {
+    const el = $('bridgeStatus');
+    if (!el) return;
+    el.innerHTML = `M1 ${m1}<br>M2 ${m2}<br>M3 ${m3}`;
+  }
+
   function normalizeResult(r){
     const tocVal = Array.isArray(r.toc) ? r.toc.join('\n') : String(r.toc || '').replace(/\\n/g, '\n');
     return {
@@ -2251,6 +2258,7 @@ function bridgeMiddleToRightFromCurrentSet(){
   }
 
   function setMiddle(r){
+    setBridgeStatus('왼쪽→가운데 시작', '가운데값 읽기 전', '오른쪽쓰기 전');
     setInputValue('midTitleEn', r.title || '');
     setInputValue('midTitleKo', r.title_ko || '');
     setInputValue('bookPub', r.publisher || '');
@@ -2260,6 +2268,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     setInputValue('bookSupplyPrice', r.supplyPrice || '');
     setInputValue('midLink', r.link || '');
     setInputValue('midToc', r.toc || '');
+    setBridgeStatus('왼쪽→가운데 완료', '가운데값 읽음', '오른쪽쓰기 대기');
     setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
     setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
     setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
@@ -2506,6 +2515,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     const endpoint = detectDenoEndpoint();
     if (endpoint) saveDenoEndpoint(endpoint);
     updateChecklist({});
+    setBridgeStatus('대기', '대기', '대기');
 
     const gen = $('generateBtn');
     if (gen) {
