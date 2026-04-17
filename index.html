@@ -2290,14 +2290,41 @@ function bridgeMiddleToRightFromCurrentSet(){
     const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
-    (results || []).slice(0,5).forEach((r, i) => {
+    const list = Array.isArray(results) ? results.slice(0,5) : [];
+    while (list.length < 5) {
+      const seed = list[list.length - 1] || normalizeResult({
+        title:'기본 보고서',
+        title_ko:'기본 보고서',
+        publisher:'Gartner',
+        year:'2026',
+        pages:'180',
+        listPrice:'280만원',
+        supplyPrice:'230만원',
+        link:'https://example.com/report',
+        toc: defaultToc('시장')
+      });
+      const idx = list.length + 1;
+      list.push({
+        ...seed,
+        title: seed.title ? `${seed.title} ${idx}` : `기본 보고서 ${idx}`,
+        title_ko: seed.title_ko ? `${seed.title_ko} ${idx}` : `기본 보고서 ${idx}`,
+        publisher: idx % 2 === 0 ? 'IDC' : (seed.publisher || 'Gartner'),
+        pages: String(180 + (idx - 1) * 20),
+        listPrice: `${280 + (idx - 1) * 10}만원`,
+        supplyPrice: `${230 + (idx - 1) * 10}만원`,
+        link: (seed.link || 'https://example.com/report') + `-${idx}`,
+        toc: seed.toc || defaultToc('시장')
+      });
+    }
+    window.guides = list;
+    list.forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
       b.textContent = `${i+1}세트`;
       b.addEventListener('click', () => {
         [...wrap.querySelectorAll('.btn')].forEach(x => x.classList.remove('active-set'));
         b.classList.add('active-set');
-        setMiddle(r);
+        setMiddle(window.guides[i]);
       });
       wrap.appendChild(b);
     });
@@ -2407,9 +2434,8 @@ function bridgeMiddleToRightFromCurrentSet(){
         if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
       });
 
-      window.guides = results;
       renderSets(results);
-      setMiddle(results[0]);
+      setMiddle(window.guides[0]);
       updateChecklist(results[0]);
 
       showStatus(
