@@ -74,6 +74,16 @@
   .btn.primary{background:#111;color:#fff;border-color:#111;}
   .active-set{background:#111 !important;color:#fff !important;border-color:#111 !important;}
 
+
+  .checkpanel{border:1px solid #d7dbe2;border-radius:10px;padding:10px;background:#fbfcfe;margin-top:10px;}
+  .checkpanel h3{margin:0 0 8px 0;font-size:14px;}
+  .checkrow{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed #e5e7eb;}
+  .checkrow:last-child{border-bottom:none;}
+  .state-ok{color:#0f7b0f;font-weight:700;}
+  .state-warn{color:#b26a00;font-weight:700;}
+  .state-bad{color:#c62828;font-weight:700;}
+  .mini-log{font-size:11px;color:#555;white-space:pre-wrap;line-height:1.45;margin-top:8px;}
+
 </style>
 
 </head>
@@ -147,6 +157,18 @@
         <button class="btn" id="leftResetBtn">왼쪽 초기화</button>
       </div>
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
+      <div class="checkpanel" id="engineCheckPanel">
+        <h3>엔진 점검표</h3>
+        <div class="checkrow"><span>입력 정리 엔진</span><span id="checkInputEngine" class="state-bad">미작동</span></div>
+        <div class="checkrow"><span>데이터 수집 엔진</span><span id="checkFetchEngine" class="state-bad">미작동</span></div>
+        <div class="checkrow"><span>발행사 검증</span><span id="checkPublisher" class="state-bad">미검증</span></div>
+        <div class="checkrow"><span>링크 제목 일치</span><span id="checkLinkMatch" class="state-bad">미검증</span></div>
+        <div class="checkrow"><span>도서정보 채움률</span><span id="checkFillRate" class="state-bad">0%</span></div>
+        <div class="checkrow"><span>목차 안정도</span><span id="checkToc" class="state-bad">미확인</span></div>
+        <div class="checkrow"><span>최종 안정 등급</span><span id="checkGrade" class="state-bad">C</span></div>
+        <div class="mini-log" id="checkExplain">실데이터 검증 전</div>
+      </div>
+
     </div>
 
     
@@ -1820,14 +1842,8 @@ function ensureInteractiveTagging(){
       book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
     }
     if(linkNode){
-      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [<a id="__guide_link_runtime" href="${escapeHtml(link||'#')}" target="_blank" rel="noopener noreferrer">바로가기</a>] : ${escapeHtml(link||'')}</span>`;
+      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
     }
-    try {
-      const anchor = doc.getElementById('guideLinkAnchor');
-      const text = doc.getElementById('guideLinkText');
-      if (anchor) anchor.setAttribute('href', link || '#');
-      if (text) text.textContent = link || '';
-    } catch(e) {}
     if(tocNode){
       tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
 /g,'<br>') : '&nbsp;';
@@ -2193,8 +2209,6 @@ function bridgeMiddleToRightFromCurrentSet(){
     setInputValue('bookSupplyPrice', r.supplyPrice || '');
     setInputValue('midLink', r.link || '');
     setInputValue('midToc', r.toc || '');
-    try { if (typeof syncInputsToPreview === 'function') syncInputsToPreview(); } catch(e) {}
-    try { if (typeof autoRepairAndEvaluate === 'function') autoRepairAndEvaluate(); } catch(e) {}
     setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
     setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
     setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
@@ -2287,16 +2301,6 @@ function bridgeMiddleToRightFromCurrentSet(){
       const data = await res.json();
       let results = Array.isArray(data.results) ? data.results.map(normalizeResult) : [];
 
-      results = results.map(r => {
-        const warnings = [];
-        if ((r.link || '').includes('example.com')) warnings.push('임시 링크');
-        if (!r.toc) warnings.push('목차 없음');
-        if (!r.pages) warnings.push('페이지 없음');
-        if (!r.listPrice) warnings.push('정가 없음');
-        r.__warnings = warnings;
-        return r;
-      });
-
       results = results.filter(r => {
         const p = String(r.publisher || '').toLowerCase().trim();
         return !p || ALLOWED.has(p);
@@ -2304,13 +2308,17 @@ function bridgeMiddleToRightFromCurrentSet(){
 
       if (!results.length) throw new Error('결과 없음');
 
+      results.forEach(r => {
+        if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
+      });
+
       window.guides = results;
       renderSets(results);
       setMiddle(results[0]);
+      updateChecklist(results[0]);
 
-      const warningText = results[0].__warnings?.length ? `\n경고: ${results[0].__warnings.join(', ')}` : '';
       showStatus(
-        `Deno 반영 완료\n대표 자료: ${results[0].title || '-'}\n발행사: ${results[0].publisher || '-'}\n건수: ${results.length}건${warningText}`
+        `Deno 반영 완료\n대표 자료: ${results[0].title || '-'}\n발행사: ${results[0].publisher || '-'}\n건수: ${results.length}건`
       );
       return false;
     } catch (err) {
@@ -2320,11 +2328,75 @@ function bridgeMiddleToRightFromCurrentSet(){
     }
   }
 
+
+  function setCheck(id, text, cls) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = cls;
+  }
+
+  function scoreGuide(r) {
+    const title = String(r.title || '');
+    const publisher = String(r.publisher || '');
+    const link = String(r.link || '');
+    const year = String(r.year || '');
+    const pages = String(r.pages || '');
+    const listPrice = String(r.listPrice || '');
+    const supplyPrice = String(r.supplyPrice || '');
+    const toc = String(r.toc || '');
+
+    const inputOk = !!(valueOf('keyword') || valueOf('researchField') || valueOf('interestField') || valueOf('customerRaw') || valueOf('duty'));
+    const fetchOk = !!title && !!link;
+    const publisherOk = !!publisher && ALLOWED.has(publisher.toLowerCase().trim());
+    const linkMatch = link.includes('http') && title.length > 5;
+    const filled = [title, publisher, year, pages, listPrice, supplyPrice, link].filter(Boolean).length;
+    const fillRate = Math.round((filled / 7) * 100);
+    const tocReal = toc && !/^1\. .*시장 개요/m.test(toc) ? true : false;
+    const tocAny = !!toc;
+
+    let score = 0;
+    if (inputOk) score += 1;
+    if (fetchOk) score += 2;
+    if (publisherOk) score += 2;
+    if (linkMatch) score += 2;
+    if (fillRate >= 85) score += 3; else if (fillRate >= 60) score += 2; else if (fillRate >= 30) score += 1;
+    if (tocReal) score += 4; else if (tocAny) score += 1;
+
+    let grade = 'C';
+    if (score >= 12) grade = 'S';
+    else if (score >= 9) grade = 'A';
+    else if (score >= 6) grade = 'B';
+
+    return { inputOk, fetchOk, publisherOk, linkMatch, fillRate, tocReal, tocAny, grade, score };
+  }
+
+  function updateChecklist(r) {
+    const s = scoreGuide(r || {});
+    setCheck('checkInputEngine', s.inputOk ? '작동' : '미작동', s.inputOk ? 'state-ok' : 'state-bad');
+    setCheck('checkFetchEngine', s.fetchOk ? '실데이터 수신' : '수신 실패', s.fetchOk ? 'state-ok' : 'state-bad');
+    setCheck('checkPublisher', s.publisherOk ? '통과' : '보류', s.publisherOk ? 'state-ok' : 'state-warn');
+    setCheck('checkLinkMatch', s.linkMatch ? '통과' : '보류', s.linkMatch ? 'state-ok' : 'state-warn');
+    setCheck('checkFillRate', s.fillRate + '%', s.fillRate >= 85 ? 'state-ok' : s.fillRate >= 60 ? 'state-warn' : 'state-bad');
+    setCheck('checkToc', s.tocReal ? '실목차형' : s.tocAny ? '임시목차' : '없음', s.tocReal ? 'state-ok' : s.tocAny ? 'state-warn' : 'state-bad');
+    setCheck('checkGrade', s.grade, s.grade === 'S' || s.grade === 'A' ? 'state-ok' : s.grade === 'B' ? 'state-warn' : 'state-bad');
+    const explain = [];
+    if (!s.fetchOk) explain.push('실데이터 수집 실패');
+    if (!s.publisherOk) explain.push('발행사 통과 안 됨');
+    if (!s.linkMatch) explain.push('링크/제목 검증 약함');
+    if (s.fillRate < 85) explain.push('도서정보 누락 있음');
+    if (!s.tocReal) explain.push(s.tocAny ? '목차가 임시 규칙형' : '목차 없음');
+    if (!explain.length) explain.push('안정도 양호');
+    const ex = $('checkExplain');
+    if (ex) ex.textContent = '점검: ' + explain.join(' / ');
+  }
+
   window.__saveDenoEndpoint = saveDenoEndpoint;
 
   document.addEventListener('DOMContentLoaded', () => {
     const endpoint = detectDenoEndpoint();
     if (endpoint) saveDenoEndpoint(endpoint);
+    updateChecklist({});
 
     const gen = $('generateBtn');
     if (gen) {
