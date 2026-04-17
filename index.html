@@ -1788,8 +1788,13 @@ function ensureInteractiveTagging(){
           tocCell.setAttribute('data-slot-toc-cell','1');
           const p = tocCell.querySelector('p') || tocCell;
           p.setAttribute('data-slot-toc-line','1');
-          p.style.lineHeight='1.35';
+          p.style.lineHeight='1.5';
           p.style.whiteSpace='pre-wrap';
+          p.style.wordBreak='break-word';
+          p.style.overflowWrap='anywhere';
+          p.style.maxWidth='100%';
+          p.style.display='block';
+          tocCell.style.overflow='hidden';
         }
       }
 
@@ -2290,41 +2295,14 @@ function bridgeMiddleToRightFromCurrentSet(){
     const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
-    const list = Array.isArray(results) ? results.slice(0,5) : [];
-    while (list.length < 5) {
-      const seed = list[list.length - 1] || normalizeResult({
-        title:'기본 보고서',
-        title_ko:'기본 보고서',
-        publisher:'Gartner',
-        year:'2026',
-        pages:'180',
-        listPrice:'280만원',
-        supplyPrice:'230만원',
-        link:'https://example.com/report',
-        toc: defaultToc('시장')
-      });
-      const idx = list.length + 1;
-      list.push({
-        ...seed,
-        title: seed.title ? `${seed.title} ${idx}` : `기본 보고서 ${idx}`,
-        title_ko: seed.title_ko ? `${seed.title_ko} ${idx}` : `기본 보고서 ${idx}`,
-        publisher: idx % 2 === 0 ? 'IDC' : (seed.publisher || 'Gartner'),
-        pages: String(180 + (idx - 1) * 20),
-        listPrice: `${280 + (idx - 1) * 10}만원`,
-        supplyPrice: `${230 + (idx - 1) * 10}만원`,
-        link: (seed.link || 'https://example.com/report') + `-${idx}`,
-        toc: seed.toc || defaultToc('시장')
-      });
-    }
-    window.guides = list;
-    list.forEach((r, i) => {
+    (results || []).slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
       b.textContent = `${i+1}세트`;
       b.addEventListener('click', () => {
         [...wrap.querySelectorAll('.btn')].forEach(x => x.classList.remove('active-set'));
         b.classList.add('active-set');
-        setMiddle(window.guides[i]);
+        setMiddle(r);
       });
       wrap.appendChild(b);
     });
@@ -2434,8 +2412,9 @@ function bridgeMiddleToRightFromCurrentSet(){
         if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
       });
 
+      window.guides = results;
       renderSets(results);
-      setMiddle(window.guides[0]);
+      setMiddle(results[0]);
       updateChecklist(results[0]);
 
       showStatus(
@@ -2564,5 +2543,44 @@ function bridgeMiddleToRightFromCurrentSet(){
 })();
 </script>
 
+
+<script>
+(function(){
+  function forceSingleColumnToc(){
+    const frame = document.getElementById('rightFrame');
+    const doc = frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document));
+    if(!doc) return;
+    const left = doc.getElementById('guideTocLeft');
+    const right = doc.getElementById('guideTocRight');
+    const cols = doc.getElementById('guideTocCols');
+    const single = doc.getElementById('guideTocSingle');
+    if(cols){
+      cols.style.display='block';
+      cols.style.width='100%';
+      cols.style.maxWidth='100%';
+      cols.style.overflow='hidden';
+    }
+    if(left) left.style.display='none';
+    if(right) right.style.display='none';
+    if(single){
+      single.style.display='block';
+      single.style.width='100%';
+      single.style.maxWidth='100%';
+      single.style.whiteSpace='pre-wrap';
+      single.style.wordBreak='break-word';
+      single.style.overflowWrap='anywhere';
+      single.style.lineHeight='1.5';
+    }
+  }
+  window.addEventListener('load', function(){
+    const frame = document.getElementById('rightFrame');
+    if(frame){
+      frame.addEventListener('load', forceSingleColumnToc);
+      setTimeout(forceSingleColumnToc, 300);
+      setTimeout(forceSingleColumnToc, 800);
+    }
+  });
+})();
+</script>
 </body>
 </html>
