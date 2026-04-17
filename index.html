@@ -1788,13 +1788,8 @@ function ensureInteractiveTagging(){
           tocCell.setAttribute('data-slot-toc-cell','1');
           const p = tocCell.querySelector('p') || tocCell;
           p.setAttribute('data-slot-toc-line','1');
-          p.style.lineHeight='1.5';
+          p.style.lineHeight='1.35';
           p.style.whiteSpace='pre-wrap';
-          p.style.wordBreak='break-word';
-          p.style.overflowWrap='anywhere';
-          p.style.maxWidth='100%';
-          p.style.display='block';
-          tocCell.style.overflow='hidden';
         }
       }
 
@@ -2295,13 +2290,22 @@ function bridgeMiddleToRightFromCurrentSet(){
     const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
+
     let finalResults = Array.isArray(results) ? results.slice(0,5) : [];
-    if (finalResults.length < 5 && typeof currentContext === 'function' && typeof buildPublishers === 'function' && typeof buildReportPool === 'function' && typeof buildGuideSet === 'function') {
+
+    if (finalResults.length < 5 &&
+        typeof currentContext === 'function' &&
+        typeof buildPublishers === 'function' &&
+        typeof buildReportPool === 'function' &&
+        typeof buildGuideSet === 'function') {
+
       const ctxLocal = currentContext();
-      const pubsLocal = buildPublishers(ctxLocal.pub1, ctxLocal.pub2, String(ctxLocal.exclude || '').split(',').map(s=>s.trim()).filter(Boolean));
+      const excludeLocal = String(ctxLocal.exclude || '').split(',').map(s=>s.trim()).filter(Boolean);
+      const pubsLocal = buildPublishers(ctxLocal.pub1, ctxLocal.pub2, excludeLocal);
       const finalPubsLocal = pubsLocal.length ? pubsLocal : ['Gartner','IDC'];
       const poolLocal = buildReportPool(ctxLocal, finalPubsLocal);
-      for(let i=finalResults.length;i<5;i++){
+
+      for (let i = finalResults.length; i < 5; i++) {
         const g = buildGuideSet(ctxLocal, i, poolLocal, finalPubsLocal);
         finalResults.push(normalizeResult({
           title: g.guideTitleEn || '',
@@ -2316,7 +2320,9 @@ function bridgeMiddleToRightFromCurrentSet(){
         }));
       }
     }
+
     window.guides = finalResults;
+
     finalResults.slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
@@ -2565,44 +2571,5 @@ function bridgeMiddleToRightFromCurrentSet(){
 })();
 </script>
 
-
-<script>
-(function(){
-  function forceSingleColumnToc(){
-    const frame = document.getElementById('rightFrame');
-    const doc = frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document));
-    if(!doc) return;
-    const left = doc.getElementById('guideTocLeft');
-    const right = doc.getElementById('guideTocRight');
-    const single = doc.getElementById('guideTocSingle');
-    const cols = doc.getElementById('guideTocCols');
-    if(left) left.style.display='none';
-    if(right) right.style.display='none';
-    if(cols){
-      cols.style.display='block';
-      cols.style.width='100%';
-      cols.style.maxWidth='100%';
-      cols.style.overflow='hidden';
-    }
-    if(single){
-      single.style.display='block';
-      single.style.width='100%';
-      single.style.maxWidth='100%';
-      single.style.whiteSpace='pre-wrap';
-      single.style.wordBreak='break-word';
-      single.style.overflowWrap='anywhere';
-      single.style.lineHeight='1.5';
-    }
-  }
-  window.addEventListener('load', function(){
-    const frame = document.getElementById('rightFrame');
-    if(frame){
-      frame.addEventListener('load', forceSingleColumnToc);
-      setTimeout(forceSingleColumnToc, 200);
-      setTimeout(forceSingleColumnToc, 700);
-    }
-  });
-})();
-</script>
 </body>
 </html>
