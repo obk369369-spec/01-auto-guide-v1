@@ -2277,7 +2277,42 @@ function bridgeMiddleToRightFromCurrentSet(){
 
     const endpoint = detectDenoEndpoint();
     if (!endpoint) {
-      showStatus('Deno 주소가 아직 연결되지 않음. URL 뒤에 ?deno=https://... 형태로 넣어라.');
+      try {
+        if (typeof generateLeftSets === 'function') {
+          generateLeftSets();
+          const firstGuide = Array.isArray(window.guides) && window.guides[0] ? window.guides[0] : null;
+          if (firstGuide) {
+            const fallback = normalizeResult({
+              title: firstGuide.guideTitleEn || '',
+              title_ko: firstGuide.guideTitleKo || '',
+              publisher: firstGuide.report?.publisher || '',
+              year: firstGuide.report?.year || '',
+              pages: firstGuide.report?.pages || '',
+              listPrice: firstGuide.report?.listPrice || '',
+              supplyPrice: firstGuide.report?.supplyPrice || '',
+              link: firstGuide.report?.link || '',
+              toc: firstGuide.toc || ''
+            });
+            renderSets([fallback].concat((window.guides || []).slice(1).map(g => normalizeResult({
+              title: g.guideTitleEn || '',
+              title_ko: g.guideTitleKo || '',
+              publisher: g.report?.publisher || '',
+              year: g.report?.year || '',
+              pages: g.report?.pages || '',
+              listPrice: g.report?.listPrice || '',
+              supplyPrice: g.report?.supplyPrice || '',
+              link: g.report?.link || '',
+              toc: g.toc || ''
+            }))));
+            updateChecklist(fallback);
+          }
+          showStatus('로컬 5세트 생성 완료');
+        } else {
+          showStatus('로컬 생성 함수 없음');
+        }
+      } catch (err) {
+        showStatus('로컬 생성 실패: ' + (err?.message || err));
+      }
       return false;
     }
 
@@ -2327,7 +2362,30 @@ function bridgeMiddleToRightFromCurrentSet(){
       return false;
     } catch (err) {
       console.error(err);
-      showStatus('Deno 호출 실패: ' + (err?.message || err));
+      try {
+        if (typeof generateLeftSets === 'function') {
+          generateLeftSets();
+          const firstGuide = Array.isArray(window.guides) && window.guides[0] ? window.guides[0] : null;
+          if (firstGuide) {
+            updateChecklist(normalizeResult({
+              title: firstGuide.guideTitleEn || '',
+              title_ko: firstGuide.guideTitleKo || '',
+              publisher: firstGuide.report?.publisher || '',
+              year: firstGuide.report?.year || '',
+              pages: firstGuide.report?.pages || '',
+              listPrice: firstGuide.report?.listPrice || '',
+              supplyPrice: firstGuide.report?.supplyPrice || '',
+              link: firstGuide.report?.link || '',
+              toc: firstGuide.toc || ''
+            }));
+          }
+          showStatus('Deno 실패 / 로컬 5세트 생성 완료');
+        } else {
+          showStatus('Deno 호출 실패: ' + (err?.message || err));
+        }
+      } catch (innerErr) {
+        showStatus('Deno 호출 실패: ' + (err?.message || err));
+      }
       return false;
     }
   }
