@@ -1811,20 +1811,12 @@ function ensureInteractiveTagging(){
     const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
     const link=(document.getElementById('midLink')?.value||'').trim();
 
-    const titleEnNode = doc.querySelector('#guideTitleEn') || doc.querySelector('[data-slot-title-en]');
-    const titleKoNode = doc.querySelector('#guideTitleKo') || doc.querySelector('[data-slot-title-ko]');
-    const guidePub = doc.querySelector('#guidePub');
-    const guideDate = doc.querySelector('#guideDate');
-    const guidePage = doc.querySelector('#guidePage');
-    const guideListPrice = doc.querySelector('#guideListPrice');
-    const guideSupplyPrice = doc.querySelector('#guideSupplyPrice');
-    const guideLinkText = doc.querySelector('#guideLinkText');
-    const guideLinkAnchor = doc.querySelector('#guideLinkAnchor');
-    const tocLeft = doc.querySelector('#guideTocLeft');
-    const tocRight = doc.querySelector('#guideTocRight');
+    const titleEnNode = doc.querySelector('[data-slot-title-en]');
+    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
     const book1 = doc.querySelector('[data-slot-book-line1]');
     const book2 = doc.querySelector('[data-slot-book-line2]');
     const linkNode = doc.querySelector('[data-slot-link-line]');
+    const tocNode = doc.querySelector('[data-slot-toc-line]');
 
     if(titleEnNode){
       titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
@@ -1838,37 +1830,25 @@ function ensureInteractiveTagging(){
       titleKoNode.style.margin='2px 0 0 0';
       titleKoNode.style.lineHeight='1.05';
     }
-    if(guidePub) guidePub.textContent = pub || '';
-    if(guideDate) guideDate.textContent = date || '';
-    if(guidePage) guidePage.textContent = page ? `( ${page} Pages )` : '(  )';
-    if(guideListPrice) guideListPrice.textContent = listPrice || '';
-    if(guideSupplyPrice) guideSupplyPrice.textContent = supplyPrice ? `${supplyPrice} 원` : '';
-    if(guideLinkText) guideLinkText.textContent = link || '';
-    if(guideLinkAnchor){
-      guideLinkAnchor.setAttribute('href', link || '#');
-      guideLinkAnchor.textContent = '바로가기';
+    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
+      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
     }
 
     if(book1){
-      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;${page ? `( ${escapeHtml(page)} Pages )` : '(  )'}&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
+      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
     }
     if(book2){
-      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(date||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
+      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
+      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
     }
     if(linkNode){
-      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [<a href="${escapeHtml(link||'#')}">바로가기</a>] : ${escapeHtml(link||'')}</span>`;
+      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
     }
-
-    const tocLines = toc ? toc.split(/
-/).map(s=>s.trim()).filter(Boolean) : [];
-    if(tocLeft && tocRight){
-      const mid = Math.ceil(tocLines.length / 2);
-      tocLeft.innerHTML = tocLines.slice(0, mid).map(line => `<div>${escapeHtml(line)}</div>`).join('');
-      tocRight.innerHTML = tocLines.slice(mid).map(line => `<div>${escapeHtml(line)}</div>`).join('');
-    }
-
-    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
-      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
+    if(tocNode){
+      tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
+/g,'<br>') : '&nbsp;';
+      tocNode.style.whiteSpace='pre-wrap';
+      tocNode.style.lineHeight='1.35';
     }
   }
   function bindPreviewSync(){
@@ -2126,6 +2106,53 @@ function bridgeMiddleToRightFromCurrentSet(){
       el.dispatchEvent(new Event('input', { bubbles:true }));
       el.dispatchEvent(new Event('change', { bubbles:true }));
     });
+
+    const frame = document.getElementById('rightFrame');
+    const doc = frame && frame.contentDocument;
+    if (!doc) return;
+
+    const v = (id) => (document.getElementById(id)?.value || '').trim();
+    const titleEn = v('midTitleEn');
+    const titleKo = v('midTitleKo');
+    const pub = v('bookPub');
+    const date = v('bookDate');
+    const page = v('bookPage');
+    const listPrice = v('bookListPrice');
+    const supplyPrice = v('bookSupplyPrice');
+    const link = v('midLink');
+    const toc = v('midToc');
+
+    const setText = (id, value) => {
+      const el = doc.getElementById(id);
+      if (el) el.textContent = value || '';
+    };
+    setText('guideTitleEn', titleEn || '()');
+    setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
+    setText('guidePub', pub);
+    setText('guideDate', date);
+    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
+    setText('guideListPrice', listPrice);
+    setText('guideSupplyPrice', supplyPrice);
+    setText('guideLinkText', link);
+
+    const a = doc.getElementById('guideLinkAnchor');
+    if (a) {
+      a.href = link || '#';
+      a.textContent = '바로가기';
+    }
+
+    const tocLeft = doc.getElementById('guideTocLeft');
+    const tocRight = doc.getElementById('guideTocRight');
+    if (tocLeft && tocRight) {
+      const lines = toc ? toc.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+      const half = Math.ceil(lines.length / 2);
+      tocLeft.innerHTML = lines.slice(0, half).map(x => `<div>${x}</div>`).join('');
+      tocRight.innerHTML = lines.slice(half).map(x => `<div>${x}</div>`).join('');
+    }
+
+    if (typeof window.syncInputsToPreview === 'function') {
+      window.syncInputsToPreview();
+    }
     if (typeof window.sync === 'function') window.sync();
   } catch (e) {
     console.error('bridgeMiddleToRightFromCurrentSet fail', e);
