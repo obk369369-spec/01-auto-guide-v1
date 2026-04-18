@@ -2290,40 +2290,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
-
-    let finalResults = Array.isArray(results) ? results.slice(0,5) : [];
-
-    if (finalResults.length < 5 &&
-        typeof currentContext === 'function' &&
-        typeof buildPublishers === 'function' &&
-        typeof buildReportPool === 'function' &&
-        typeof buildGuideSet === 'function') {
-
-      const ctxLocal = currentContext();
-      const excludeLocal = String(ctxLocal.exclude || '').split(',').map(s=>s.trim()).filter(Boolean);
-      const pubsLocal = buildPublishers(ctxLocal.pub1, ctxLocal.pub2, excludeLocal);
-      const finalPubsLocal = pubsLocal.length ? pubsLocal : ['Gartner','IDC'];
-      const poolLocal = buildReportPool(ctxLocal, finalPubsLocal);
-
-      for (let i = finalResults.length; i < 5; i++) {
-        const g = buildGuideSet(ctxLocal, i, poolLocal, finalPubsLocal);
-        finalResults.push(normalizeResult({
-          title: g.guideTitleEn || '',
-          title_ko: g.guideTitleKo || '',
-          publisher: g.report?.publisher || '',
-          year: g.report?.year || '',
-          pages: g.report?.pages || '',
-          listPrice: g.report?.listPrice || '',
-          supplyPrice: g.report?.supplyPrice || '',
-          link: g.report?.link || '',
-          toc: g.toc || ''
-        }));
-      }
-    }
-
-    window.guides = finalResults;
-
-    finalResults.slice(0,5).forEach((r, i) => {
+    (results || []).slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
       b.textContent = `${i+1}세트`;
@@ -2571,5 +2538,49 @@ function bridgeMiddleToRightFromCurrentSet(){
 })();
 </script>
 
+
+<script>
+(function(){
+  let cachedResults = [];
+
+  const origSetMiddle = window.setMiddle;
+  window.setMiddle = function(data){
+    if(!cachedResults.length && Array.isArray(window.guides)){
+      cachedResults = window.guides;
+    }
+    return origSetMiddle.apply(this, arguments);
+  };
+
+  const origRender = window.renderSets;
+  window.renderSets = function(results){
+    if(Array.isArray(results)){
+      cachedResults = results.slice();
+    }
+    origRender && origRender(results);
+
+    let wrap = document.getElementById('safeSetTabs');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'safeSetTabs';
+      wrap.style.margin = '6px 0';
+      document.querySelector('.center')?.prepend(wrap);
+    }
+    wrap.innerHTML = '';
+
+    cachedResults.slice(0,5).forEach((r,i)=>{
+      const b = document.createElement('button');
+      b.textContent = (i+1)+'세트';
+      b.style.marginRight='4px';
+      b.onclick = ()=>{
+        if(typeof window.setMiddle==='function'){
+          window.setMiddle(r);
+        }
+      };
+      wrap.appendChild(b);
+    });
+  };
+})();
+</script>
 </body>
+
 </html>
