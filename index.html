@@ -194,7 +194,7 @@
 
   <div class="field"><label>링크</label><textarea id="midLink" rows="3" placeholder="링크"></textarea></div>
   <div class="field"><label>목차</label><textarea id="midToc" rows="12" placeholder="목차"></textarea></div>
-  <div class="card" id="bridgeStatus">M1 대기 / M2 대기 / M3 대기</div>
+  <div class="card" id="bridgeStatus">M0 대기\nM1 대기\nM2 대기\nM3 대기\nM4 대기</div>
 </div>
 <div class="right">
       <iframe id="rightFrame" srcdoc="&lt;!DOCTYPE html&gt;
@@ -2290,41 +2290,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     const wrap = ensureSetTabs();
     if (!wrap) return;
     wrap.innerHTML = '';
-
-    let finalResults = Array.isArray(results) ? results.slice(0,5) : [];
-
-    if (finalResults.length < 5 &&
-        typeof currentContext === 'function' &&
-        typeof buildPublishers === 'function' &&
-        typeof buildReportPool === 'function' &&
-        typeof buildGuideSet === 'function' &&
-        typeof normalizeResult === 'function') {
-
-      const ctxLocal = currentContext();
-      const excludeLocal = String(ctxLocal.exclude || '').split(',').map(s => s.trim()).filter(Boolean);
-      const pubsLocal = buildPublishers(ctxLocal.pub1, ctxLocal.pub2, excludeLocal);
-      const finalPubsLocal = pubsLocal.length ? pubsLocal : ['Gartner','IDC'];
-      const poolLocal = buildReportPool(ctxLocal, finalPubsLocal);
-
-      for (let i = finalResults.length; i < 5; i++) {
-        const g = buildGuideSet(ctxLocal, i, poolLocal, finalPubsLocal);
-        finalResults.push(normalizeResult({
-          title: g.guideTitleEn || '',
-          title_ko: g.guideTitleKo || '',
-          publisher: g.report?.publisher || '',
-          year: g.report?.year || '',
-          pages: g.report?.pages || '',
-          listPrice: g.report?.listPrice || '',
-          supplyPrice: g.report?.supplyPrice || '',
-          link: g.report?.link || '',
-          toc: g.toc || ''
-        }));
-      }
-    }
-
-    window.guides = finalResults;
-
-    finalResults.slice(0,5).forEach((r, i) => {
+    (results || []).slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
       b.textContent = `${i+1}세트`;
@@ -2571,5 +2537,166 @@ function bridgeMiddleToRightFromCurrentSet(){
   });
 })();
 </script>
+
+
+<script>
+(function(){
+  function bridgeBox(){
+    return document.getElementById('bridgeStatus');
+  }
+  function setBridgeLines(lines){
+    const el = bridgeBox();
+    if(!el) return;
+    el.style.whiteSpace = 'pre-wrap';
+    el.style.fontWeight = '700';
+    el.style.lineHeight = '1.5';
+    el.textContent = lines.join('\n');
+  }
+  function nowTxt(){
+    const d = new Date();
+    return d.toLocaleTimeString('ko-KR', {hour12:false});
+  }
+  function patchTrace(){
+    const origGenerate = window.generateFromDeno;
+    if(typeof origGenerate === 'function' && !window.__patchedGenerate){
+      window.generateFromDeno = async function(e){
+        setBridgeLines([
+          'M0 버튼 클릭 '+nowTxt(),
+          'M1 generateFromDeno 진입',
+          'M2 endpoint 확인 중',
+          'M3 generateLeftSets 확인 전',
+          'M4 대기'
+        ]);
+        try{
+          const result = await origGenerate.apply(this, arguments);
+          const guidesLen = Array.isArray(window.guides) ? window.guides.length : 0;
+          setBridgeLines([
+            'M0 버튼 클릭 '+nowTxt(),
+            'M1 generateFromDeno 통과',
+            'M2 endpoint 확인 완료',
+            'M3 guides 길이: '+guidesLen,
+            'M4 generateFromDeno 종료'
+          ]);
+          return result;
+        }catch(err){
+          setBridgeLines([
+            'M0 버튼 클릭 '+nowTxt(),
+            'M1 generateFromDeno 오류',
+            'M2 '+String(err && err.message || err),
+            'M3 중단',
+            'M4 중단'
+          ]);
+          throw err;
+        }
+      };
+      window.__patchedGenerate = true;
+    }
+
+    const origLeft = window.generateLeftSets;
+    if(typeof origLeft === 'function' && !window.__patchedLeft){
+      window.generateLeftSets = function(){
+        setBridgeLines([
+          'M0 로컬 생성 시작 '+nowTxt(),
+          'M1 currentContext 읽음',
+          'M2 pool/buildGuideSet 실행 중',
+          'M3 fillMiddleFromGuide 직전',
+          'M4 대기'
+        ]);
+        const res = origLeft.apply(this, arguments);
+        const guidesLen = Array.isArray(window.guides) ? window.guides.length : 0;
+        setBridgeLines([
+          'M0 로컬 생성 완료 '+nowTxt(),
+          'M1 currentContext 통과',
+          'M2 guides 길이: '+guidesLen,
+          'M3 fillMiddleFromGuide 호출됨',
+          'M4 오른쪽 반영 대기'
+        ]);
+        return res;
+      };
+      window.__patchedLeft = true;
+    }
+
+    const origSetMiddle = window.setMiddle;
+    if(typeof origSetMiddle === 'function' && !window.__patchedSetMiddle){
+      window.setMiddle = function(r){
+        setBridgeLines([
+          'M0 세트 선택/대표자료 시작 '+nowTxt(),
+          'M1 setMiddle 진입',
+          'M2 가운데값 쓰는 중',
+          'M3 bridge 호출 대기',
+          'M4 대기'
+        ]);
+        const res = origSetMiddle.apply(this, arguments);
+        const title = document.getElementById('midTitleEn')?.value || '';
+        setBridgeLines([
+          'M0 세트 선택/대표자료 완료 '+nowTxt(),
+          'M1 setMiddle 통과',
+          'M2 가운데 영문제목 길이: '+String(title.length),
+          'M3 bridge 호출 예약됨',
+          'M4 오른쪽 반영 대기'
+        ]);
+        return res;
+      };
+      window.__patchedSetMiddle = true;
+    }
+
+    const origSync = window.syncInputsToPreview;
+    if(typeof origSync === 'function' && !window.__patchedSync){
+      window.syncInputsToPreview = function(){
+        const frame = document.getElementById('rightFrame');
+        const doc = frame && frame.contentDocument;
+        const titleNode = doc && doc.querySelector('[data-slot-title-en]');
+        const pubNode = doc && doc.querySelector('[data-slot-book-line1]');
+        const tocNode = doc && doc.querySelector('[data-slot-toc-line]');
+        setBridgeLines([
+          'M0 오른쪽 쓰기 시작 '+nowTxt(),
+          'M1 iframe doc: '+(doc ? '있음' : '없음'),
+          'M2 title 슬롯: '+(titleNode ? '있음' : '없음'),
+          'M3 book/toc 슬롯: '+((pubNode||tocNode) ? '있음' : '없음'),
+          'M4 sync 실행 중'
+        ]);
+        const res = origSync.apply(this, arguments);
+        const rightText = doc ? (doc.body.innerText || '').slice(0,80) : '';
+        setBridgeLines([
+          'M0 오른쪽 쓰기 완료 '+nowTxt(),
+          'M1 iframe doc: '+(doc ? '있음' : '없음'),
+          'M2 title 슬롯: '+(titleNode ? '있음' : '없음'),
+          'M3 book/toc 슬롯: '+((pubNode||tocNode) ? '있음' : '없음'),
+          'M4 우측본문앞부분: '+(rightText ? '갱신됨' : '비어있음')
+        ]);
+        return res;
+      };
+      window.__patchedSync = true;
+    }
+
+    const btn = document.getElementById('generateBtn');
+    if(btn && !btn.__traceBind){
+      btn.addEventListener('click', function(){
+        setBridgeLines([
+          'M0 버튼 클릭 감지 '+nowTxt(),
+          'M1 이벤트 연결됨',
+          'M2 generateFromDeno/로컬생성 대기',
+          'M3 대기',
+          'M4 대기'
+        ]);
+      }, true);
+      btn.__traceBind = true;
+    }
+  }
+
+  window.addEventListener('load', function(){
+    setBridgeLines([
+      'M0 페이지 로드 '+nowTxt(),
+      'M1 대기',
+      'M2 대기',
+      'M3 대기',
+      'M4 대기'
+    ]);
+    setTimeout(patchTrace, 200);
+    setTimeout(patchTrace, 800);
+  });
+})();
+</script>
 </body>
+
 </html>
