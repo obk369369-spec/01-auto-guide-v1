@@ -2697,6 +2697,86 @@ function bridgeMiddleToRightFromCurrentSet(){
   });
 })();
 </script>
+
+<script>
+(function(){
+  function setBridgeLines(lines){
+    const el = document.getElementById('bridgeStatus');
+    if(!el) return;
+    el.style.whiteSpace='pre-wrap';
+    el.style.fontWeight='700';
+    el.style.lineHeight='1.5';
+    el.textContent = lines.join('\n');
+  }
+  function nowTxt(){
+    const d = new Date();
+    return d.toLocaleTimeString('ko-KR', {hour12:false});
+  }
+  function bindDirectClick(){
+    const btn = document.getElementById('generateBtn');
+    if(!btn || btn.__directBound) return;
+    btn.__directBound = true;
+
+    btn.addEventListener('click', function(ev){
+      setBridgeLines([
+        'M0 버튼 클릭 '+nowTxt(),
+        'M1 클릭 이벤트 감지',
+        'M2 직접 실행 분기 전',
+        'M3 대기',
+        'M4 대기'
+      ]);
+
+      try{
+        if(typeof window.generateFromDeno === 'function'){
+          setBridgeLines([
+            'M0 버튼 클릭 '+nowTxt(),
+            'M1 클릭 이벤트 감지',
+            'M2 generateFromDeno 직접 호출',
+            'M3 대기',
+            'M4 대기'
+          ]);
+          window.generateFromDeno(ev);
+          return;
+        }
+
+        if(typeof window.generateLeftSets === 'function'){
+          setBridgeLines([
+            'M0 버튼 클릭 '+nowTxt(),
+            'M1 클릭 이벤트 감지',
+            'M2 generateLeftSets 직접 호출',
+            'M3 대기',
+            'M4 대기'
+          ]);
+          window.generateLeftSets();
+          return;
+        }
+
+        setBridgeLines([
+          'M0 버튼 클릭 '+nowTxt(),
+          'M1 클릭 이벤트 감지',
+          'M2 실행 함수 없음',
+          'M3 중단',
+          'M4 중단'
+        ]);
+      }catch(err){
+        setBridgeLines([
+          'M0 버튼 클릭 '+nowTxt(),
+          'M1 클릭 이벤트 감지',
+          'M2 예외 발생',
+          'M3 '+String(err && err.message || err),
+          'M4 중단'
+        ]);
+      }
+    }, true);
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(bindDirectClick, 100);
+    setTimeout(bindDirectClick, 600);
+  });
+})();
+</script>
 </body>
+
 
 </html>
