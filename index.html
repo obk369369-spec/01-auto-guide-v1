@@ -160,7 +160,7 @@
         <button class="btn" id="runTestBtn">테스트케이스 실행</button>
         <button class="btn" id="diagBtn">자동진단 보내기</button>
         <button class="btn" id="coordBtn">좌표 찍기</button>
-        <button class="btn" id="resetBtn">초기화</button>
+        <button class="btn" id="handoffBtn">이동 준비</button>
       </div>
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
       <div class="checkpanel" id="engineCheckPanel">
@@ -1143,6 +1143,19 @@ ul
     </div>
   </div>
 
+  <div class="bottom-panels">
+    <div class="logpanel">
+      <div class="logtitle">CHANGE_PANEL</div>
+      <textarea class="tracebox" id="changePanel" spellcheck="false" readonly></textarea>
+      <div class="hint">전진 / 후퇴 / 미변경과 마지막 변경 위치 표시</div>
+    </div>
+    <div class="logpanel">
+      <div class="logtitle">HANDOFF_PANEL</div>
+      <textarea class="tracebox" id="handoffPanel" spellcheck="false" readonly></textarea>
+      <div class="hint">다음 창으로 옮길 때 그대로 복사</div>
+    </div>
+  </div>
+
 <script>
 (function(){
   const autoLog = document.getElementById('autoLog');
@@ -2072,18 +2085,15 @@ function ensureInteractiveTagging(){
     return packet;
   }
 
+
+  window.makeDiagPacket = makeDiagPacket;
+  window.autoRepairAndEvaluate = autoRepairAndEvaluate;
+  window.ensureInteractiveTagging = ensureInteractiveTagging;
+  window.tagIframeAreas = tagIframeAreas;
+
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
   document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-
-  window.generateLeftSets = generateLeftSets;
-  window.fillSampleLeft = fillSampleLeft;
-  window.resetLeftMenu = resetLeftMenu;
-  window.makeDiagPacket = makeDiagPacket;
-  window.tagIframeAreas = tagIframeAreas;
-  window.ensureInteractiveTagging = ensureInteractiveTagging;
-  window.autoRepairAndEvaluate = autoRepairAndEvaluate;
-  window.setMiddle = setMiddle;
   document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
   window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
@@ -2556,42 +2566,129 @@ function bridgeMiddleToRightFromCurrentSet(){
 
 <script>
 (function(){
-  function setMini(msg){
-    const el = document.getElementById('bridgeStatus');
-    if(!el) return;
-    el.style.whiteSpace = 'pre-wrap';
-    el.textContent = msg;
+  let lastSnapshot = '';
+  let lastStatus = 'INIT';
+
+  function safeText(v){ return (v == null ? '' : String(v)); }
+  function nowTxt(){ return new Date().toLocaleTimeString('ko-KR',{hour12:false}); }
+
+  function captureState(){
+    const state = {
+      titleEn: safeText(document.getElementById('midTitleEn')?.value).trim(),
+      titleKo: safeText(document.getElementById('midTitleKo')?.value).trim(),
+      pub: safeText(document.getElementById('bookPub')?.value).trim(),
+      date: safeText(document.getElementById('bookDate')?.value).trim(),
+      page: safeText(document.getElementById('bookPage')?.value).trim(),
+      listPrice: safeText(document.getElementById('bookListPrice')?.value).trim(),
+      supplyPrice: safeText(document.getElementById('bookSupplyPrice')?.value).trim(),
+      link: safeText(document.getElementById('midLink')?.value).trim(),
+      toc: safeText(document.getElementById('midToc')?.value).trim()
+    };
+    return JSON.stringify(state);
   }
-  window.addEventListener('load', function(){
-    setMini('M1 대기\nM2 대기\nM3 대기');
-    const btn = document.getElementById('generateBtn');
-    if(btn && !btn.__traceAdded){
-      btn.addEventListener('click', function(){
-        setMini('M1 안내서 생성 클릭\nM2 로컬/데논 분기 진행\nM3 오른쪽 반영 대기');
-      }, true);
-      btn.__traceAdded = true
+
+  function firstChangedArea(prevObj, nextObj){
+    const map = [
+      ['titleEn','mid-title-en','영문 타이틀 입력'],
+      ['titleKo','mid-title-ko','한글 타이틀 입력'],
+      ['pub','bookPub','발행사'],
+      ['date','bookDate','발행일'],
+      ['page','bookPage','페이지'],
+      ['listPrice','bookListPrice','정가'],
+      ['supplyPrice','bookSupplyPrice','공급가격'],
+      ['link','midLink','링크'],
+      ['toc','midToc','목차']
+    ];
+    for(const [key, area_id, area_name_ko] of map){
+      if((prevObj[key]||'') !== (nextObj[key]||'')){
+        return {area_id, area_name_ko, before: prevObj[key]||'', after: nextObj[key]||''};
+      }
     }
+    return {area_id:'-', area_name_ko:'-', before:'', after:''};
+  }
+
+  function updateChangePanel(status, changed){
+    const el = document.getElementById('changePanel');
+    if(!el) return;
+    el.value =
+`status: ${status}
+time: ${nowTxt()}
+changed_area_id: ${changed.area_id}
+changed_area_name_ko: ${changed.area_name_ko}
+before: ${safeText(changed.before).slice(0,120)}
+after: ${safeText(changed.after).slice(0,120)}`;
+  }
+
+  function updateHandoffPanel(){
+    const el = document.getElementById('handoffPanel');
+    if(!el) return;
+    const ff = document.getElementById('firstFailView')?.value || '';
+    const cp = document.getElementById('clickedTraceView')?.value || '';
+    const diag = document.getElementById('diagPacket')?.value || '';
+    const obj = {
+      stage: '진단+변경감지+handoff',
+      last_success_file: 'index_deno_bridge_checklist_fixed_v4_marker(처음 성공본)',
+      first_fail: ff ? '있음' : '없음',
+      clicked_trace: cp ? '있음' : '없음',
+      diag_packet: diag ? '있음' : '없음',
+      next_fix: ff ? 'first_fail 1개 수정' : '좌표 찍기 후 자동진단',
+      status: lastStatus,
+      time: nowTxt()
+    };
+    el.value = JSON.stringify(obj, null, 2);
+  }
+
+  function refreshPanels(){
+    const next = captureState();
+    if(!lastSnapshot){
+      lastSnapshot = next;
+      updateChangePanel('INIT', {area_id:'-', area_name_ko:'-', before:'', after:''});
+      updateHandoffPanel();
+      return;
+    }
+    const prevObj = JSON.parse(lastSnapshot);
+    const nextObj = JSON.parse(next);
+    const changed = firstChangedArea(prevObj, nextObj);
+    const changedAny = JSON.stringify(prevObj) !== JSON.stringify(nextObj);
+    lastStatus = changedAny ? 'FORWARD' : 'UNCHANGED';
+    updateChangePanel(changedAny ? 'FORWARD' : 'UNCHANGED', changed);
+    updateHandoffPanel();
+    lastSnapshot = next;
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(refreshPanels, 300);
+    const ids = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+    ids.forEach(id=>{
+      const el = document.getElementById(id);
+      if(el){
+        el.addEventListener('input', ()=>setTimeout(refreshPanels, 20));
+        el.addEventListener('change', ()=>setTimeout(refreshPanels, 20));
+      }
+    });
+
     const diagBtn = document.getElementById('diagBtn');
-    if(diagBtn && !diagBtn.__traceAdded){
+    if(diagBtn){
       diagBtn.addEventListener('click', function(){
-        const ff = document.getElementById('firstFailView');
-        const cp = document.getElementById('diagPacket');
-        if(ff && !ff.value){
-          ff.value = JSON.stringify({
-            status:'FAIL',
-            error_point:'TRACE.NOT_CAPTURED',
-            area_id:'preview-root',
-            area_name_ko:'오른쪽 원본 미지정',
-            expected:'좌표 찍기 후 자동진단',
-            observed:'clicked_trace 없음',
-            next_fix:'좌표 찍기 버튼으로 위치 1개 지정'
-          }, null, 2);
-        }
-        if(cp && !cp.value && typeof window.makeDiagPacket === 'function'){
-          try{ window.makeDiagPacket(); }catch(e){}
-        }
+        try{
+          if(typeof window.makeDiagPacket === 'function'){ window.makeDiagPacket(); }
+        }catch(e){}
+        setTimeout(updateHandoffPanel, 50);
       }, true);
-      diagBtn.__traceAdded = true
+    }
+
+    const handoffBtn = document.getElementById('handoffBtn');
+    if(handoffBtn){
+      handoffBtn.addEventListener('click', function(){
+        updateHandoffPanel();
+      }, true);
+    }
+
+    const coordBtn = document.getElementById('coordBtn');
+    if(coordBtn){
+      coordBtn.addEventListener('click', function(){
+        updateChangePanel('CAPTURE_READY', {area_id:'clicked_trace', area_name_ko:'좌표 찍기 대기', before:'', after:'사용자 클릭 대기'});
+      }, true);
     }
   });
 })();
