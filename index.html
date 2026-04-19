@@ -2776,7 +2776,68 @@ function bridgeMiddleToRightFromCurrentSet(){
   });
 })();
 </script>
+
+<script>
+(function(){
+  function setBridgeLines(lines){
+    const el = document.getElementById('bridgeStatus');
+    if(!el) return;
+    el.style.whiteSpace='pre-wrap';
+    el.style.fontWeight='700';
+    el.style.lineHeight='1.5';
+    el.textContent = lines.join('\n');
+  }
+  function nowTxt(){
+    const d = new Date();
+    return d.toLocaleTimeString('ko-KR', {hour12:false});
+  }
+  function currentBridgeText(){
+    return (document.getElementById('bridgeStatus')?.textContent || '').trim();
+  }
+  function bindV2(){
+    const btn = document.getElementById('generateBtn');
+    if(!btn || btn.__v2Bound) return;
+    btn.__v2Bound = true;
+
+    btn.addEventListener('click', function(){
+      const before = currentBridgeText();
+
+      setTimeout(function(){
+        const after = currentBridgeText();
+        const stillIdle = /M1 대기|M2 대기|M3 대기|M4 대기/.test(after) || after === before;
+
+        if(stillIdle && typeof window.generateLeftSets === 'function'){
+          setBridgeLines([
+            'M0 버튼 클릭 '+nowTxt(),
+            'M1 v2 후속 검사',
+            'M2 표식 정체 감지',
+            'M3 generateLeftSets 강제 실행',
+            'M4 진행 확인 대기'
+          ]);
+          try{
+            window.generateLeftSets();
+          }catch(err){
+            setBridgeLines([
+              'M0 버튼 클릭 '+nowTxt(),
+              'M1 v2 후속 검사',
+              'M2 강제 실행 오류',
+              'M3 '+String(err && err.message || err),
+              'M4 중단'
+            ]);
+          }
+        }
+      }, 500);
+    }, true);
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(bindV2, 120);
+    setTimeout(bindV2, 700);
+  });
+})();
+</script>
 </body>
+
 
 
 </html>
