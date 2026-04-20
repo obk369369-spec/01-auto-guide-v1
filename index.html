@@ -108,7 +108,7 @@
 </div>
 
 <div id="diagTopStrip" style="position:sticky;top:0;z-index:99999;background:#fff8cc;border-bottom:2px solid #d4b106;padding:10px 12px;">
-  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v4</div>
+  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v5</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <button id="forceRunBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">테스트케이스 실행</button>
     <button id="forceDiagBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">자동진단 보내기</button>
@@ -3086,10 +3086,16 @@ document.addEventListener('DOMContentLoaded', function(){
   if(forceDiagBtn){
     forceDiagBtn.onclick = function(){
       var clickedObj = currentClickedObj() || {status:'EMPTY', area_id:'NO_COORD', area_name_ko:'좌표 미지정', next_fix:'문제 위치 클릭 후 다시 자동진단'};
-      var failObj = detectBrokenArea() || verifyOutput();
+      var failObj = null;
+      if(clickedObj && clickedObj.area_id){
+        failObj = detectBrokenArea();
+      }
+      if(!failObj){
+        failObj = verifyOutput();
+      }
       failObj.checked_at = new Date().toLocaleTimeString('ko-KR', {hour12:false});
       setVal('firstFailView', JSON.stringify(failObj, null, 2));
-      appendCore('[CORE_LOG]\\nstatus: DIAG_OK\\nfirst_fail: ' + failObj.area_id);
+      appendCore('[CORE_LOG]\nstatus: DIAG_OK\nfirst_fail: ' + failObj.area_id);
       var packet = {stage:'STEP4', status: failObj.status === 'PASS' ? 'PASS' : 'DRAFT', clicked_trace: clickedObj, first_fail: failObj, handoff_ready: failObj.status === 'PASS' ? 'YES' : 'NO', next_fix: failObj.next_fix};
       setVal('diagPacket', JSON.stringify(packet, null, 2));
       setStatus('자동진단 보내기 클릭 확인');
