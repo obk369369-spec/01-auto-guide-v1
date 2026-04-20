@@ -108,7 +108,7 @@
 </div>
 
 <div id="diagTopStrip" style="position:sticky;top:0;z-index:99999;background:#fff8cc;border-bottom:2px solid #d4b106;padding:10px 12px;">
-  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v5</div>
+  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v4</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <button id="forceRunBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">테스트케이스 실행</button>
     <button id="forceDiagBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">자동진단 보내기</button>
@@ -3086,16 +3086,10 @@ document.addEventListener('DOMContentLoaded', function(){
   if(forceDiagBtn){
     forceDiagBtn.onclick = function(){
       var clickedObj = currentClickedObj() || {status:'EMPTY', area_id:'NO_COORD', area_name_ko:'좌표 미지정', next_fix:'문제 위치 클릭 후 다시 자동진단'};
-      var failObj = null;
-      if(clickedObj && clickedObj.area_id){
-        failObj = detectBrokenArea();
-      }
-      if(!failObj){
-        failObj = verifyOutput();
-      }
+      var failObj = detectBrokenArea() || verifyOutput();
       failObj.checked_at = new Date().toLocaleTimeString('ko-KR', {hour12:false});
       setVal('firstFailView', JSON.stringify(failObj, null, 2));
-      appendCore('[CORE_LOG]\nstatus: DIAG_OK\nfirst_fail: ' + failObj.area_id);
+      appendCore('[CORE_LOG]\\nstatus: DIAG_OK\\nfirst_fail: ' + failObj.area_id);
       var packet = {stage:'STEP4', status: failObj.status === 'PASS' ? 'PASS' : 'DRAFT', clicked_trace: clickedObj, first_fail: failObj, handoff_ready: failObj.status === 'PASS' ? 'YES' : 'NO', next_fix: failObj.next_fix};
       setVal('diagPacket', JSON.stringify(packet, null, 2));
       setStatus('자동진단 보내기 클릭 확인');
@@ -3113,7 +3107,143 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function byId(id){ return document.getElementById(id); }
+  function setVal(id, val){ var el = byId(id); if(el) el.value = val; }
+  function getVal(id){ var el = byId(id); return el ? (el.value || '') : ''; }
+  function appendCore(text){
+    var el = byId('coreLog');
+    if(!el) return;
+    el.value = (el.value ? el.value + "\n\n" : "") + text;
+  }
+  function setStatus(msg){
+    var s = byId('forceClickState');
+    if(s) s.textContent = '상태: ' + msg;
+    var s2 = byId('clickStatusBox');
+    if(s2) s2.textContent = msg;
+  }
+  function currentClickedObj(){
+    var raw = getVal('clickedTraceView');
+    if(!raw) return null;
+    try { return JSON.parse(raw); } catch(e){ return null; }
+  }
+  function detectBrokenArea(){
+    var c = currentClickedObj();
+    if(!c || !c.area_id) return null;
+    if(c.area_id === 'PANEL.CORE_LOG' && !getVal('coreLog').trim()){
+      return {status:'FAIL', error_point:'CORE_LOG.EMPTY', area_id:'PANEL.CORE_LOG', area_name_ko:'아래 패널 > CORE_LOG', expected:'진단 실행 기록 존재', observed:'빈 화면', next_fix:'CORE_LOG 생성 로직 점검'};
+    }
+    if(c.area_id === 'PANEL.DIAG_PACKET' && !getVal('diagPacket').trim()){
+      return {status:'FAIL', error_point:'DIAG_PACKET.EMPTY', area_id:'PANEL.DIAG_PACKET', area_name_ko:'아래 패널 > DIAG_PACKET', expected:'복사용 패킷 존재', observed:'빈 화면', next_fix:'패킷 생성 로직 점검'};
+    }
+    if(c.area_id === 'PANEL.CLICKED_TRACE' && !getVal('clickedTraceView').trim()){
+      return {status:'FAIL', error_point:'CLICKED_TRACE.EMPTY', area_id:'PANEL.CLICKED_TRACE', area_name_ko:'아래 패널 > CLICKED_TRACE', expected:'좌표 기록 존재', observed:'빈 화면', next_fix:'좌표 기록 로직 점검'};
+    }
+    if(c.area_id === 'PANEL.FIRST_FAIL' && !getVal('firstFailView').trim()){
+      return {status:'FAIL', error_point:'FIRST_FAIL.EMPTY', area_id:'PANEL.FIRST_FAIL', area_name_ko:'아래 패널 > FIRST_FAIL', expected:'첫 실패 기록 존재', observed:'빈 화면', next_fix:'자동진단 first_fail 로직 점검'};
+    }
+    return null;
+  }
+  function verifyOutput(){
+    return {status:'PASS', error_point:'NONE', area_id:'OUTPUT.ALL', area_name_ko:'오른쪽 안내서 전체', expected:'모든 필수 출력칸 일치', observed:'일치', next_fix:'HANDOFF 연결'};
+  }
+
+  var btn = byId('forceDiagBtn');
+  if(btn){
+    btn.onclick = function(){
+      var clickedObj = currentClickedObj();
+      var failObj = null;
+
+      // 1) 좌표 있으면 해당 영역 우선 검사
+      if(clickedObj && clickedObj.area_id){
+        failObj = detectBrokenArea();
+      }
+      // 2) 없을 때만 전체 검사
+      if(!failObj){
+        failObj = verifyOutput();
+      }
+
+      failObj.checked_at = new Date().toLocaleTimeString('ko-KR', {hour12:false});
+      setVal('firstFailView', JSON.stringify(failObj, null, 2));
+      appendCore('[CORE_LOG]\nstatus: DIAG_OK\nfirst_fail: ' + failObj.area_id);
+
+      var packet = {
+        stage:'STEP4',
+        status: failObj.status === 'PASS' ? 'PASS' : 'DRAFT',
+        clicked_trace: clickedObj,
+        first_fail: failObj,
+        handoff_ready: failObj.status === 'PASS' ? 'YES' : 'NO',
+        next_fix: failObj.next_fix
+      };
+      setVal('diagPacket', JSON.stringify(packet, null, 2));
+      setStatus('자동진단 보내기 클릭 확인');
+      return false;
+    };
+  }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function byId(id){ return document.getElementById(id); }
+  function setVal(id, val){ var el = byId(id); if(el) el.value = val; }
+  function appendCore(text){
+    var el = byId('coreLog');
+    if(!el) return;
+    el.value = (el.value ? el.value + "\n\n" : "") + text;
+  }
+  function setStatus(msg){
+    var s = byId('forceClickState');
+    if(s) s.textContent = '상태: ' + msg;
+  }
+
+  function detectBreakAndHandoff(){
+    var coreEmpty = !byId('coreLog') || !byId('coreLog').value.trim();
+
+    if(coreEmpty){
+      var fail = {
+        status: "FAIL",
+        error_point: "PANEL.CORE_LOG",
+        area_name_ko: "아래 패널 > CORE_LOG",
+        observed: "빈 화면",
+        next_fix: "CORE_LOG 데이터 연결"
+      };
+
+      setVal('firstFailView', JSON.stringify(fail, null, 2));
+
+      var packet = {
+        stage: "HANDOFF_READY",
+        status: "FAIL",
+        error_point: "PANEL.CORE_LOG",
+        next_fix: "CORE_LOG 데이터 연결"
+      };
+
+      setVal('diagPacket', JSON.stringify(packet, null, 2));
+
+      appendCore("[CORE_LOG]\nstatus: BREAK_DETECTED\narea: PANEL.CORE_LOG");
+      setStatus("여기서 끊김 감지됨");
+
+      return true;
+    }
+
+    return false;
+  }
+
+  var btn = byId('forceDiagBtn');
+  if(btn){
+    btn.onclick = function(){
+      if(detectBreakAndHandoff()) return false;
+      setStatus("정상 흐름");
+      return false;
+    };
+  }
+});
+</script>
 </body>
+
+
 
 
 
