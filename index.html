@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -99,7 +99,14 @@
   </div>
   
 
-  <div class="wrap">
+  
+<div style="padding:10px 12px;background:#fff3cd;border-bottom:1px solid #e5c46b;font-weight:700;">
+  진단버튼 표시 확인용 버전: BUTTONS_V2
+  <span style="margin-left:12px;border:1px solid #999;border-radius:999px;padding:4px 8px;">테스트케이스 실행</span>
+  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
+  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
+</div>
+<div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
 
@@ -155,6 +162,11 @@
         <button class="btn primary" id="generateBtn">안내서 5개 생성</button>
         <button class="btn" id="fillSampleBtn">샘플 입력</button>
         <button class="btn" id="leftResetBtn">왼쪽 초기화</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="runTestBtn">테스트케이스 실행</button>
+        <button class="btn" id="diagBtn">자동진단 보내기</button>
+        <button class="btn" id="coordBtn">좌표 찍기</button>
       </div>
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
       <div class="checkpanel" id="engineCheckPanel">
@@ -2538,27 +2550,5 @@ function bridgeMiddleToRightFromCurrentSet(){
 })();
 </script>
 
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const diagBtn = document.getElementById('diagBtn');
-  if(diagBtn){
-    diagBtn.addEventListener('click', function(){
-      const ff = document.getElementById('firstFailView');
-      if(ff){
-        ff.value = JSON.stringify({
-          status: "FAIL",
-          error_point: "AUTO.DETECT",
-          area: "UNKNOWN",
-          expected: "정상 출력",
-          observed: "검증 미실행",
-          next_fix: "출력 검증 단계 실행"
-        }, null, 2);
-      }
-    });
-  }
-});
-</script>
 </body>
-
 </html>
