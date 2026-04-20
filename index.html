@@ -106,6 +106,16 @@
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
 </div>
+
+<div id="diagTopStrip" style="position:sticky;top:0;z-index:99999;background:#fff8cc;border-bottom:2px solid #d4b106;padding:10px 12px;">
+  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v1</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <button id="forceRunBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">테스트케이스 실행</button>
+    <button id="forceDiagBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">자동진단 보내기</button>
+    <button id="forceCoordBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">좌표 찍기</button>
+    <div id="forceClickState" style="min-width:220px;padding:10px 12px;border:2px solid #666;border-radius:10px;background:#fff;">상태: 대기</div>
+  </div>
+</div>
 <div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
@@ -167,6 +177,9 @@
         <button class="btn" id="runTestBtn">테스트케이스 실행</button>
         <button class="btn" id="diagBtn">자동진단 보내기</button>
         <button class="btn" id="coordBtn">좌표 찍기</button>
+      </div>
+      <div id="clickStatusBox" style="margin-top:8px;padding:8px 10px;border:1px solid #999;border-radius:8px;background:#fffbe6;font-weight:700;">
+        클릭 확인 대기
       </div>
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
       <div class="checkpanel" id="engineCheckPanel">
@@ -2626,6 +2639,90 @@ JSON.stringify({
   }
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function status(msg){
+    const el = document.getElementById('clickStatusBox');
+    if(el) el.textContent = msg;
+  }
+  function bind(id, msg){
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.style.pointerEvents = 'auto';
+    btn.style.cursor = 'pointer';
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      status(msg);
+      return false;
+    };
+  }
+  bind('runTestBtn', '클릭 확인: 테스트케이스 실행');
+  bind('diagBtn', '클릭 확인: 자동진단 보내기');
+  bind('coordBtn', '클릭 확인: 좌표 찍기');
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function setStatus(msg){
+    var s = document.getElementById('forceClickState');
+    if(s) s.textContent = '상태: ' + msg;
+  }
+  function setVal(id, val){
+    var el = document.getElementById(id);
+    if(el) el.value = val;
+  }
+
+  var runBtn = document.getElementById('forceRunBtn');
+  if(runBtn){
+    runBtn.onclick = function(){
+      setStatus('테스트케이스 실행 클릭 확인');
+      setVal('coreLog', '[CORE_LOG]\\nstatus: CLICK_OK\\nbutton: 테스트케이스 실행');
+      return false;
+    };
+  }
+
+  var diagBtn = document.getElementById('forceDiagBtn');
+  if(diagBtn){
+    diagBtn.onclick = function(){
+      setStatus('자동진단 보내기 클릭 확인');
+      setVal('firstFailView', JSON.stringify({
+        status:'FAIL',
+        error_point:'AUTO.DETECT',
+        area_id:'OUTPUT.CHECK',
+        area_name_ko:'오른쪽 안내서 출력 검증',
+        expected:'개별 검증 결과 생성',
+        observed:'진단 버튼 연결 확인 단계',
+        next_fix:'DIAG_PACKET 연결'
+      }, null, 2));
+      setVal('diagPacket', JSON.stringify({
+        stage:'STEP1',
+        status:'DRAFT',
+        next_fix:'DIAG_PACKET 연결'
+      }, null, 2));
+      return false;
+    };
+  }
+
+  var coordBtn = document.getElementById('forceCoordBtn');
+  if(coordBtn){
+    coordBtn.onclick = function(){
+      setStatus('좌표 찍기 클릭 확인');
+      setVal('clickedTraceView', JSON.stringify({
+        status:'CLICK_OK',
+        area_id:'MANUAL.POINT',
+        area_name_ko:'사용자 지정 위치',
+        next_fix:'자동진단 보내기 실행'
+      }, null, 2));
+      return false;
+    };
+  }
+});
+</script>
 </body>
+
+
 
 </html>
