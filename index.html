@@ -108,7 +108,7 @@
 </div>
 
 <div id="diagTopStrip" style="position:sticky;top:0;z-index:99999;background:#fff8cc;border-bottom:2px solid #d4b106;padding:10px 12px;">
-  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v6</div>
+  <div style="font-weight:700;margin-bottom:8px;">진단 버튼 강제표시 v7</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <button id="forceRunBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">테스트케이스 실행</button>
     <button id="forceDiagBtn" style="padding:10px 14px;border:2px solid #222;border-radius:10px;background:#fff;cursor:pointer;">자동진단 보내기</button>
@@ -119,6 +119,11 @@
 <div style="padding:8px 12px;background:#eef6ff;border-bottom:1px solid #bcd4ff;font-weight:700;" id="branchMarkerBar">
   분기 상태: 대기
 </div>
+
+<div id="deliveryMarkerBar" style="padding:8px 12px;background:#ffeaea;border-bottom:1px solid #e59a9a;font-weight:700;">
+  클릭 전달 상태: 대기
+</div>
+
 <div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
@@ -3378,7 +3383,62 @@ next: HANDOFF 가능`;
   }
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function byId(id){ return document.getElementById(id); }
+  function setDelivery(msg){
+    var el = byId('deliveryMarkerBar');
+    if(el) el.textContent = '클릭 전달 상태: ' + msg;
+  }
+  function setClicked(areaId, areaName){
+    var box = byId('clickedTraceView');
+    if(box){
+      box.value = JSON.stringify({
+        status:'CLICK_OK',
+        area_id:areaId,
+        area_name_ko:areaName,
+        updated_at:new Date().toLocaleTimeString('ko-KR',{hour12:false})
+      }, null, 2);
+    }
+  }
+
+  var core = byId('coreLog');
+  if(core){
+    core.style.cursor = 'pointer';
+    core.addEventListener('click', function(e){
+      setDelivery('CORE_LOG 클릭 전달됨');
+      setClicked('PANEL.CORE_LOG', '아래 패널 > CORE_LOG');
+      core.style.outline = '3px solid #d32f2f';
+      core.style.outlineOffset = '-2px';
+    });
+    core.addEventListener('mousedown', function(){
+      setDelivery('CORE_LOG mousedown 전달됨');
+    });
+  }
+
+  var coord = byId('forceCoordBtn');
+  if(coord){
+    coord.addEventListener('click', function(){
+      setDelivery('좌표 찍기 버튼 클릭됨');
+    });
+  }
+
+  var diag = byId('forceDiagBtn');
+  if(diag){
+    diag.addEventListener('click', function(){
+      var raw = byId('clickedTraceView') ? byId('clickedTraceView').value.trim() : '';
+      if(!raw){
+        setDelivery('자동진단 도달, 하지만 clicked_trace 비어있음');
+      }else{
+        setDelivery('자동진단 도달, clicked_trace 전달됨');
+      }
+    });
+  }
+});
+</script>
 </body>
+
 
 
 
