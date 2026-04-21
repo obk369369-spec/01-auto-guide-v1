@@ -84,6 +84,9 @@
   .state-bad{color:#c62828;font-weight:700;}
   .mini-log{font-size:11px;color:#555;white-space:pre-wrap;line-height:1.45;margin-top:8px;}
 
+  .top-action-bar{position:sticky;top:0;z-index:9999;display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff8cc;border-bottom:1px solid #d9c36a;}
+  .top-action-status{font-size:12px;font-weight:700;color:#444;margin-left:8px;}
+
 </style>
 
 </head>
@@ -97,7 +100,13 @@
       <span class="badge" id="diagBadge">DIAG: IDLE</span>
     </div>
   </div>
-  
+  <div class="top-action-bar">
+    <button class="btn" id="coordBtn">좌표 찍기</button>
+    <button class="btn" id="diagBtn">자동진단 보내기</button>
+    <button class="btn" id="runTestBtn">테스트케이스 실행</button>
+    <button class="btn" id="resetBtn">초기화</button>
+    <span class="top-action-status" id="topActionStatus">상태: 대기</span>
+  </div>
 
   <div class="wrap">
     <div class="left">
@@ -1157,7 +1166,13 @@ ul
   const retryMap = new Map();
   const areaRegistry = [];
   let lastTagged = [];
-  function setStatus(msg){ if(statusEl) statusEl.textContent = msg; }
+  function setStatus(msg){
+    if(statusEl) statusEl.textContent = msg;
+    try{
+      const topEl = document.getElementById('topActionStatus');
+      if(topEl) topEl.textContent = `상태: ${msg}`;
+    }catch(e){}
+  }
 
   function stamp(){ return new Date().toLocaleTimeString('ko-KR',{hour12:false}); }
   function log(el,msg){ if(!el) return; el.textContent += `[${stamp()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
