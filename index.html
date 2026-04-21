@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -99,7 +99,14 @@
   </div>
   
 
-  <div class="wrap">
+  
+<div style="padding:10px 12px;background:#fff3cd;border-bottom:1px solid #e5c46b;font-weight:700;">
+  진단버튼 표시 확인용 버전: BUTTONS_V2
+  <span style="margin-left:12px;border:1px solid #999;border-radius:999px;padding:4px 8px;">테스트케이스 실행</span>
+  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
+  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
+</div>
+<div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
 
@@ -2543,5 +2550,82 @@ function bridgeMiddleToRightFromCurrentSet(){
 })();
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function box(id){ return document.getElementById(id); }
+  function setVal(id, text){
+    const el = box(id);
+    if(el){ el.value = text; }
+  }
+  function appendVal(id, text){
+    const el = box(id);
+    if(el){ el.value = (el.value ? el.value + "\n" : "") + text; }
+  }
+
+  ['runTestBtn','diagBtn','coordBtn'].forEach(function(id){
+    const btn = box(id);
+    if(btn){
+      btn.style.pointerEvents = 'auto';
+      btn.style.cursor = 'pointer';
+      btn.style.position = 'relative';
+      btn.style.zIndex = '9999';
+    }
+  });
+
+  const runBtn = box('runTestBtn');
+  if(runBtn){
+    runBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      setVal('coreLog',
+`[CORE_LOG]
+status: CLICK_OK
+button: 테스트케이스 실행
+time: ` + new Date().toLocaleTimeString('ko-KR', {hour12:false}) + `
+next: 자동진단 버튼 확인`);
+    }, true);
+  }
+
+  const coordBtn = box('coordBtn');
+  if(coordBtn){
+    coordBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      setVal('clickedTraceView',
+JSON.stringify({
+  status: "CLICK_OK",
+  button: "좌표 찍기",
+  area_id: "MANUAL.POINT",
+  area_name_ko: "사용자 지정 위치",
+  next_fix: "자동진단 보내기 실행"
+}, null, 2));
+    }, true);
+  }
+
+  const diagBtn = box('diagBtn');
+  if(diagBtn){
+    diagBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      setVal('firstFailView',
+JSON.stringify({
+  status: "FAIL",
+  error_point: "AUTO.DETECT",
+  area_id: "OUTPUT.CHECK",
+  area_name_ko: "오른쪽 안내서 출력 검증",
+  expected: "개별 검증 결과 표시",
+  observed: "진단 연결 전",
+  next_fix: "DIAG_PACKET 실연결"
+}, null, 2));
+      setVal('diagPacket',
+JSON.stringify({
+  stage: "STEP1",
+  clicked_trace: box('clickedTraceView')?.value || "",
+  first_fail: box('firstFailView')?.value || "",
+  status: "DRAFT"
+}, null, 2));
+    }, true);
+  }
+});
+</script>
 </body>
+
 </html>
