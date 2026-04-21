@@ -2393,13 +2393,20 @@ function bridgeMiddleToRightFromCurrentSet(){
 
     try {
       const preferred_publishers = [input.pub1, input.pub2].filter(Boolean);
-      const url = endpoint + '/search?q=' + encodeURIComponent(q)
-        + (preferred_publishers.length ? '&preferred=' + encodeURIComponent(preferred_publishers.join(',')) : '')
-        + '&limit=5';
-      traceStep('STEP1', 'request=' + url);
+      const payload = {
+        query: q,
+        preferred_publishers,
+        limit: 5
+      };
+      traceStep('STEP1', 'request=' + endpoint + ' [POST]');
+      traceStep('STEP1', 'payload=' + JSON.stringify(payload));
 
       traceStep('STEP1', 'fetch 시작');
-      const res = await fetch(url, { method:'GET' });
+      const res = await fetch(endpoint, {
+        method:'POST',
+        headers: { 'content-type':'application/json' },
+        body: JSON.stringify(payload)
+      });
       traceStep('STEP2', 'HTTP status=' + res.status);
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
