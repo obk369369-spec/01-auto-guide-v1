@@ -91,7 +91,7 @@
   <div class="top">
     <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59</div>
     <div class="statebar">
-      <span class="badge ok" id="stateBadge">STATE: INIT</span>
+      <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
       <span class="badge" id="tagBadge">TAG: 0</span>
       <span class="badge" id="diagBadge">DIAG: IDLE</span>
@@ -156,17 +156,6 @@
         <button class="btn" id="fillSampleBtn">샘플 입력</button>
         <button class="btn" id="leftResetBtn">왼쪽 초기화</button>
       </div>
-
-      <div class="btnrow">
-        <button class="btn" id="runTestBtn">테스트케이스 실행</button>
-        <button class="btn" id="diagBtn">자동진단 보내기</button>
-        <button class="btn" id="coordBtn">좌표 찍기</button>
-        <button class="btn" id="resetBtn">초기화</button>
-      </div>
-      <div id="clickStatusBox" style="margin-top:8px;padding:8px 10px;border:1px solid #999;border-radius:8px;background:#fffbe6;font-weight:700;">
-        클릭 확인 대기
-      </div>
-
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
       <div class="checkpanel" id="engineCheckPanel">
         <h3>엔진 점검표</h3>
@@ -1168,7 +1157,7 @@ ul
   const retryMap = new Map();
   const areaRegistry = [];
   let lastTagged = [];
-  function setStatus(msg){ if(statusEl) statusEl.textContent = msg; const box=document.getElementById('clickStatusBox'); if(box) box.textContent = msg; }
+  function setStatus(msg){ if(statusEl) statusEl.textContent = msg; }
 
   function stamp(){ return new Date().toLocaleTimeString('ko-KR',{hour12:false}); }
   function log(el,msg){ if(!el) return; el.textContent += `[${stamp()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
@@ -1196,11 +1185,6 @@ ul
     if(firstFailView) firstFailView.value = safeJson(firstFail);
   }
   function saveClickedTrace(trace){
-    if(clickedTrace && clickedTrace.error_hash && trace && clickedTrace.error_hash !== trace.error_hash){
-      log(autoLog, 'clicked_trace 덮어쓰기 차단');
-      renderTraceViews();
-      return;
-    }
     clickedTrace = trace;
     try{ localStorage.setItem('wic_clicked_trace', JSON.stringify(trace)); }catch(e){}
     renderTraceViews();
@@ -1215,60 +1199,6 @@ ul
   function setFirstFail(meta){
     firstFail = meta || null;
     renderTraceViews();
-  }
-
-  function normalizeFirstFail(meta){
-    if(!meta) return null;
-    return {
-      status: meta.status || (meta.error ? 'FAIL' : 'PASS'),
-      error_point: meta.error_point || meta.check_id || meta.id || 'UNKNOWN',
-      full_code: meta.full_code || meta.error_point || meta.check_id || meta.id || 'UNKNOWN',
-      area_id: meta.area_id || meta.id || '-',
-      area_name_ko: meta.area_name_ko || '-',
-      selector: meta.selector || '-',
-      dom_path: meta.dom_path || '-',
-      function_name: meta.function_name || '-',
-      observed: meta.observed || '',
-      expected: meta.expected || '',
-      error_reason_type: meta.error_reason_type || (meta.error ? 'AUTO_DETECT' : 'PASS'),
-      next_fix: meta.next_fix || (meta.error ? '해당 영역 수정' : 'pass'),
-      retry_count: meta.retry_count || 0,
-      error_hash: meta.error_hash || hashText(JSON.stringify(meta))
-    };
-  }
-
-  function makeFirstFailFromClickedTrace(checks){
-    if(!clickedTrace || !clickedTrace.area_id) return null;
-    const match = (checks || []).find(c => c.id === clickedTrace.area_id);
-    const base = {
-      area_id: clickedTrace.area_id || '-',
-      area_name_ko: clickedTrace.area_name_ko || '-',
-      selector: clickedTrace.selector || '-',
-      dom_path: clickedTrace.dom_path || '-',
-      function_name: clickedTrace.function_name || 'coordinateCapture',
-      expected: match ? match.expected : (clickedTrace.expected || '정상 출력'),
-      observed: match ? (match.observed || '') : (clickedTrace.observed || ''),
-      retry_count: match ? (match.retry_count || 0) : (clickedTrace.retry_count || 0),
-      error_hash: match ? match.error_hash : (clickedTrace.error_hash || hashText(JSON.stringify(clickedTrace)))
-    };
-    if(match && !match.error){
-      return normalizeFirstFail({
-        ...base,
-        status:'PASS',
-        error_point:'CLICKED_TRACE.PASS',
-        full_code:'CLICKED_TRACE.PASS',
-        error_reason_type:'PASS',
-        next_fix:'pass'
-      });
-    }
-    return normalizeFirstFail({
-      ...base,
-      status:'FAIL',
-      error_point:(match && match.id) || clickedTrace.area_id || 'CLICKED_TRACE.FAIL',
-      full_code:(match && match.id) || clickedTrace.area_id || 'CLICKED_TRACE.FAIL',
-      error_reason_type:'CLICKED_TRACE',
-      next_fix:(match && match.next_fix) || clickedTrace.next_fix || '해당 영역 수정'
-    });
   }
   function guessAreaFromNode(node){
     const rect = node && node.getBoundingClientRect ? node.getBoundingClientRect() : {top:9999,left:9999,width:0,height:0};
@@ -1669,31 +1599,16 @@ function ensureInteractiveTagging(){
 
   function renderChecks(checks, repairLogs=[]){
     const failed=checks.filter(c=>c.error);
-    const fallbackFail = failed[0] ? normalizeFirstFail({
-      status:'FAIL',
-      error_point: failed[0].id,
-      full_code: failed[0].id,
-      area_id: failed[0].id,
-      area_name_ko: areaRegistry.find(x=>x.id===failed[0].id)?.name || failed[0].id,
-      observed: failed[0].observed || '',
-      expected: failed[0].expected || '',
-      error_reason_type:'AUTO_DETECT',
-      next_fix: failed[0].next_fix,
-      retry_count: failed[0].retry_count,
-      error_hash: failed[0].error_hash
-    }) : null;
-    const failMeta = makeFirstFailFromClickedTrace(checks) || fallbackFail;
+    const failMeta = failed[0] ? (()=>{
+      const doc=frame.contentDocument;
+      const node=doc ? doc.querySelector(`[data-area-id="${failed[0].id}"]`) : null;
+      return {check_id: failed[0].id, error: failed[0].error, error_hash: failed[0].error_hash, retry_count: failed[0].retry_count, next_fix: failed[0].next_fix, trace: node ? buildTrace(node,{source:'first_fail'}) : null};
+    })() : null;
     setFirstFail(failMeta);
-    coreLog.textContent =
-      '[CORE_LOG]\n' +
-      checks.map(c => JSON.stringify(c)).join('\n') +
-      '\n\n[CLICKED_TRACE]\n' + (clickedTrace ? safeJson(clickedTrace) : '') +
-      '\n\n[FIRST_FAIL]\n' + (failMeta ? safeJson(failMeta) : '') +
-      '\n\n[SLOT SNAPSHOT / RANGE LOCK]\n' + lastTagged.map(x=>`${x.id} | ${x.path} | ${x.text}`).join('\n') +
-      (repairLogs.length ? '\n\n[REPAIR]\n' + repairLogs.join('\n') : '');
-    stateBadge.textContent = failMeta && failMeta.status === 'FAIL' ? 'STATE: FAIL' : 'STATE: PASS';
-    diagBadge.textContent = failMeta && failMeta.status === 'FAIL' ? 'DIAG: FAIL' : 'DIAG: PASS';
-    log(autoLog, failMeta && failMeta.status === 'FAIL' ? `자동 진단 실패 | ${failMeta.area_id}` : '자동 진단 PASS');
+    coreLog.textContent = checks.map(c => JSON.stringify(c)).join('\n') + '\n\n[CLICKED_TRACE]\n' + (clickedTrace ? safeJson(clickedTrace) : '') + '\n\n[FIRST_FAIL]\n' + (firstFail ? safeJson(firstFail) : '') + '\n\n[SLOT SNAPSHOT / RANGE LOCK]\n' + lastTagged.map(x=>`${x.id} | ${x.path} | ${x.text}`).join('\n') + (repairLogs.length ? '\n\n[REPAIR]\n' + repairLogs.join('\n') : '');
+    stateBadge.textContent = failed.length ? 'STATE: CHECKING' : 'STATE: READY';
+    diagBadge.textContent = failed.length ? `DIAG: ${failed.length} ERR` : 'DIAG: PASS';
+    log(autoLog, failed.length ? `자동 감지 오류 ${failed.length}건` : '자동 감지 PASS');
     renderTraceViews();
     return failed;
   }
@@ -2126,6 +2041,7 @@ function ensureInteractiveTagging(){
   }
 
   function makeDiagPacket(){
+    restoreClickedTrace();
     const checks=autoRepairAndEvaluate();
     const packet={
       created_at:new Date().toISOString(),
@@ -2135,14 +2051,12 @@ function ensureInteractiveTagging(){
       tagged_count:lastTagged.length,
       clicked_trace: clickedTrace,
       first_fail: firstFail,
-      auto_log: autoLog.textContent,
-      core_log: coreLog.textContent,
       tags:lastTagged,
       slot_lock:Object.fromEntries(slotLockMap.entries()),
       checks,
       packet_match: JSON.stringify(clickedTrace||{})===JSON.stringify(clickedTraceView.value?JSON.parse(clickedTraceView.value):{}) && JSON.stringify(firstFail||{})===JSON.stringify(firstFailView.value?JSON.parse(firstFailView.value):{}),
-      convergence_rule:'clicked_trace 우선 / first_fail 1개 고정 / AUTO_LOG·CORE_LOG·DIAG_PACKET 동시 생성',
-      auto_fix:'같은 오류는 error_hash 고정 / retry_count 누적 / next_fix 1개 수렴'
+      convergence_rule:'같은 오류는 error_hash 고정 / retry_count 누적 / next_fix 수렴',
+      auto_fix:'retry_count 3회 미만은 자동수정 재시도, 3회 이상은 단일 위치만 수정(고정)'
     };
     diagPacket.value=JSON.stringify(packet,null,2);
     setStatus(packet.packet_match ? 'DIAG_PACKET 생성 완료' : 'DIAG_PACKET 불일치');
@@ -2155,9 +2069,9 @@ function ensureInteractiveTagging(){
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
   document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: INIT'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
-  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 + 진단보완 시작'); setStatus('원본 이식 v10 + 진단보완 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
+  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
 function syncMiddleToRight(){
