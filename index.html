@@ -164,7 +164,8 @@
         <button class="btn" id="leftResetBtn">왼쪽 초기화</button>
       </div>
       <div id="flowTrace" style="margin-bottom:10px;padding:10px;border:2px solid #d9534f;border-radius:10px;background:#fff7f7;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:110px;">[TRACE]
-대기</div>
+대기
+endpoint 고정 연결</div>
       <div class="btnrow">
         <button class="btn" id="runTestBtn">테스트케이스 실행</button>
         <button class="btn" id="diagBtn">자동진단 보내기</button>
@@ -2356,6 +2357,8 @@ function bridgeMiddleToRightFromCurrentSet(){
     ].join('\n');
   }
 
+  const HARD_DENO_URL = "https://sweet-trout-31.obk369369-spec.deno.net";
+
   async function generateFromDeno(e){
     if (e) {
       e.preventDefault();
@@ -2366,7 +2369,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     clearTrace();
     traceStep('STEP1', '생성 버튼 클릭 감지');
 
-    const endpoint = detectDenoEndpoint();
+    const endpoint = HARD_DENO_URL;
     traceStep('STEP1', 'endpoint=' + (endpoint || '없음'));
     if (!endpoint) {
       showStatus('Deno endpoint 없음');
@@ -2395,6 +2398,7 @@ function bridgeMiddleToRightFromCurrentSet(){
         + '&limit=5';
       traceStep('STEP1', 'request=' + url);
 
+      traceStep('STEP1', 'fetch 시작');
       const res = await fetch(url, { method:'GET' });
       traceStep('STEP2', 'HTTP status=' + res.status);
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2402,6 +2406,9 @@ function bridgeMiddleToRightFromCurrentSet(){
       const data = await res.json();
       traceStep('STEP2', '응답 수신 keys=' + Object.keys(data || {}).join(','));
       let results = Array.isArray(data.results) ? data.results.map(normalizeResult) : [];
+      if (!Array.isArray(data.results) && data.result) {
+        results = [normalizeResult(data.result)];
+      }
       traceStep('STEP2', 'raw results=' + results.length);
 
       results = results.filter(r => {
@@ -2419,16 +2426,21 @@ function bridgeMiddleToRightFromCurrentSet(){
       window.guides = results;
       traceStep('STEP2', 'renderSets 시작');
       renderSets(results);
+      traceStep('STEP3', 'renderSets 완료');
       setMiddle(results[0]);
+      traceStep('STEP3', '가운데 입력 완료');
       updateChecklist(results[0]);
       traceStep('STEP3', '대표 자료=' + (results[0].title || '-'));
+      traceStep('STEP4', '오른쪽 주입 시작');
       bridgeMiddleToRightFromCurrentSet();
+      traceStep('STEP4', '오른쪽 주입 호출 완료');
 
       showStatus(
         `Deno 반영 완료
 대표 자료: ${results[0].title || '-'}
 발행사: ${results[0].publisher || '-'}
-건수: ${results.length}건`
+건수: ${results.length}건
+endpoint: ${endpoint}`
       );
       traceStep('DONE', '전체 완료');
       return false;
@@ -2506,7 +2518,7 @@ function bridgeMiddleToRightFromCurrentSet(){
   window.__saveDenoEndpoint = saveDenoEndpoint;
 
   document.addEventListener('DOMContentLoaded', () => {
-    const endpoint = detectDenoEndpoint();
+    const endpoint = HARD_DENO_URL;
     if (endpoint) saveDenoEndpoint(endpoint);
     updateChecklist({});
     setBridgeStatus('대기', '대기', '대기');
