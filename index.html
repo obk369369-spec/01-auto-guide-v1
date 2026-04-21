@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / POST_ONLY_V3</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -101,7 +101,7 @@
 
   
 <div style="padding:10px 12px;background:#fff3cd;border-bottom:1px solid #e5c46b;font-weight:700;">
-  진단버튼 표시 확인용 버전: BUTTONS_V2 / POST_ONLY_V3
+  진단버튼 표시 확인용 버전: BUTTONS_V2 / FINAL_BLOCK_V1
   <span style="margin-left:12px;border:1px solid #999;border-radius:999px;padding:4px 8px;">테스트케이스 실행</span>
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
@@ -165,7 +165,11 @@
       </div>
       <div id="flowTrace" style="margin-bottom:10px;padding:10px;border:2px solid #d9534f;border-radius:10px;background:#fff7f7;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:110px;">[TRACE]
 대기
-endpoint 고정 연결</div>
+최종 차단판 / 원본 JSON + 매핑 + 타깃 탐색</div>
+
+      <div id="rawJsonBox" style="margin-bottom:10px;padding:10px;border:2px solid #444;border-radius:10px;background:#f8f8f8;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:100px;">[RAW JSON]\n대기</div>
+      <div id="mappingBox" style="margin-bottom:10px;padding:10px;border:2px solid #0d6efd;border-radius:10px;background:#f5f9ff;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px;">[MAPPING]\n대기</div>
+      <div id="targetProbeBox" style="margin-bottom:10px;padding:10px;border:2px solid #198754;border-radius:10px;background:#f6fff8;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px;">[TARGET PROBE]\n대기</div>
       <div class="btnrow">
         <button class="btn" id="runTestBtn">테스트케이스 실행</button>
         <button class="btn" id="diagBtn">자동진단 보내기</button>
@@ -2357,6 +2361,75 @@ function bridgeMiddleToRightFromCurrentSet(){
     ].join('\n');
   }
 
+
+  function setBox(id, title, value) {
+    const el = $(id);
+    if (!el) return;
+    let out = value;
+    if (typeof out !== 'string') {
+      try { out = JSON.stringify(out, null, 2); }
+      catch { out = String(out); }
+    }
+    el.textContent = `[${title}]\n` + (out || '대기');
+  }
+
+  function buildMappedItem(src) {
+    const item = src || {};
+    return {
+      title_en: item.title_en || item.title || '',
+      title_ko: item.title_ko || item.title || '',
+      publisher: item.publisher || '',
+      date: item.date || item.year || '',
+      pages: item.pages || '',
+      price: item.price || item.listPrice || '',
+      supply: item.supply || item.supplyPrice || '',
+      link: item.link || '',
+      toc: item.toc || ''
+    };
+  }
+
+  function probeTargets(data) {
+    const frame = $('rightFrame');
+    const doc = frame && frame.contentDocument;
+    const targets = {
+      guideTitleEn: data.title_en,
+      guideTitleKo: data.title_ko,
+      guidePub: data.publisher,
+      guideDate: data.date,
+      guidePage: data.pages,
+      guidePrice: data.price,
+      guideLink: data.link,
+      guideTocLeft: data.toc
+    };
+    const lines = [];
+    lines.push('doc=' + (!!doc));
+    Object.entries(targets).forEach(([id,val]) => {
+      const el = doc ? doc.getElementById(id) : null;
+      lines.push(`${id} | found=${!!el} | value=${String(val || '').slice(0,80)}`);
+    });
+    setBox('targetProbeBox', 'TARGET PROBE', lines.join('\n'));
+    return {doc, targets};
+  }
+
+  function applyAllDataForced(data) {
+    if ($('midTitleEn')) $('midTitleEn').value = data.title_en || '';
+    if ($('midTitleKo')) $('midTitleKo').value = data.title_ko || '';
+    if ($('bookPub')) $('bookPub').value = data.publisher || '';
+    if ($('bookDate')) $('bookDate').value = data.date || '';
+    if ($('bookPage')) $('bookPage').value = data.pages || '';
+    if ($('bookListPrice')) $('bookListPrice').value = data.price || '';
+    if ($('bookSupplyPrice')) $('bookSupplyPrice').value = data.supply || '';
+    if ($('midLink')) $('midLink').value = data.link || '';
+    if ($('midToc')) $('midToc').value = data.toc || '';
+    setBox('mappingBox', 'MAPPING', data);
+    const {doc, targets} = probeTargets(data);
+    if (!doc) throw new Error('rightFrame.contentDocument 없음');
+    Object.entries(targets).forEach(([id,val]) => {
+      const el = doc.getElementById(id);
+      if (el) el.textContent = val || '';
+    });
+  }
+
   const HARD_DENO_URL = "https://sweet-trout-31.obk369369-spec.deno.net";
 
   async function generateFromDeno(e){
@@ -2411,42 +2484,38 @@ function bridgeMiddleToRightFromCurrentSet(){
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       const data = await res.json();
+      setBox('rawJsonBox', 'RAW JSON', data);
       traceStep('STEP2', '응답 수신 keys=' + Object.keys(data || {}).join(','));
-      let results = Array.isArray(data.results) ? data.results.map(normalizeResult) : [];
-      if (!Array.isArray(data.results) && data.result) {
-        results = [normalizeResult(data.result)];
-      }
-      traceStep('STEP2', 'raw results=' + results.length);
 
-      results = results.filter(r => {
-        const p = String(r.publisher || '').toLowerCase().trim();
-        return !p || ALLOWED.has(p);
-      });
-      traceStep('STEP2', 'allowed results=' + results.length);
+      let rawResults = [];
+      if (Array.isArray(data.results)) rawResults = data.results;
+      else if (data.result) rawResults = Array.isArray(data.result) ? data.result : [data.result];
+      traceStep('STEP2', 'raw results=' + rawResults.length);
 
-      if (!results.length) throw new Error('결과 없음');
+      if (!rawResults.length) throw new Error('결과 없음');
 
-      results.forEach(r => {
-        if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
-      });
+      const firstRaw = rawResults[0];
+      const firstNormalized = normalizeResult(firstRaw);
+      if (!firstNormalized.toc) firstNormalized.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
+      const mapped = buildMappedItem(firstNormalized);
 
-      window.guides = results;
-      traceStep('STEP2', 'renderSets 시작');
-      renderSets(results);
+      window.guides = [firstNormalized];
+      traceStep('STEP2', '강제 1건 선택');
+      renderSets([firstNormalized]);
       traceStep('STEP3', 'renderSets 완료');
-      setMiddle(results[0]);
+      setMiddle(firstNormalized);
       traceStep('STEP3', '가운데 입력 완료');
-      updateChecklist(results[0]);
-      traceStep('STEP3', '대표 자료=' + (results[0].title || '-'));
-      traceStep('STEP4', '오른쪽 주입 시작');
-      bridgeMiddleToRightFromCurrentSet();
-      traceStep('STEP4', '오른쪽 주입 호출 완료');
+      updateChecklist(firstNormalized);
+      traceStep('STEP3', '대표 자료=' + (firstNormalized.title || '-'));
+      traceStep('STEP4', '오른쪽 강제 주입 시작');
+      applyAllDataForced(mapped);
+      traceStep('STEP4', '오른쪽 강제 주입 완료');
 
       showStatus(
         `Deno 반영 완료
-대표 자료: ${results[0].title || '-'}
-발행사: ${results[0].publisher || '-'}
-건수: ${results.length}건
+대표 자료: ${firstNormalized.title || '-'}
+발행사: ${firstNormalized.publisher || '-'}
+건수: ${rawResults.length}건
 endpoint: ${endpoint}`
       );
       traceStep('DONE', '전체 완료');
