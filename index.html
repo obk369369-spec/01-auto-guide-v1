@@ -84,6 +84,17 @@
   .state-bad{color:#c62828;font-weight:700;}
   .mini-log{font-size:11px;color:#555;white-space:pre-wrap;line-height:1.45;margin-top:8px;}
 
+
+  .stagepanel{border:2px solid #111;border-radius:10px;padding:10px;background:#fff;margin-top:10px;}
+  .stagepanel h3{margin:0 0 8px 0;font-size:14px;}
+  .stagegrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .stageitem{border:1px solid #cfd4dc;border-radius:8px;padding:8px;font-size:12px;font-weight:700;background:#f8fafc;}
+  .stageitem.wait{background:#f3f4f6;}
+  .stageitem.run{background:#fff7cc;border-color:#d9b100;}
+  .stageitem.ok{background:#eaf7ea;border-color:#3b9b45;}
+  .stageitem.fail{background:#fdecec;border-color:#d9534f;}
+  .stagelog{margin-top:8px;min-height:120px;max-height:220px;overflow:auto;white-space:pre-wrap;border:1px solid #d7dbe3;border-radius:8px;padding:8px;background:#fbfcfe;font-size:12px;line-height:1.45;font-family:Consolas,monospace;}
+
 </style>
 
 </head>
@@ -169,6 +180,17 @@
         <button class="btn" id="coordBtn">좌표 찍기</button>
       </div>
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
+      <div class="stagepanel" id="stagePanel">
+        <h3>생성 단계 표시</h3>
+        <div class="stagegrid">
+          <div class="stageitem wait" id="stage1">STEP1 요청 대기</div>
+          <div class="stageitem wait" id="stage2">STEP2 응답 대기</div>
+          <div class="stageitem wait" id="stage3">STEP3 가운데 대기</div>
+          <div class="stageitem wait" id="stage4">STEP4 오른쪽 대기</div>
+        </div>
+        <div class="stagelog" id="stageLog">아직 생성 전</div>
+      </div>
+
       <div class="checkpanel" id="engineCheckPanel">
         <h3>엔진 점검표</h3>
         <div class="checkrow"><span>입력 정리 엔진</span><span id="checkInputEngine" class="state-bad">미작동</span></div>
@@ -1160,6 +1182,11 @@ ul
   const diagBadge = document.getElementById('diagBadge');
   const frame = document.getElementById('rightFrame');
   const statusEl = document.getElementById('status');
+  const stage1El = document.getElementById('stage1');
+  const stage2El = document.getElementById('stage2');
+  const stage3El = document.getElementById('stage3');
+  const stage4El = document.getElementById('stage4');
+  const stageLogEl = document.getElementById('stageLog');
   const clickedTraceView = document.getElementById('clickedTraceView');
   const firstFailView = document.getElementById('firstFailView');
   const slotLockMap = new Map();
@@ -1173,6 +1200,15 @@ ul
 
   function stamp(){ return new Date().toLocaleTimeString('ko-KR',{hour12:false}); }
   function log(el,msg){ if(!el) return; el.textContent += `[${stamp()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
+  function stageLog(msg){ if(!stageLogEl) return; const base = stageLogEl.textContent.trim() === '아직 생성 전' ? '' : stageLogEl.textContent; stageLogEl.textContent = (base ? base + '\n' : '') + `[${stamp()}] ` + msg; stageLogEl.scrollTop = stageLogEl.scrollHeight; }
+  function setStage(el,state,msg){ if(!el) return; el.className = 'stageitem ' + state; if(msg) el.textContent = msg; }
+  function resetStages(){
+    setStage(stage1El,'wait','STEP1 요청 대기');
+    setStage(stage2El,'wait','STEP2 응답 대기');
+    setStage(stage3El,'wait','STEP3 가운데 대기');
+    setStage(stage4El,'wait','STEP4 오른쪽 대기');
+    if(stageLogEl) stageLogEl.textContent = '아직 생성 전';
+  }
   function hashText(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; } return 'h'+Math.abs(h); }
   function norm(s){ return (s||'').replace(/\s+/g,' ').trim(); }
   function getText(el){ return norm(el?.innerText || el?.textContent || el?.value || ''); }
@@ -2080,9 +2116,9 @@ function ensureInteractiveTagging(){
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
   document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); resetStages(); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
-  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
+  window.addEventListener('load',()=>{ resetStages(); restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
 function syncMiddleToRight(){
@@ -2342,8 +2378,14 @@ function bridgeMiddleToRightFromCurrentSet(){
       e.stopImmediatePropagation();
     }
 
+    resetStages();
+    setStage(stage1El,'run','STEP1 요청 시작');
+    stageLog('STEP1 요청 시작 | generateBtn 클릭');
+
     const endpoint = detectDenoEndpoint();
     if (!endpoint) {
+      setStage(stage1El,'fail','STEP1 실패 | endpoint 없음');
+      stageLog('STEP1 실패 | Deno endpoint 없음 | query/localStorage 둘 다 비어 있음');
       showStatus('Deno endpoint 없음');
       return false;
     }
@@ -2353,11 +2395,16 @@ function bridgeMiddleToRightFromCurrentSet(){
       .filter(Boolean).join(' ').trim();
 
     if (!q) {
+      setStage(stage1El,'fail','STEP1 실패 | 검색어 없음');
+      stageLog('STEP1 실패 | 검색어 비어 있음');
       showStatus('연구분야 / 관심분야 / 고객 원문 / 담당업무 중 하나는 입력해야 한다.');
       return false;
     }
 
     saveDenoEndpoint(endpoint);
+    stageLog('STEP1 진행 | endpoint=' + endpoint);
+    setStage(stage1El,'ok','STEP1 요청 전송');
+    setStage(stage2El,'run','STEP2 응답 대기');
     showStatus('Deno 데이터 가져오는 중...');
 
     try {
@@ -2383,17 +2430,82 @@ function bridgeMiddleToRightFromCurrentSet(){
         if (!r.toc) r.toc = defaultToc(input.keyword || input.researchField || input.interestField || '시장');
       });
 
+      setStage(stage2El,'ok','STEP2 응답 수신 완료');
+      stageLog('STEP2 성공 | 결과 ' + results.length + '건 수신');
+      setStage(stage3El,'run','STEP3 가운데 주입 중');
+
       window.guides = results;
       renderSets(results);
       setMiddle(results[0]);
       updateChecklist(results[0]);
-      try { bridgeMiddleToRightFromCurrentSet(); } catch (bridgeErr) { console.error('bridge fail', bridgeErr); }
+
+      const middleSnapshot = {
+        title_en: $('midTitleEn')?.value || '',
+        title_ko: $('midTitleKo')?.value || '',
+        publisher: $('bookPub')?.value || '',
+        date: $('bookDate')?.value || '',
+        link: $('midLink')?.value || ''
+      };
+
+      if (!middleSnapshot.title_en && !middleSnapshot.title_ko && !middleSnapshot.publisher) {
+        setStage(stage3El,'fail','STEP3 실패 | 가운데 비어 있음');
+        stageLog('STEP3 실패 | setMiddle 이후 주요 값 비어 있음');
+        showStatus('가운데 주입 실패');
+        return false;
+      }
+
+      setStage(stage3El,'ok','STEP3 가운데 주입 완료');
+      stageLog('STEP3 성공 | title=' + (middleSnapshot.title_en || middleSnapshot.title_ko || '-') + ' | publisher=' + (middleSnapshot.publisher || '-'));
+
+      setStage(stage4El,'run','STEP4 오른쪽 주입 중');
+      let rightState = 'unknown';
+      let rightReason = '';
+      try {
+        bridgeMiddleToRightFromCurrentSet();
+        const doc = frame.contentDocument;
+        if (!doc) {
+          rightState = 'fail';
+          rightReason = 'iframe contentDocument 없음';
+        } else {
+          const appliedTitle = (doc.getElementById('guideTitleEn')?.innerText || '').trim();
+          const appliedPub = (doc.getElementById('guidePub')?.innerText || '').trim();
+          const appliedLink = (doc.getElementById('guideLinkText')?.innerText || '').trim();
+          if (appliedTitle || appliedPub || appliedLink) {
+            rightState = 'ok';
+            rightReason = 'title=' + (appliedTitle || '-') + ' | pub=' + (appliedPub || '-') + ' | link=' + (appliedLink || '-');
+          } else {
+            rightState = 'fail';
+            rightReason = 'guideTitleEn/guidePub/guideLinkText 모두 비어 있음';
+          }
+        }
+      } catch (bridgeErr) {
+        rightState = 'fail';
+        rightReason = bridgeErr?.message || String(bridgeErr);
+        console.error('bridge fail', bridgeErr);
+      }
+
+      if (rightState !== 'ok') {
+        setStage(stage4El,'fail','STEP4 실패 | 오른쪽 미반영');
+        stageLog('STEP4 실패 | ' + rightReason);
+        log(autoLog, 'STEP4 실패 | ' + rightReason);
+        showStatus('오른쪽 주입 실패: ' + rightReason);
+        return false;
+      }
+
+      setStage(stage4El,'ok','STEP4 오른쪽 주입 완료');
+      stageLog('STEP4 성공 | ' + rightReason);
+      log(autoLog, 'STEP4 성공 | ' + rightReason);
 
       showStatus(
-        `Deno 반영 완료\n대표 자료: ${results[0].title || '-'}\n발행사: ${results[0].publisher || '-'}\n건수: ${results.length}건`
+        `Deno 반영 완료
+대표 자료: ${results[0].title || '-'}
+발행사: ${results[0].publisher || '-'}
+건수: ${results.length}건`
       );
       return false;
     } catch (err) {
+      setStage(stage2El,'fail','STEP2 실패 | 응답/파싱 실패');
+      stageLog('STEP2 실패 | ' + (err?.message || err));
       console.error(err);
       showStatus('Deno 호출 실패: ' + (err?.message || err));
       return false;
