@@ -188,7 +188,7 @@
           <div class="stageitem wait" id="stage3">STEP3 가운데 대기</div>
           <div class="stageitem wait" id="stage4">STEP4 오른쪽 대기</div>
         </div>
-        <div class="stagelog" id="stageLog">아직 생성 전</div>
+        <div class="stagelog" id="stageLog">아직 생성 전\n클릭하면 STEP1부터 즉시 바뀌어야 정상</div>
       </div>
 
       <div class="checkpanel" id="engineCheckPanel">
@@ -2576,6 +2576,27 @@ function bridgeMiddleToRightFromCurrentSet(){
   }
 
   window.__saveDenoEndpoint = saveDenoEndpoint;
+
+
+    document.addEventListener('pointerdown', (ev) => {
+      const btn = ev.target && ev.target.closest ? ev.target.closest('#generateBtn') : null;
+      if (!btn) return;
+      setStage(stage1El,'run','STEP1 클릭 감지');
+      stageLog('STEP1 클릭 감지 | generateBtn pointerdown');
+      showStatus('생성 버튼 클릭 감지');
+    }, true);
+
+    document.addEventListener('click', (ev) => {
+      const btn = ev.target && ev.target.closest ? ev.target.closest('#generateBtn') : null;
+      if (!btn) return;
+      setStage(stage1El,'run','STEP1 클릭 완료');
+      stageLog('STEP1 클릭 완료 | generateBtn click');
+      const endpointNow = detectDenoEndpoint();
+      stageLog('현재 endpoint=' + (endpointNow || '(없음)'));
+      const qNow = collectSearchQuery();
+      stageLog('현재 검색어=' + (qNow || '(없음)'));
+      showStatus('생성 버튼 클릭 완료');
+    }, true);
 
   document.addEventListener('DOMContentLoaded', () => {
     const endpoint = detectDenoEndpoint();
