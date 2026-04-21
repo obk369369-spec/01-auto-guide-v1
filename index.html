@@ -1511,6 +1511,7 @@ function ensureInteractiveTagging(){
     areaRegistry.length=0;
     const doc=frame.contentDocument; if(!doc) return;
     applyRightTemplateFixes();
+    ensureRightFallbackTemplate();
     const body=doc.body;
     if(body) setArea(body,'preview-root','오른쪽 원본 안내서 전체');
 
@@ -1743,6 +1744,45 @@ function ensureInteractiveTagging(){
   }
 
 
+
+  function ensureRightFallbackTemplate(){
+    const doc = frame.contentDocument; if(!doc) return;
+    try{
+      const hasSlot = !!doc.querySelector('[data-slot-title-en], [data-slot-link-line], [data-slot-toc-line]');
+      const visibleText = (doc.body?.innerText || '').replace(/\s+/g,' ').trim();
+      const hasUsefulTable = !!Array.from(doc.querySelectorAll('table')).find(t=>/발행사|정가|공급가격|보고서 링크|목차/i.test((t.innerText||'')));
+      if(hasSlot || hasUsefulTable) return;
+      doc.open();
+      doc.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>Guide Preview</title><style>
+        body{margin:0;background:#fff;font-family:Malgun Gothic,Arial,sans-serif;color:#111;}
+        .page{width:920px;min-height:1280px;margin:0 auto;padding:28px 36px;box-sizing:border-box;}
+        .topline{font-size:12px;color:#666;margin-bottom:18px;border-bottom:1px solid #ddd;padding-bottom:8px;}
+        .title-en{font-size:26px;font-weight:700;text-align:center;line-height:1.3;margin:22px 0 8px;}
+        .title-ko{font-size:20px;font-weight:700;text-align:center;line-height:1.3;margin:0 0 20px;}
+        .book{font-size:14px;line-height:1.8;margin:18px 0;padding:14px 16px;border:1px solid #ddd;background:#fafafa;}
+        .link{font-size:14px;line-height:1.6;margin:18px 0;padding:12px 14px;border:1px solid #ddd;word-break:break-all;}
+        .toc-title{font-size:18px;font-weight:700;margin:20px 0 10px;}
+        .toc{font-size:14px;line-height:1.7;white-space:pre-wrap;border:1px solid #ddd;min-height:320px;padding:16px;}
+      </style></head><body><div class="page">
+        <div class="topline">자동 복구 미리보기</div>
+        <div class="title-en" data-slot-title-en="1"></div>
+        <div class="title-ko" data-slot-title-ko="1"></div>
+        <div class="book">
+          <div data-slot-book-line1="1"></div>
+          <div data-slot-book-line2="1"></div>
+        </div>
+        <div class="link" data-slot-link-line="1"></div>
+        <div class="toc-title">Table of Contents</div>
+        <div class="toc" data-slot-toc-line="1"></div>
+      </div></body></html>`);
+      doc.close();
+      log(autoLog,'오른쪽 안내서가 비어 있어 자동 복구 미리보기를 생성함');
+      setStatus('오른쪽 안내서 자동 복구 완료');
+    }catch(e){
+      log(autoLog, `오른쪽 fallback 생성 실패: ${e.message}`);
+    }
+  }
+
   function applyRightTemplateFixes(){
     const doc = frame.contentDocument; if(!doc) return;
     try{
@@ -1814,6 +1854,7 @@ function ensureInteractiveTagging(){
 
   function syncInputsToPreview(){
     const doc=frame.contentDocument; if(!doc) return;
+    ensureRightFallbackTemplate();
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
@@ -2082,8 +2123,8 @@ function ensureInteractiveTagging(){
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
   document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
   document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
-  frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
-  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
+  frame.addEventListener('load',()=>{ try{ applyRightTemplateFixes(); ensureRightFallbackTemplate(); tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
+  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ applyRightTemplateFixes(); ensureRightFallbackTemplate(); tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
 function syncMiddleToRight(){
