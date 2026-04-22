@@ -1819,11 +1819,32 @@ function ensureInteractiveTagging(){
     }
   }
 
+
+  function normalizeToc(raw){
+    if(!raw) return '';
+    const dropPatterns = [/sample/i,/request/i,/buy now/i,/download/i,/speak to analyst/i,/^table of contents$/i,/^toc$/i];
+    const lines = String(raw)
+      .replace(/
+/g,'
+')
+      .replace(/	/g,' ')
+      .split(/
++/)
+      .map(v=>v.trim())
+      .filter(Boolean)
+      .map(v=>v.replace(/^[>\-•·▪‣※★☆]+\s*/,'').replace(/^\(?\d+\)?[.)]\s*/,'').replace(/^(chapter|section|part)\s*\d+[:.\-]?\s*/i,'').replace(/\s{2,}/g,' ').trim())
+      .filter(v=>v && v.length>2 && !dropPatterns.some(rx=>rx.test(v)));
+    const unique=[]; const seen=new Set();
+    lines.forEach(v=>{ const k=v.toLowerCase(); if(seen.has(k)) return; seen.add(k); unique.push(v); });
+    return unique.map((v,i)=>`${i+1}. ${v}`).join('
+');
+  }
+
   function syncInputsToPreview(){
     const doc=frame.contentDocument; if(!doc) return;
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
-    const toc=(document.getElementById('midToc')?.value||'').trim();
+    const toc=normalizeToc((document.getElementById('midToc')?.value||'').trim());
     const pub=(document.getElementById('bookPub')?.value||'').trim();
     const date=(document.getElementById('bookDate')?.value||'').trim();
     const page=(document.getElementById('bookPage')?.value||'').trim();
@@ -1991,7 +2012,7 @@ function ensureInteractiveTagging(){
     document.getElementById('bookListPrice').value = g.report?.listPrice || '';
     document.getElementById('bookSupplyPrice').value = g.report?.supplyPrice || '';
     document.getElementById('midLink').value = g.report?.link || '';
-    document.getElementById('midToc').value = g.toc || '';
+    document.getElementById('midToc').value = normalizeToc(g.toc || '');
     const ms=document.getElementById('middleSummary');
     if(ms){
       ms.innerHTML = `선택 세트: ${activeSetIndex+1} / 5<br>위험도: ${g.risk}<br>대표 자료: ${g.report?.title || '-'}<br>메일 제목: ${g.subject || '-'}`;
@@ -2140,7 +2161,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     const listPrice = v('bookListPrice');
     const supplyPrice = v('bookSupplyPrice');
     const link = v('midLink');
-    const toc = v('midToc');
+    const toc = normalizeToc(v('midToc'));
 
     const setText = (id, value) => {
       const el = doc.getElementById(id);
