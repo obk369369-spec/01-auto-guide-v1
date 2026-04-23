@@ -1852,45 +1852,34 @@ function ensureInteractiveTagging(){
     const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
     const link=(document.getElementById('midLink')?.value||'').trim();
 
-    const titleEnNode = doc.querySelector('[data-slot-title-en]');
-    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
-    const book1 = doc.querySelector('[data-slot-book-line1]');
-    const book2 = doc.querySelector('[data-slot-book-line2]');
-    const linkNode = doc.querySelector('[data-slot-link-line]');
-    const tocNode = doc.querySelector('[data-slot-toc-line]');
+    const setText = (id, value) => {
+      const el = doc.getElementById(id);
+      if (el) el.textContent = value || '';
+    };
 
-    if(titleEnNode){
-      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
-      titleEnNode.style.textAlign='center';
-      titleEnNode.style.margin='0';
-      titleEnNode.style.lineHeight='1.05';
-    }
-    if(titleKoNode){
-      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">( ${escapeHtml(titleKo||'')} )</span></b>`;
-      titleKoNode.style.textAlign='center';
-      titleKoNode.style.margin='2px 0 0 0';
-      titleKoNode.style.lineHeight='1.05';
-    }
-    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
-      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
+    setText('guideTitleEn', titleEn || '()');
+    setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
+    setText('guidePub', pub);
+    setText('guideDate', date);
+    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
+    setText('guideListPrice', listPrice);
+    setText('guideSupplyPrice', supplyPrice);
+    setText('guideLinkText', link);
+
+    const a = doc.getElementById('guideLinkAnchor');
+    if (a) {
+      a.href = link || '#';
+      a.textContent = '바로가기';
     }
 
-    if(book1){
-      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
+    const tocLeft = doc.getElementById('guideTocLeft');
+    const tocRight = doc.getElementById('guideTocRight');
+    if (tocLeft) {
+      tocLeft.innerHTML = toc ? escapeHtml(toc).replace(/\n/g,'<br>') : '&nbsp;';
+      tocLeft.style.whiteSpace = 'pre-wrap';
+      tocLeft.style.lineHeight = '1.35';
     }
-    if(book2){
-      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
-      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
-    }
-    if(linkNode){
-      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
-    }
-    if(tocNode){
-      tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
-/g,'<br>') : '&nbsp;';
-      tocNode.style.whiteSpace='pre-wrap';
-      tocNode.style.lineHeight='1.35';
-    }
+    if (tocRight) tocRight.innerHTML = '';
   }
   function bindPreviewSync(){
     const ids=['midTitleEn','midTitleKo','midToc','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink'];
@@ -2191,10 +2180,6 @@ function bridgeMiddleToRightFromCurrentSet(){
       tocRight.innerHTML = lines.slice(half).map(x => `<div>${x}</div>`).join('');
     }
 
-    if (typeof window.syncInputsToPreview === 'function') {
-      window.syncInputsToPreview();
-    }
-    if (typeof window.sync === 'function') window.sync();
     if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료 guideTitleEn=' + (!!doc.getElementById('guideTitleEn')) + ' guideTocLeft=' + (!!doc.getElementById('guideTocLeft')));
   } catch (e) {
     if (typeof traceStep === 'function') traceStep('STEP4', '실패: ' + (e && e.message ? e.message : e));
