@@ -1879,8 +1879,8 @@ function ensureInteractiveTagging(){
       book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
     }
     if(book2){
-      const dateTxt = escapeHtml(date || '');
-      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
+      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
+      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
     }
     if(linkNode){
       linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
@@ -2327,9 +2327,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     setInputValue('midLink', r.link || '');
     setInputValue('midToc', r.toc || '');
     setBridgeStatus('왼쪽→가운데 완료', '가운데값 읽음', '오른쪽쓰기 대기');
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
+    bridgeMiddleToRightFromCurrentSet();
   }
 
   function ensureSetTabs(){
@@ -2418,9 +2416,12 @@ function bridgeMiddleToRightFromCurrentSet(){
       guidePub: data.publisher,
       guideDate: data.date,
       guidePage: data.pages,
-      guidePrice: data.price,
-      guideLink: data.link,
-      guideTocLeft: data.toc
+      guideListPrice: data.price,
+      guideSupplyPrice: data.supply,
+      guideLinkText: data.link,
+      guideLinkAnchor: data.link,
+      guideTocLeft: data.toc,
+      guideTocRight: data.toc
     };
     const lines = [];
     lines.push('doc=' + (!!doc));
@@ -2442,13 +2443,14 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('bookSupplyPrice')) $('bookSupplyPrice').value = data.supply || '';
     if ($('midLink')) $('midLink').value = data.link || '';
     if ($('midToc')) $('midToc').value = data.toc || '';
+
     setBox('mappingBox', 'MAPPING', data);
-    const {doc, targets} = probeTargets(data);
+    const frame = $('rightFrame');
+    const doc = frame && frame.contentDocument;
     if (!doc) throw new Error('rightFrame.contentDocument 없음');
-    Object.entries(targets).forEach(([id,val]) => {
-      const el = doc.getElementById(id);
-      if (el) el.textContent = val || '';
-    });
+
+    bridgeMiddleToRightFromCurrentSet();
+    probeTargets(data);
   }
 
   const HARD_DENO_URL = "https://sweet-trout-31.obk369369-spec.deno.net";
@@ -2528,9 +2530,9 @@ function bridgeMiddleToRightFromCurrentSet(){
       traceStep('STEP3', '가운데 입력 완료');
       updateChecklist(firstNormalized);
       traceStep('STEP3', '대표 자료=' + (firstNormalized.title || '-'));
-      traceStep('STEP4', '오른쪽 강제 주입 시작');
+      traceStep('STEP4', '오른쪽 단일 주입 시작');
       applyAllDataForced(mapped);
-      traceStep('STEP4', '오른쪽 강제 주입 완료');
+      traceStep('STEP4', '오른쪽 단일 주입 완료');
 
       showStatus(
         `Deno 반영 완료
