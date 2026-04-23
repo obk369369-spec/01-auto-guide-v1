@@ -1840,69 +1840,7 @@ function ensureInteractiveTagging(){
 ');
   }
 
-  
-  function ensureVisibleGuideOverlay(doc){
-    if(!doc) return null;
-    let host = doc.getElementById('wicVisibleGuideOverlay');
-    if(host) return host;
-    host = doc.createElement('div');
-    host.id = 'wicVisibleGuideOverlay';
-    host.style.position = 'absolute';
-    host.style.left = '18px';
-    host.style.top = '115px';
-    host.style.right = '18px';
-    host.style.bottom = '18px';
-    host.style.pointerEvents = 'none';
-    host.style.fontFamily = 'Arial, sans-serif';
-    host.style.color = '#222';
-    host.style.zIndex = '2147483647';
-    host.innerHTML = `
-      <div id="wicTitleKo" style="margin:22px 0 18px 30px;font-size:15px;"></div>
-      <div style="border-top:1px dashed #666;margin:0 22px 0 22px;"></div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin:12px 22px 0 22px;font-size:14px;">
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div>◇ 발행사: <span id="wicPub"></span></div>
-          <div>◇ 발행일: <span id="wicDate"></span></div>
-        </div>
-        <div style="text-align:center;min-width:120px;">
-          <div id="wicPage" style="margin-bottom:6px;"></div>
-          <div>-PDF-</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;text-align:right;">
-          <div>◇ 정가: <span id="wicPrice"></span></div>
-          <div>◆ 공급가격: <span id="wicSupply"></span></div>
-        </div>
-      </div>
-      <div style="border-bottom:1px solid #666;margin:10px 22px 0 22px;"></div>
-      <div style="margin:28px 30px 0 30px;font-size:14px;">
-        ● 보고서 링크 [<span id="wicLinkLabel" style="text-decoration:underline;color:#1a0dab;">바로가기</span>] : <span id="wicLinkText"></span>
-      </div>
-      <div style="position:absolute;left:30px;right:30px;bottom:36px;font-size:13px;line-height:1.6;white-space:pre-wrap;" id="wicToc"></div>
-    `;
-    doc.body.style.position = 'relative';
-    doc.body.appendChild(host);
-    return host;
-  }
-
-  function fillVisibleGuideOverlay(doc, data){
-    const host = ensureVisibleGuideOverlay(doc);
-    if(!host) return;
-    const set = (id, value) => {
-      const el = doc.getElementById(id);
-      if(el) el.textContent = value || '';
-    };
-    set('wicTitleKo', data.titleKo || '');
-    set('wicPub', data.pub || '');
-    set('wicDate', data.date || '');
-    set('wicPage', data.page ? `( ${data.page} Pages )` : '');
-    set('wicPrice', data.listPrice || '');
-    set('wicSupply', data.supplyPrice || '');
-    set('wicLinkText', data.link || '');
-    const tocEl = doc.getElementById('wicToc');
-    if(tocEl) tocEl.textContent = data.toc || '';
-  }
-
-function syncInputsToPreview(){
+  function syncInputsToPreview(){
     const doc=frame.contentDocument; if(!doc) return;
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
@@ -1914,35 +1852,45 @@ function syncInputsToPreview(){
     const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
     const link=(document.getElementById('midLink')?.value||'').trim();
 
-    const setText = (id, value) => {
-      const el = doc.getElementById(id);
-      if (el) el.textContent = value || '';
-    };
+    const titleEnNode = doc.querySelector('[data-slot-title-en]');
+    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
+    const book1 = doc.querySelector('[data-slot-book-line1]');
+    const book2 = doc.querySelector('[data-slot-book-line2]');
+    const linkNode = doc.querySelector('[data-slot-link-line]');
+    const tocNode = doc.querySelector('[data-slot-toc-line]');
 
-    setText('guideTitleEn', titleEn || '()');
-    setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
-    setText('guidePub', pub);
-    setText('guideDate', date);
-    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
-    setText('guideListPrice', listPrice);
-    setText('guideSupplyPrice', supplyPrice);
-    setText('guideLinkText', link);
-
-    const a = doc.getElementById('guideLinkAnchor');
-    if (a) {
-      a.href = link || '#';
-      a.textContent = '바로가기';
+    if(titleEnNode){
+      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
+      titleEnNode.style.textAlign='center';
+      titleEnNode.style.margin='0';
+      titleEnNode.style.lineHeight='1.05';
+    }
+    if(titleKoNode){
+      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">( ${escapeHtml(titleKo||'')} )</span></b>`;
+      titleKoNode.style.textAlign='center';
+      titleKoNode.style.margin='2px 0 0 0';
+      titleKoNode.style.lineHeight='1.05';
+    }
+    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
+      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
     }
 
-    const tocLeft = doc.getElementById('guideTocLeft');
-    const tocRight = doc.getElementById('guideTocRight');
-    if (tocLeft) {
-      tocLeft.innerHTML = toc ? escapeHtml(toc).replace(/\n/g,'<br>') : '&nbsp;';
-      tocLeft.style.whiteSpace = 'pre-wrap';
-      tocLeft.style.lineHeight = '1.35';
+    if(book1){
+      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
     }
-    if (tocRight) tocRight.innerHTML = '';
-    fillVisibleGuideOverlay(doc, {titleKo, pub, date, page, listPrice, supplyPrice, link, toc});
+    if(book2){
+      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
+      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
+    }
+    if(linkNode){
+      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
+    }
+    if(tocNode){
+      tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
+/g,'<br>') : '&nbsp;';
+      tocNode.style.whiteSpace='pre-wrap';
+      tocNode.style.lineHeight='1.35';
+    }
   }
   function bindPreviewSync(){
     const ids=['midTitleEn','midTitleKo','midToc','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink'];
@@ -2189,16 +2137,10 @@ function syncMiddleToRight(){
 
 
 <script>
+
 function bridgeMiddleToRightFromCurrentSet(){
   try {
     if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 시작');
-    const ids = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.dispatchEvent(new Event('input', { bubbles:true }));
-      el.dispatchEvent(new Event('change', { bubbles:true }));
-    });
 
     const frame = document.getElementById('rightFrame');
     const doc = frame && frame.contentDocument;
@@ -2219,6 +2161,8 @@ function bridgeMiddleToRightFromCurrentSet(){
       const el = doc.getElementById(id);
       if (el) el.textContent = value || '';
     };
+
+    // 1) 실제 span/id 에 먼저 주입
     setText('guideTitleEn', titleEn || '()');
     setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
     setText('guidePub', pub);
@@ -2234,15 +2178,60 @@ function bridgeMiddleToRightFromCurrentSet(){
       a.textContent = '바로가기';
     }
 
+    // 2) 실제 화면에 보이는 부모 블록을 강제로 재작성
+    const titleEnNode = doc.querySelector('[data-slot-title-en]');
+    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
+    const book1 = doc.querySelector('[data-slot-book-line1]');
+    const book2 = doc.querySelector('[data-slot-book-line2]');
+    const linkNode = doc.querySelector('[data-slot-link-line]');
+    const tocNode = doc.querySelector('[data-slot-toc-line]');
+
+    if (titleEnNode) {
+      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn || '')}</span></b>`;
+      titleEnNode.style.textAlign = 'center';
+      titleEnNode.style.margin = '0';
+      titleEnNode.style.lineHeight = '1.05';
+      titleEnNode.style.whiteSpace = 'normal';
+      titleEnNode.style.wordBreak = 'break-word';
+    }
+    if (titleKoNode) {
+      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">${titleKo ? `( ${escapeHtml(titleKo)} )` : ''}</span></b>`;
+      titleKoNode.style.textAlign = 'center';
+      titleKoNode.style.margin = '2px 0 0 0';
+      titleKoNode.style.lineHeight = '1.05';
+    }
+    if (book1) {
+      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub || '')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page || '')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice || '')}</span>`;
+    }
+    if (book2) {
+      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(date || '')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice || '')}</span>`;
+    }
+    if (linkNode) {
+      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [<a href="${escapeHtml(link || '#')}" target="_blank">바로가기</a>] : ${escapeHtml(link || '')}</span>`;
+    }
+    if (tocNode) {
+      const lines = toc ? toc.split(/
+?
+/).map(s => s.trim()).filter(Boolean) : [];
+      tocNode.innerHTML = lines.length
+        ? lines.map(x => `<div style="display:block;width:100%;margin:0 0 4px 0;">${escapeHtml(x)}</div>`).join('')
+        : '&nbsp;';
+      tocNode.style.whiteSpace = 'normal';
+      tocNode.style.lineHeight = '1.45';
+      tocNode.style.columnCount = '1';
+    }
+
+    // 보조 toc 영역 비움
     const tocLeft = doc.getElementById('guideTocLeft');
     const tocRight = doc.getElementById('guideTocRight');
     if (tocLeft) {
-      tocLeft.innerHTML = toc ? escapeHtml(toc).replace(/\n/g,'<br>') : '&nbsp;';
-      tocLeft.style.whiteSpace = 'pre-wrap';
-      tocLeft.style.lineHeight = '1.35';
+      tocLeft.innerHTML = toc ? toc.split(/
+?
+/).map(x => `<div>${escapeHtml(x)}</div>`).join('') : '&nbsp;';
     }
-    if (tocRight) tocRight.innerHTML = '';
-    fillVisibleGuideOverlay(doc, {titleKo, pub, date, page, listPrice, supplyPrice, link, toc});
+    if (tocRight) {
+      tocRight.innerHTML = '';
+    }
 
     if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료 guideTitleEn=' + (!!doc.getElementById('guideTitleEn')) + ' guideTocLeft=' + (!!doc.getElementById('guideTocLeft')));
   } catch (e) {
@@ -2252,6 +2241,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 }
 
 (function(){
+
   const ALLOWED = new Set([
     'alliedmarketresearch.com','qy research','markets and markets','bcc research','research in china','technavio',
     'future markets','rncos','transparency market research','globaldata','inkwood research','accuray research',
