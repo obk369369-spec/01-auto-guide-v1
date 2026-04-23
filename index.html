@@ -2303,13 +2303,13 @@ function bridgeMiddleToRightFromCurrentSet(){
   function normalizeResult(r){
     const tocVal = Array.isArray(r.toc) ? r.toc.join('\n') : String(r.toc || '').replace(/\\n/g, '\n');
     return {
-      title: r.title || r.guideTitleEn || '',
+      title: r.title_en || r.title || r.guideTitleEn || '',
       title_ko: r.title_ko || r.titleKo || r.guideTitleKo || '',
       publisher: r.publisher || r.bookPub || '',
-      year: r.year || r.bookDate || '',
+      year: r.date || r.year || r.bookDate || '',
       pages: r.pages || r.bookPage || '',
-      listPrice: r.listPrice || r.list_price || r.bookListPrice || '',
-      supplyPrice: r.supplyPrice || r.supply_price || r.bookSupplyPrice || '',
+      listPrice: r.price || r.listPrice || r.list_price || r.bookListPrice || '',
+      supplyPrice: r.supply || r.supplyPrice || r.supply_price || r.bookSupplyPrice || '',
       link: r.link || r.midLink || '',
       toc: tocVal
     };
