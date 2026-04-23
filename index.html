@@ -1819,67 +1819,82 @@ function ensureInteractiveTagging(){
     }
   }
 
-
-  function normalizeToc(raw){
-    if(!raw) return '';
-    const dropPatterns = [/sample/i,/request/i,/buy now/i,/download/i,/speak to analyst/i,/^table of contents$/i,/^toc$/i];
-    const lines = String(raw)
-      .replace(/
-/g,'
-')
-      .replace(/	/g,' ')
-      .split(/
-+/)
-      .map(v=>v.trim())
-      .filter(Boolean)
-      .map(v=>v.replace(/^[>\-•·▪‣※★☆]+\s*/,'').replace(/^\(?\d+\)?[.)]\s*/,'').replace(/^(chapter|section|part)\s*\d+[:.\-]?\s*/i,'').replace(/\s{2,}/g,' ').trim())
-      .filter(v=>v && v.length>2 && !dropPatterns.some(rx=>rx.test(v)));
-    const unique=[]; const seen=new Set();
-    lines.forEach(v=>{ const k=v.toLowerCase(); if(seen.has(k)) return; seen.add(k); unique.push(v); });
-    return unique.map((v,i)=>`${i+1}. ${v}`).join('
-');
-  }
-
   function syncInputsToPreview(){
-    const doc = frame.contentDocument; if(!doc) return;
-    const titleEn = (document.getElementById('midTitleEn')?.value||'').trim();
-    const titleKo = (document.getElementById('midTitleKo')?.value||'').trim();
-    const toc = normalizeToc((document.getElementById('midToc')?.value||'').trim());
-    const pub = (document.getElementById('bookPub')?.value||'').trim();
-    const date = (document.getElementById('bookDate')?.value||'').trim();
-    const page = (document.getElementById('bookPage')?.value||'').trim();
-    const listPrice = (document.getElementById('bookListPrice')?.value||'').trim();
-    const supplyPrice = (document.getElementById('bookSupplyPrice')?.value||'').trim();
-    const link = (document.getElementById('midLink')?.value||'').trim();
+    const doc=frame.contentDocument; if(!doc) return;
+    const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
+    const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
+    const toc=(document.getElementById('midToc')?.value||'').trim();
+    const pub=(document.getElementById('bookPub')?.value||'').trim();
+    const date=(document.getElementById('bookDate')?.value||'').trim();
+    const page=(document.getElementById('bookPage')?.value||'').trim();
+    const listPrice=(document.getElementById('bookListPrice')?.value||'').trim();
+    const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
+    const link=(document.getElementById('midLink')?.value||'').trim();
 
+    const setHTML = (id, html) => {
+      const el = doc.getElementById(id);
+      if (el) el.innerHTML = html;
+    };
     const setText = (id, value) => {
       const el = doc.getElementById(id);
       if (el) el.textContent = value || '';
-      return el;
     };
 
-    setText('guideTitleEn', titleEn || '');
-    setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
-    setText('guidePub', pub);
-    setText('guideDate', date);
-    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
-    setText('guideListPrice', listPrice);
-    setText('guideSupplyPrice', supplyPrice);
-    setText('guideLinkText', link);
-
-    const a = doc.getElementById('guideLinkAnchor');
-    if (a) {
-      a.href = link || '#';
-      a.textContent = '바로가기';
-    }
-
+    const titleEnNode = doc.getElementById('guideTitleEn');
+    const titleKoNode = doc.getElementById('guideTitleKo');
+    const book1 = doc.getElementById('guideBookLine1');
+    const book2 = doc.getElementById('guideBookLine2');
+    const pageNode = doc.getElementById('guidePage');
+    const priceNode = doc.getElementById('guideListPrice');
+    const supplyNode = doc.getElementById('guideSupplyPrice');
+    const linkText = doc.getElementById('guideLinkText');
+    const linkAnchor = doc.getElementById('guideLinkAnchor');
     const tocLeft = doc.getElementById('guideTocLeft');
     const tocRight = doc.getElementById('guideTocRight');
+
+    if(titleEnNode){
+      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
+      titleEnNode.style.textAlign='center';
+      titleEnNode.style.margin='0';
+      titleEnNode.style.lineHeight='1.05';
+    }
+    if(titleKoNode){
+      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">( ${escapeHtml(titleKo||'')} )</span></b>`;
+      titleKoNode.style.textAlign='center';
+      titleKoNode.style.margin='2px 0 0 0';
+      titleKoNode.style.lineHeight='1.05';
+    }
+
+    setText('guidePub', pub);
+    setText('guideDate', date);
+    if(pageNode) pageNode.textContent = page ? `( ${page} Pages )` : '(  )';
+    setText('guideListPrice', listPrice);
+    setText('guideSupplyPrice', supplyPrice);
+
+    if(book1){
+      book1.style.whiteSpace='nowrap';
+      book1.innerHTML = `<span style="display:inline-block;width:230px;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 발행사:</span> <span id="guidePub">${escapeHtml(pub||'')}</span></span><span id="guidePage" style="display:inline-block;width:150px;text-align:center;font-size:11.0pt;font-family:굴림;">${page ? `( ${escapeHtml(page)} Pages )` : '(  )'}</span><span style="display:inline-block;width:170px;text-align:right;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 정가:</span> <span id="guideListPrice">${escapeHtml(listPrice||'')}</span></span>`;
+    }
+    if(book2){
+      book2.style.whiteSpace='nowrap';
+      book2.innerHTML = `<span style="display:inline-block;width:230px;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 발행일:</span> <span id="guideDate">${escapeHtml(date||'')}</span></span><span id="guidePdf" style="display:inline-block;width:150px;text-align:center;font-size:11.0pt;font-family:굴림;">-PDF-</span><span style="display:inline-block;width:170px;text-align:right;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◆ 공급가격:</span> <span id="guideSupplyPrice">${escapeHtml(supplyPrice||'')}</span></span>`;
+    }
+    if(linkText) linkText.textContent = link || '';
+    if(linkAnchor){
+      linkAnchor.href = link || '#';
+      linkAnchor.textContent = '바로가기';
+    }
     const lines = toc ? toc.split(/
 ?
-/).map(s => s.trim()).filter(Boolean) : [];
-    if (tocLeft) tocLeft.innerHTML = lines.map(x => `<div>${escapeHtml(x)}</div>`).join('');
-    if (tocRight) tocRight.innerHTML = '';
+/).map(s=>s.trim()).filter(Boolean) : [];
+    if(tocLeft){
+      tocLeft.innerHTML = lines.map(x => `<div>${escapeHtml(x)}</div>`).join('');
+      tocLeft.style.whiteSpace='pre-wrap';
+      tocLeft.style.lineHeight='1.35';
+    }
+    if(tocRight){
+      tocRight.innerHTML = '';
+    }
   }
   function bindPreviewSync(){
     const ids=['midTitleEn','midTitleKo','midToc','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink'];
@@ -2001,7 +2016,7 @@ function ensureInteractiveTagging(){
     document.getElementById('bookListPrice').value = g.report?.listPrice || '';
     document.getElementById('bookSupplyPrice').value = g.report?.supplyPrice || '';
     document.getElementById('midLink').value = g.report?.link || '';
-    document.getElementById('midToc').value = normalizeToc(g.toc || '');
+    document.getElementById('midToc').value = g.toc || '';
     const ms=document.getElementById('middleSummary');
     if(ms){
       ms.innerHTML = `선택 세트: ${activeSetIndex+1} / 5<br>위험도: ${g.risk}<br>대표 자료: ${g.report?.title || '-'}<br>메일 제목: ${g.subject || '-'}`;
@@ -2150,7 +2165,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     const listPrice = v('bookListPrice');
     const supplyPrice = v('bookSupplyPrice');
     const link = v('midLink');
-    const toc = normalizeToc(v('midToc'));
+    const toc = v('midToc');
 
     const setText = (id, value) => {
       const el = doc.getElementById(id);
@@ -2180,7 +2195,10 @@ function bridgeMiddleToRightFromCurrentSet(){
       tocRight.innerHTML = lines.slice(half).map(x => `<div>${x}</div>`).join('');
     }
 
-    // 주입 후 재동기화 금지: 방금 넣은 값을 다시 placeholder로 덮어쓰지 않도록 차단
+    if (typeof window.syncInputsToPreview === 'function') {
+      window.syncInputsToPreview();
+    }
+    if (typeof window.sync === 'function') window.sync();
     if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료 guideTitleEn=' + (!!doc.getElementById('guideTitleEn')) + ' guideTocLeft=' + (!!doc.getElementById('guideTocLeft')));
   } catch (e) {
     if (typeof traceStep === 'function') traceStep('STEP4', '실패: ' + (e && e.message ? e.message : e));
@@ -2289,13 +2307,13 @@ function bridgeMiddleToRightFromCurrentSet(){
   function normalizeResult(r){
     const tocVal = Array.isArray(r.toc) ? r.toc.join('\n') : String(r.toc || '').replace(/\\n/g, '\n');
     return {
-      title: r.title_en || r.title || r.guideTitleEn || '',
+      title: r.title || r.guideTitleEn || '',
       title_ko: r.title_ko || r.titleKo || r.guideTitleKo || '',
       publisher: r.publisher || r.bookPub || '',
-      year: r.date || r.year || r.bookDate || '',
+      year: r.year || r.bookDate || '',
       pages: r.pages || r.bookPage || '',
-      listPrice: r.price || r.listPrice || r.list_price || r.bookListPrice || '',
-      supplyPrice: r.supply || r.supplyPrice || r.supply_price || r.bookSupplyPrice || '',
+      listPrice: r.listPrice || r.list_price || r.bookListPrice || '',
+      supplyPrice: r.supplyPrice || r.supply_price || r.bookSupplyPrice || '',
       link: r.link || r.midLink || '',
       toc: tocVal
     };
@@ -2313,7 +2331,9 @@ function bridgeMiddleToRightFromCurrentSet(){
     setInputValue('midLink', r.link || '');
     setInputValue('midToc', r.toc || '');
     setBridgeStatus('왼쪽→가운데 완료', '가운데값 읽음', '오른쪽쓰기 대기');
-    bridgeMiddleToRightFromCurrentSet();
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
+    setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
   }
 
   function ensureSetTabs(){
@@ -2402,12 +2422,9 @@ function bridgeMiddleToRightFromCurrentSet(){
       guidePub: data.publisher,
       guideDate: data.date,
       guidePage: data.pages,
-      guideListPrice: data.price,
-      guideSupplyPrice: data.supply,
-      guideLinkText: data.link,
-      guideLinkAnchor: data.link,
-      guideTocLeft: data.toc,
-      guideTocRight: data.toc
+      guidePrice: data.price,
+      guideLink: data.link,
+      guideTocLeft: data.toc
     };
     const lines = [];
     lines.push('doc=' + (!!doc));
@@ -2429,14 +2446,13 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('bookSupplyPrice')) $('bookSupplyPrice').value = data.supply || '';
     if ($('midLink')) $('midLink').value = data.link || '';
     if ($('midToc')) $('midToc').value = data.toc || '';
-
     setBox('mappingBox', 'MAPPING', data);
-    const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const {doc, targets} = probeTargets(data);
     if (!doc) throw new Error('rightFrame.contentDocument 없음');
-
-    bridgeMiddleToRightFromCurrentSet();
-    probeTargets(data);
+    Object.entries(targets).forEach(([id,val]) => {
+      const el = doc.getElementById(id);
+      if (el) el.textContent = val || '';
+    });
   }
 
   const HARD_DENO_URL = "https://sweet-trout-31.obk369369-spec.deno.net";
@@ -2516,9 +2532,9 @@ function bridgeMiddleToRightFromCurrentSet(){
       traceStep('STEP3', '가운데 입력 완료');
       updateChecklist(firstNormalized);
       traceStep('STEP3', '대표 자료=' + (firstNormalized.title || '-'));
-      traceStep('STEP4', '오른쪽 단일 주입 시작');
+      traceStep('STEP4', '오른쪽 강제 주입 시작');
       applyAllDataForced(mapped);
-      traceStep('STEP4', '오른쪽 단일 주입 완료');
+      traceStep('STEP4', '오른쪽 강제 주입 완료');
 
       showStatus(
         `Deno 반영 완료
