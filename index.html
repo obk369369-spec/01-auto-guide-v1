@@ -2137,10 +2137,16 @@ function syncMiddleToRight(){
 
 
 <script>
-
 function bridgeMiddleToRightFromCurrentSet(){
   try {
     if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 시작');
+    const ids = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.dispatchEvent(new Event('input', { bubbles:true }));
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+    });
 
     const frame = document.getElementById('rightFrame');
     const doc = frame && frame.contentDocument;
@@ -2161,8 +2167,6 @@ function bridgeMiddleToRightFromCurrentSet(){
       const el = doc.getElementById(id);
       if (el) el.textContent = value || '';
     };
-
-    // 1) 실제 span/id 에 먼저 주입
     setText('guideTitleEn', titleEn || '()');
     setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
     setText('guidePub', pub);
@@ -2178,62 +2182,26 @@ function bridgeMiddleToRightFromCurrentSet(){
       a.textContent = '바로가기';
     }
 
-    // 2) 실제 화면에 보이는 부모 블록을 강제로 재작성
-    const titleEnNode = doc.querySelector('[data-slot-title-en]');
-    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
-    const book1 = doc.querySelector('[data-slot-book-line1]');
-    const book2 = doc.querySelector('[data-slot-book-line2]');
-    const linkNode = doc.querySelector('[data-slot-link-line]');
-    const tocNode = doc.querySelector('[data-slot-toc-line]');
-
-    if (titleEnNode) {
-      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn || '')}</span></b>`;
-      titleEnNode.style.textAlign = 'center';
-      titleEnNode.style.margin = '0';
-      titleEnNode.style.lineHeight = '1.05';
-      titleEnNode.style.whiteSpace = 'normal';
-      titleEnNode.style.wordBreak = 'break-word';
-    }
-    if (titleKoNode) {
-      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">${titleKo ? `( ${escapeHtml(titleKo)} )` : ''}</span></b>`;
-      titleKoNode.style.textAlign = 'center';
-      titleKoNode.style.margin = '2px 0 0 0';
-      titleKoNode.style.lineHeight = '1.05';
-    }
-    if (book1) {
-      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub || '')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page || '')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice || '')}</span>`;
-    }
-    if (book2) {
-      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(date || '')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice || '')}</span>`;
-    }
-    if (linkNode) {
-      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [<a href="${escapeHtml(link || '#')}" target="_blank">바로가기</a>] : ${escapeHtml(link || '')}</span>`;
-    }
-    if (tocNode) {
-      const lines = toc ? toc.split(/
-?
-/).map(s => s.trim()).filter(Boolean) : [];
-      tocNode.innerHTML = lines.length
-        ? lines.map(x => `<div style="display:block;width:100%;margin:0 0 4px 0;">${escapeHtml(x)}</div>`).join('')
-        : '&nbsp;';
-      tocNode.style.whiteSpace = 'normal';
-      tocNode.style.lineHeight = '1.45';
-      tocNode.style.columnCount = '1';
-    }
-
-    // 보조 toc 영역 비움
     const tocLeft = doc.getElementById('guideTocLeft');
     const tocRight = doc.getElementById('guideTocRight');
-    if (tocLeft) {
-      tocLeft.innerHTML = toc ? toc.split(/
-?
-/).map(x => `<div>${escapeHtml(x)}</div>`).join('') : '&nbsp;';
-    }
-    if (tocRight) {
+    if (tocLeft && tocRight) {
+      const lines = toc ? toc.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+      tocLeft.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
       tocRight.innerHTML = '';
     }
 
-    if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료 guideTitleEn=' + (!!doc.getElementById('guideTitleEn')) + ' guideTocLeft=' + (!!doc.getElementById('guideTocLeft')));
+    const probe = {
+      guideTitleEn: doc.getElementById('guideTitleEn')?.textContent || '',
+      guideTitleKo: doc.getElementById('guideTitleKo')?.textContent || '',
+      guidePub: doc.getElementById('guidePub')?.textContent || '',
+      guideDate: doc.getElementById('guideDate')?.textContent || '',
+      guidePage: doc.getElementById('guidePage')?.textContent || '',
+      guideListPrice: doc.getElementById('guideListPrice')?.textContent || '',
+      guideSupplyPrice: doc.getElementById('guideSupplyPrice')?.textContent || '',
+      guideLinkText: doc.getElementById('guideLinkText')?.textContent || ''
+    };
+    if (typeof setBox === 'function') setBox('targetProbeBox', 'TARGET PROBE', probe);
+    if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료(actual) pub=' + probe.guidePub + ' date=' + probe.guideDate);
   } catch (e) {
     if (typeof traceStep === 'function') traceStep('STEP4', '실패: ' + (e && e.message ? e.message : e));
     console.error('bridgeMiddleToRightFromCurrentSet fail', e);
@@ -2241,7 +2209,6 @@ function bridgeMiddleToRightFromCurrentSet(){
 }
 
 (function(){
-
   const ALLOWED = new Set([
     'alliedmarketresearch.com','qy research','markets and markets','bcc research','research in china','technavio',
     'future markets','rncos','transparency market research','globaldata','inkwood research','accuray research',
