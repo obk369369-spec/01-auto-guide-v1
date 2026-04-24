@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -2613,11 +2613,20 @@ document.addEventListener('DOMContentLoaded', function(){
   function box(id){ return document.getElementById(id); }
   function setVal(id, text){
     const el = box(id);
-    if(el){ el.value = text; }
+    if(!el) return;
+    const out = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = out;
+    else el.textContent = out;
   }
   function appendVal(id, text){
     const el = box(id);
-    if(el){ el.value = (el.value ? el.value + "\n" : "") + text; }
+    if(!el) return;
+    const out = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)){
+      el.value = (el.value ? el.value + "\n" : "") + out;
+    } else {
+      el.textContent = (el.textContent ? el.textContent + "\n" : "") + out;
+    }
   }
 
   ['runTestBtn','diagBtn','coordBtn'].forEach(function(id){
@@ -2711,7 +2720,18 @@ JSON.stringify({
   function write(id, data){
     const el = $(id);
     if(!el) return;
-    el.value = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    const out = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = out;
+    else el.textContent = out;
+  }
+  function appendLog(id, data){
+    const el = $(id);
+    if(!el) return;
+    const out = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    const prev = ('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) ? el.value : el.textContent;
+    const next = (prev ? prev + '\n' : '') + out;
+    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = next;
+    else el.textContent = next;
   }
   function badge(text, cls){
     const b = $('diagModeBadge');
@@ -2790,6 +2810,8 @@ JSON.stringify({
     if(!STORE.clickedTrace){
       STORE.clickedTrace = trace;
       write('clickedTraceView', trace);
+      write('autoLog', {at:now(), event:'COORD_CLICK_LOCKED', clicked_trace: trace});
+      write('coreLog', {at:now(), event:'CLICKED_TRACE_FIXED', area_id: trace.area_id, source: trace.source, selector: trace.selector});
       badge('좌표 고정: ' + trace.area_name_ko, 'ok');
       try{ e.target.classList.add('coord-hit'); setTimeout(()=>e.target.classList.remove('coord-hit'),900); }catch(_){}
     } else {
@@ -2918,6 +2940,24 @@ JSON.stringify({
     };
     STORE.diagPacket = packet;
     write('diagPacket', packet);
+    write('autoLog', {
+      at: now(),
+      event: 'AUTO_DIAG_CLICK',
+      status: f.status,
+      clicked_area: STORE.clickedTrace ? STORE.clickedTrace.area_name_ko : 'NO_CLICK',
+      observed: f.observed,
+      next_fix: f.next_fix
+    });
+    write('coreLog', {
+      at: now(),
+      event: 'FIRST_FAIL_FIXED',
+      first_fail: f,
+      target_probe_summary: {
+        middle_missing: MID_IDS.filter(id => !p.middle[id]),
+        right_missing_or_empty: Object.keys(p.right || {}).filter(id => !p.right[id] || p.right[id] === '__MISSING__'),
+        mutation_count: STORE.mutationLog.length
+      }
+    });
     const db = $('diagBadge');
     if(db) db.textContent = 'DIAG: ' + f.status;
     badge('자동진단 완료: ' + f.status, f.status === 'PASS' ? 'ok' : 'warn');
@@ -2985,6 +3025,8 @@ JSON.stringify({
     STORE.firstFail = f;
     write('firstFailView', f);
     write('diagPacket', {generated_at:now(), recheck:result, first_fail:f, target_probe:p, mutation_log:STORE.mutationLog.slice(-20)});
+    write('autoLog', {at:now(), event:'RECHECK_CLICK', result:result});
+    write('coreLog', {at:now(), event:'RECHECK_FIRST_FAIL', first_fail:f});
     badge('재검증: ' + result.status, result.status === 'PASS' ? 'ok' : 'warn');
     const db = $('diagBadge');
     if(db) db.textContent = 'DIAG: RECHECK ' + result.status;
@@ -3032,7 +3074,9 @@ JSON.stringify({
     write('firstFailView', {status:'READY', rule:'자동진단 후 FIRST_FAIL 1개만 생성'});
     write('targetProbeView', {status:'READY', middle_ids:MID_IDS, right_ids:RIGHT_IDS});
     write('diagPacket', {status:'READY', next:'좌표 찍기 → 문제 영역 클릭 → 자동진단 보내기'});
-    if(!($('mutationLogView')||{}).value) write('mutationLogView', {status:'READY', watch_ids:MUTATION_IDS});
+    if(!($('mutationLogView')||{}).value && !($('mutationLogView')||{}).textContent) write('mutationLogView', {status:'READY', watch_ids:MUTATION_IDS});
+    write('autoLog', {at:now(), status:'READY', message:'AUTO_LOG 연결 완료: 좌표/자동진단/재검증 결과 표시'});
+    write('coreLog', {at:now(), status:'READY', message:'CORE_LOG 연결 완료: FIRST_FAIL/PROBE 요약 표시'});
     badge('3영역 진단 준비 완료', 'ok');
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
