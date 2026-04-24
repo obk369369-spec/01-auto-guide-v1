@@ -100,11 +100,18 @@
   
 
   
-<div style="padding:10px 12px;background:#fff3cd;border-bottom:1px solid #e5c46b;font-weight:700;">
-  진단버튼 표시 확인용 버전: BUTTONS_V2 / FINAL_BLOCK_V1
-  <span style="margin-left:12px;border:1px solid #999;border-radius:999px;padding:4px 8px;">테스트케이스 실행</span>
-  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
-  <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
+<div class="toolbar" id="topDiagToolbar">
+  <button class="btn primary" id="coordBtn" type="button">좌표 찍기</button>
+  <button class="btn" id="diagBtn" type="button">자동진단 보내기</button>
+  <button class="btn" id="recheckBtn" type="button">재검증</button>
+  <span class="badge" id="diagModeBadge">3영역 진단 대기</span>
+</div>
+<div class="dock" id="topDiagLogs">
+  <div class="logbox"><h3>CLICKED_TRACE</h3><textarea class="logarea" id="clickedTraceView" spellcheck="false" readonly></textarea><div class="mini">좌표 찍기 후 왼쪽/가운데/오른쪽 안내서 중 1회 클릭</div></div>
+  <div class="logbox"><h3>FIRST_FAIL</h3><textarea class="logarea" id="firstFailView" spellcheck="false" readonly></textarea><div class="mini">자동진단에서 첫 실패 1개만 고정</div></div>
+  <div class="logbox"><h3>TARGET_PROBE</h3><textarea class="logarea" id="targetProbeView" spellcheck="false" readonly></textarea><div class="mini">가운데 9칸 + 오른쪽 iframe 실제 DOM 값</div></div>
+  <div class="logbox"><h3>DIAG_PACKET</h3><textarea class="logarea" id="diagPacket" spellcheck="false"></textarea><div class="mini">observed / expected / next_fix 포함</div></div>
+  <div class="logbox"><h3>MUTATION_LOG</h3><textarea class="logarea" id="mutationLogView" spellcheck="false" readonly></textarea><div class="mini">오른쪽 값 삭제/덮어쓰기 감지</div></div>
 </div>
 <div class="wrap">
     <div class="left">
@@ -170,11 +177,7 @@
       <div id="rawJsonBox" style="margin-bottom:10px;padding:10px;border:2px solid #444;border-radius:10px;background:#f8f8f8;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:100px;">[RAW JSON]\n대기</div>
       <div id="mappingBox" style="margin-bottom:10px;padding:10px;border:2px solid #0d6efd;border-radius:10px;background:#f5f9ff;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px;">[MAPPING]\n대기</div>
       <div id="targetProbeBox" style="margin-bottom:10px;padding:10px;border:2px solid #198754;border-radius:10px;background:#f6fff8;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px;">[TARGET PROBE]\n대기</div>
-      <div class="btnrow">
-        <button class="btn" id="runTestBtn">테스트케이스 실행</button>
-        <button class="btn" id="diagBtn">자동진단 보내기</button>
-        <button class="btn" id="coordBtn">좌표 찍기</button>
-      </div>
+      <!-- 중복 진단 버튼 삭제: 상단 3버튼만 사용 -->
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
       <div class="checkpanel" id="engineCheckPanel">
         <h3>엔진 점검표</h3>
@@ -1129,30 +1132,14 @@ ul
       <div class="status" id="status">오른쪽 원본 정리 중...</div>
     </div>
   </div>
-
-
-  <pre class="logbox" id="autoLog"></pre>
+  <div class="bottom-panels" id="legacyStatusPanel">
+    <div class="logpanel">
+      <div class="logtitle">AUTO_LOG</div>
+      <pre class="logbox" id="autoLog"></pre>
     </div>
     <div class="logpanel">
       <div class="logtitle">CORE_LOG</div>
       <pre class="logbox" id="coreLog"></pre>
-    </div>
-    <div class="tracepanel">
-      <div class="logpanel">
-        <div class="logtitle">CLICKED_TRACE</div>
-        <textarea class="tracebox" id="clickedTraceView" spellcheck="false" readonly></textarea>
-        <div class="hint">좌표 찍기로 고정된 마지막 좌표만 표시</div>
-      </div>
-      <div class="logpanel">
-        <div class="logtitle">FIRST_FAIL</div>
-        <textarea class="tracebox" id="firstFailView" spellcheck="false" readonly></textarea>
-        <div class="hint">자동진단 엔진이 찾은 첫 번째 실패만 별도 표시</div>
-      </div>
-    </div>
-    <div class="diagpanel">
-      <div class="logtitle">DIAG_PACKET</div>
-      <textarea class="diagbox" id="diagPacket" spellcheck="false"></textarea>
-      <div class="mini">자동진단 보내기 1회로 JSON 생성 및 복사 가능</div>
     </div>
   </div>
 
@@ -1831,26 +1818,12 @@ function ensureInteractiveTagging(){
     const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
     const link=(document.getElementById('midLink')?.value||'').trim();
 
-    const setHTML = (id, html) => {
-      const el = doc.getElementById(id);
-      if (el) el.innerHTML = html;
-    };
-    const setText = (id, value) => {
-      const el = doc.getElementById(id);
-      if (el) el.textContent = value || '';
-    };
-
-    const titleEnNode = doc.getElementById('guideTitleEn');
-    const titleKoNode = doc.getElementById('guideTitleKo');
-    const book1 = doc.getElementById('guideBookLine1');
-    const book2 = doc.getElementById('guideBookLine2');
-    const pageNode = doc.getElementById('guidePage');
-    const priceNode = doc.getElementById('guideListPrice');
-    const supplyNode = doc.getElementById('guideSupplyPrice');
-    const linkText = doc.getElementById('guideLinkText');
-    const linkAnchor = doc.getElementById('guideLinkAnchor');
-    const tocLeft = doc.getElementById('guideTocLeft');
-    const tocRight = doc.getElementById('guideTocRight');
+    const titleEnNode = doc.querySelector('[data-slot-title-en]');
+    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
+    const book1 = doc.querySelector('[data-slot-book-line1]');
+    const book2 = doc.querySelector('[data-slot-book-line2]');
+    const linkNode = doc.querySelector('[data-slot-link-line]');
+    const tocNode = doc.querySelector('[data-slot-toc-line]');
 
     if(titleEnNode){
       titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
@@ -1864,36 +1837,25 @@ function ensureInteractiveTagging(){
       titleKoNode.style.margin='2px 0 0 0';
       titleKoNode.style.lineHeight='1.05';
     }
-
-    setText('guidePub', pub);
-    setText('guideDate', date);
-    if(pageNode) pageNode.textContent = page ? `( ${page} Pages )` : '(  )';
-    setText('guideListPrice', listPrice);
-    setText('guideSupplyPrice', supplyPrice);
+    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
+      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
+    }
 
     if(book1){
-      book1.style.whiteSpace='nowrap';
-      book1.innerHTML = `<span style="display:inline-block;width:230px;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 발행사:</span> <span id="guidePub">${escapeHtml(pub||'')}</span></span><span id="guidePage" style="display:inline-block;width:150px;text-align:center;font-size:11.0pt;font-family:굴림;">${page ? `( ${escapeHtml(page)} Pages )` : '(  )'}</span><span style="display:inline-block;width:170px;text-align:right;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 정가:</span> <span id="guideListPrice">${escapeHtml(listPrice||'')}</span></span>`;
+      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
     }
     if(book2){
-      book2.style.whiteSpace='nowrap';
-      book2.innerHTML = `<span style="display:inline-block;width:230px;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◇ 발행일:</span> <span id="guideDate">${escapeHtml(date||'')}</span></span><span id="guidePdf" style="display:inline-block;width:150px;text-align:center;font-size:11.0pt;font-family:굴림;">-PDF-</span><span style="display:inline-block;width:170px;text-align:right;font-size:11.0pt;font-family:굴림;"><span style="font-weight:bold">◆ 공급가격:</span> <span id="guideSupplyPrice">${escapeHtml(supplyPrice||'')}</span></span>`;
+      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
+      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
     }
-    if(linkText) linkText.textContent = link || '';
-    if(linkAnchor){
-      linkAnchor.href = link || '#';
-      linkAnchor.textContent = '바로가기';
+    if(linkNode){
+      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
     }
-    const lines = toc ? toc.split(/
-?
-/).map(s=>s.trim()).filter(Boolean) : [];
-    if(tocLeft){
-      tocLeft.innerHTML = lines.map(x => `<div>${escapeHtml(x)}</div>`).join('');
-      tocLeft.style.whiteSpace='pre-wrap';
-      tocLeft.style.lineHeight='1.35';
-    }
-    if(tocRight){
-      tocRight.innerHTML = '';
+    if(tocNode){
+      tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
+/g,'<br>') : '&nbsp;';
+      tocNode.style.whiteSpace='pre-wrap';
+      tocNode.style.lineHeight='1.35';
     }
   }
   function bindPreviewSync(){
@@ -2721,6 +2683,363 @@ JSON.stringify({
   }
 });
 </script>
+
+<script id="singlePathDiagnosticsV1">
+(function(){
+  'use strict';
+
+  const MID_IDS = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+  const RIGHT_IDS = ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideTocRight'];
+  const MUTATION_IDS = ['guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideTocRight'];
+  const STORE = {
+    clickedTrace: null,
+    firstFail: null,
+    targetProbe: null,
+    diagPacket: null,
+    mutationLog: [],
+    coordMode: false,
+    observerReady: false
+  };
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function val(id){ const el=$(id); return el ? (el.value || '').trim() : ''; }
+  function txt(el){
+    if(!el) return '';
+    if(el.tagName && el.tagName.toLowerCase() === 'a') return (el.textContent || '').trim() + ' | href=' + (el.getAttribute('href') || '');
+    return ((el.value !== undefined ? el.value : el.textContent) || '').trim();
+  }
+  function write(id, data){
+    const el = $(id);
+    if(!el) return;
+    el.value = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  }
+  function badge(text, cls){
+    const b = $('diagModeBadge');
+    if(!b) return;
+    b.textContent = text;
+    b.className = 'badge' + (cls ? ' ' + cls : '');
+  }
+  function now(){ return new Date().toISOString(); }
+  function cssPath(el){
+    if(!el || !el.nodeType || el.nodeType !== 1) return '';
+    const path = [];
+    let cur = el;
+    while(cur && cur.nodeType === 1 && path.length < 8){
+      let part = cur.tagName.toLowerCase();
+      if(cur.id){ part += '#' + cur.id; path.unshift(part); break; }
+      if(cur.className && typeof cur.className === 'string'){
+        const c = cur.className.trim().split(/\s+/).slice(0,2).join('.');
+        if(c) part += '.' + c;
+      }
+      const parent = cur.parentElement;
+      if(parent){
+        const same = Array.from(parent.children).filter(x => x.tagName === cur.tagName);
+        if(same.length > 1) part += ':nth-of-type(' + (same.indexOf(cur)+1) + ')';
+      }
+      path.unshift(part);
+      cur = parent;
+    }
+    return path.join(' > ');
+  }
+  function parentBlockPath(el){
+    const block = el && el.closest ? el.closest('.left,.middle,.right,.field,.logpanel,.Section1,table,tbody,tr,td,div') : null;
+    return cssPath(block || el);
+  }
+  function contextText(el){
+    const raw = ((el && (el.innerText || el.textContent || el.value)) || '').replace(/\s+/g,' ').trim();
+    return raw.slice(0, 240);
+  }
+  function sourceOf(el, doc){
+    if(doc !== document) return 'right_iframe';
+    if(el.closest && el.closest('.left')) return 'left';
+    if(el.closest && el.closest('.middle')) return 'middle';
+    if(el.closest && el.closest('.right')) return 'right_outer';
+    return 'outside';
+  }
+  function areaName(el, source){
+    if(source === 'left') return '왼쪽 메뉴';
+    if(source === 'middle') return '가운데 9칸';
+    if(source === 'right_iframe') return '오른쪽 안내서 iframe 내부';
+    return '진단 제외 영역';
+  }
+  function makeTrace(e, sourceDoc){
+    const el = e.target;
+    const source = sourceOf(el, sourceDoc);
+    const areaId = el.id || (el.getAttribute && (el.getAttribute('data-area-id') || el.getAttribute('name'))) || el.tagName.toLowerCase();
+    return {
+      status: source === 'outside' || source === 'right_outer' ? 'OUT_OF_SCOPE' : 'LOCKED',
+      area_id: areaId,
+      area_name_ko: areaName(el, source),
+      selector: el.id ? ('#' + el.id) : cssPath(el),
+      dom_path: cssPath(el),
+      parent_block_path: parentBlockPath(el),
+      clicked_text: contextText(el),
+      context_window: contextText(el.parentElement || el),
+      x: e.clientX,
+      y: e.clientY,
+      source: source,
+      generated_at: now()
+    };
+  }
+  function handleAreaClick(e, sourceDoc){
+    if(!STORE.coordMode) return;
+    const trace = makeTrace(e, sourceDoc);
+    if(trace.source === 'outside' || trace.source === 'right_outer') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(!STORE.clickedTrace){
+      STORE.clickedTrace = trace;
+      write('clickedTraceView', trace);
+      badge('좌표 고정: ' + trace.area_name_ko, 'ok');
+      try{ e.target.classList.add('coord-hit'); setTimeout(()=>e.target.classList.remove('coord-hit'),900); }catch(_){}
+    } else {
+      badge('좌표 이미 고정됨: 리셋 전 덮어쓰기 차단', 'warn');
+    }
+    STORE.coordMode = false;
+  }
+  function attachClickListeners(){
+    document.addEventListener('click', function(e){ handleAreaClick(e, document); }, true);
+    const frame = $('rightFrame');
+    function bindFrame(){
+      const doc = frame && frame.contentDocument;
+      if(!doc || doc.__singlePathClickBound) return;
+      doc.__singlePathClickBound = true;
+      doc.addEventListener('click', function(e){ handleAreaClick(e, doc); }, true);
+      startMutationObserver();
+    }
+    if(frame){
+      frame.addEventListener('load', function(){ setTimeout(bindFrame, 50); });
+      setTimeout(bindFrame, 100);
+      setTimeout(bindFrame, 500);
+    }
+  }
+  function probe(){
+    const frame = $('rightFrame');
+    const doc = frame && frame.contentDocument;
+    const middle = {};
+    MID_IDS.forEach(id => middle[id] = val(id));
+    const right = {};
+    if(doc){
+      RIGHT_IDS.forEach(id => {
+        const el = doc.getElementById(id);
+        right[id] = el ? txt(el) : '__MISSING__';
+      });
+    }
+    const data = {
+      generated_at: now(),
+      middle,
+      right_iframe_ready: !!doc,
+      right
+    };
+    STORE.targetProbe = data;
+    write('targetProbeView', data);
+    return data;
+  }
+  function firstFailFrom(probeData){
+    const clicked = STORE.clickedTrace;
+    let fail = null;
+    if(!clicked){
+      fail = {
+        status: 'FAIL',
+        error_point: 'CLICKED_TRACE.EMPTY',
+        area_id: 'NO_CLICK',
+        area_name_ko: '좌표 미지정',
+        selector: '',
+        expected: '좌표 찍기 후 왼쪽/가운데/오른쪽 안내서 중 1회 클릭',
+        observed: 'CLICKED_TRACE 없음',
+        next_fix: '좌표 찍기 버튼을 누르고 문제 영역을 1회 클릭',
+        error_hash: 'NO_CLICK_' + MID_IDS.length,
+        retry_count: 0
+      };
+    } else if(clicked.source === 'middle'){
+      const id = clicked.area_id;
+      const v = probeData.middle[id] || '';
+      fail = {
+        status: v ? 'PASS' : 'FAIL',
+        error_point: v ? 'MIDDLE.VALUE.OK' : 'MIDDLE.VALUE.EMPTY',
+        area_id: id,
+        area_name_ko: clicked.area_name_ko,
+        selector: clicked.selector,
+        expected: '가운데 9칸 실제 값 존재',
+        observed: v || '빈값',
+        next_fix: v ? '추가 수정 없음' : '가운데 입력값 또는 생성 흐름 확인',
+        error_hash: (v ? 'PASS_' : 'EMPTY_') + id,
+        retry_count: 0
+      };
+    } else if(clicked.source === 'right_iframe'){
+      const id = clicked.area_id;
+      const v = probeData.right[id] || '';
+      fail = {
+        status: v && v !== '__MISSING__' ? 'PASS' : 'FAIL',
+        error_point: v === '__MISSING__' ? 'RIGHT.DOM.MISSING' : (v ? 'RIGHT.VALUE.OK' : 'RIGHT.VALUE.EMPTY'),
+        area_id: id,
+        area_name_ko: clicked.area_name_ko,
+        selector: clicked.selector,
+        expected: '오른쪽 iframe 내부 실제 DOM 값 존재',
+        observed: v || '빈값',
+        next_fix: v && v !== '__MISSING__' ? '추가 수정 없음' : '오른쪽 실제 id 또는 덮어쓰기 함수 확인',
+        error_hash: (v ? 'RIGHT_' : 'RIGHT_EMPTY_') + id,
+        retry_count: 0
+      };
+    } else {
+      const missingMiddle = MID_IDS.filter(id => !probeData.middle[id]);
+      const missingRight = Object.keys(probeData.right || {}).filter(id => !probeData.right[id] || probeData.right[id] === '__MISSING__');
+      const target = missingRight[0] || missingMiddle[0] || 'ALL_OK';
+      fail = {
+        status: target === 'ALL_OK' ? 'PASS' : 'FAIL',
+        error_point: target === 'ALL_OK' ? 'THREE_AREA.OK' : 'THREE_AREA.VALUE_GAP',
+        area_id: target,
+        area_name_ko: clicked.area_name_ko,
+        selector: clicked.selector,
+        expected: '왼쪽/가운데/오른쪽 3영역 진단 가능',
+        observed: target === 'ALL_OK' ? '3영역 핵심값 확인' : '누락값: ' + target,
+        next_fix: target === 'ALL_OK' ? '재검증으로 유지 확인' : '누락 id의 실제 DOM 또는 주입 흐름 확인',
+        error_hash: 'THREE_AREA_' + target,
+        retry_count: 0
+      };
+    }
+    STORE.firstFail = fail;
+    write('firstFailView', fail);
+    return fail;
+  }
+  function makePacket(){
+    const p = probe();
+    const f = firstFailFrom(p);
+    const packet = {
+      generated_at: now(),
+      status: f.status,
+      clicked_trace: STORE.clickedTrace,
+      first_fail: f,
+      target_probe: p,
+      mutation_log: STORE.mutationLog.slice(-20),
+      observed: f.observed,
+      expected: f.expected,
+      next_fix: f.next_fix
+    };
+    STORE.diagPacket = packet;
+    write('diagPacket', packet);
+    const db = $('diagBadge');
+    if(db) db.textContent = 'DIAG: ' + f.status;
+    badge('자동진단 완료: ' + f.status, f.status === 'PASS' ? 'ok' : 'warn');
+  }
+  function startMutationObserver(){
+    if(STORE.observerReady) return;
+    const frame = $('rightFrame');
+    const doc = frame && frame.contentDocument;
+    if(!doc) return;
+    const targets = MUTATION_IDS.map(id => doc.getElementById(id)).filter(Boolean);
+    if(!targets.length) return;
+    STORE.observerReady = true;
+    const before = new Map();
+    targets.forEach(el => before.set(el, txt(el)));
+    const observer = new MutationObserver(function(records){
+      records.forEach(rec => {
+        const el = rec.target.nodeType === 1 ? rec.target : rec.target.parentElement;
+        const target = el && (el.id ? el : el.closest && el.closest('[id]'));
+        if(!target || !MUTATION_IDS.includes(target.id)) return;
+        const oldValue = before.get(target) || '';
+        const newValue = txt(target);
+        if(oldValue === newValue) return;
+        const item = {
+          at: now(),
+          target_id: target.id,
+          old_value: oldValue,
+          new_value: newValue,
+          mutation_type: rec.type,
+          suspected_function: 'syncInputsToPreview / window.sync / autoRepairAndEvaluate / applyRightTemplateFixes / bindPreviewSync 후보',
+          before_snapshot: oldValue,
+          after_snapshot: newValue
+        };
+        STORE.mutationLog.push(item);
+        before.set(target, newValue);
+        write('mutationLogView', STORE.mutationLog.slice(-30));
+      });
+    });
+    targets.forEach(el => observer.observe(el, {childList:true, characterData:true, subtree:true, attributes:true, attributeFilter:['href','value']}));
+    write('mutationLogView', [{at:now(), status:'OBSERVER_READY', targets:targets.map(x=>x.id)}]);
+  }
+  function recheck(){
+    const p = probe();
+    const missingMiddle = MID_IDS.filter(id => !p.middle[id]);
+    const missingRight = Object.keys(p.right || {}).filter(id => !p.right[id] || p.right[id] === '__MISSING__');
+    const result = {
+      generated_at: now(),
+      status: (!missingMiddle.length && !missingRight.length) ? 'PASS' : 'FAIL',
+      middle_missing: missingMiddle,
+      right_missing_or_empty: missingRight,
+      mutation_count: STORE.mutationLog.length,
+      disappeared_position: STORE.mutationLog.length ? STORE.mutationLog[STORE.mutationLog.length-1].target_id : ''
+    };
+    const f = {
+      status: result.status,
+      error_point: result.status === 'PASS' ? 'RECHECK.PASS' : 'RECHECK.FAIL',
+      area_id: result.disappeared_position || (missingRight[0] || missingMiddle[0] || 'ALL_OK'),
+      area_name_ko: '재검증',
+      selector: result.disappeared_position ? ('#' + result.disappeared_position) : '',
+      expected: '가운데 9칸 값 존재 + 오른쪽 안내서 실제 표시 유지 + 덮어쓰기 없음',
+      observed: JSON.stringify(result),
+      next_fix: result.status === 'PASS' ? '다음 단계 진행 가능' : '표시 누락 또는 MUTATION_LOG 위치 확인',
+      error_hash: 'RECHECK_' + result.status + '_' + (result.disappeared_position || missingRight[0] || missingMiddle[0] || 'OK'),
+      retry_count: 0
+    };
+    STORE.firstFail = f;
+    write('firstFailView', f);
+    write('diagPacket', {generated_at:now(), recheck:result, first_fail:f, target_probe:p, mutation_log:STORE.mutationLog.slice(-20)});
+    badge('재검증: ' + result.status, result.status === 'PASS' ? 'ok' : 'warn');
+    const db = $('diagBadge');
+    if(db) db.textContent = 'DIAG: RECHECK ' + result.status;
+  }
+  function bindButtons(){
+    const c = $('coordBtn');
+    const d = $('diagBtn');
+    const r = $('recheckBtn');
+    [c,d,r].forEach(btn => {
+      if(btn){
+        btn.style.pointerEvents='auto';
+        btn.style.cursor='pointer';
+        btn.style.position='relative';
+        btn.style.zIndex='9999';
+      }
+    });
+    if(c && !c.__singlePathBound){
+      c.__singlePathBound = true;
+      c.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        STORE.coordMode = true;
+        badge('좌표 찍기 대기: 3영역 중 1곳 클릭', 'warn');
+      }, true);
+    }
+    if(d && !d.__singlePathBound){
+      d.__singlePathBound = true;
+      d.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        makePacket();
+      }, true);
+    }
+    if(r && !r.__singlePathBound){
+      r.__singlePathBound = true;
+      r.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        recheck();
+      }, true);
+    }
+  }
+  function init(){
+    bindButtons();
+    attachClickListeners();
+    startMutationObserver();
+    write('clickedTraceView', {status:'READY', rule:'clicked_trace는 리셋 전 덮어쓰기 금지'});
+    write('firstFailView', {status:'READY', rule:'자동진단 후 FIRST_FAIL 1개만 생성'});
+    write('targetProbeView', {status:'READY', middle_ids:MID_IDS, right_ids:RIGHT_IDS});
+    write('diagPacket', {status:'READY', next:'좌표 찍기 → 문제 영역 클릭 → 자동진단 보내기'});
+    if(!($('mutationLogView')||{}).value) write('mutationLogView', {status:'READY', watch_ids:MUTATION_IDS});
+    badge('3영역 진단 준비 완료', 'ok');
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
 </body>
 
 </html>
