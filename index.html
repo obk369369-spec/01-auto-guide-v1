@@ -110,7 +110,7 @@
   <div class="logbox"><h3>CLICKED_TRACE</h3><textarea class="logarea" id="clickedTraceView" spellcheck="false" readonly></textarea><div class="mini">좌표 찍기 후 왼쪽/가운데/오른쪽 안내서 중 1회 클릭</div></div>
   <div class="logbox"><h3>FIRST_FAIL</h3><textarea class="logarea" id="firstFailView" spellcheck="false" readonly></textarea><div class="mini">자동진단에서 첫 실패 1개만 고정</div></div>
   <div class="logbox"><h3>TARGET_PROBE</h3><textarea class="logarea" id="targetProbeView" spellcheck="false" readonly></textarea><div class="mini">가운데 9칸 + 오른쪽 iframe 실제 DOM 값</div></div>
-  <div class="logbox"><h3>DIAG_PACKET</h3><textarea class="logarea" id="diagPacket" spellcheck="false"></textarea><div class="mini">observed / expected / next_fix 포함</div></div>
+  <div class="logbox"><h3>DIAG_PACKET</h3><textarea class="logarea" id="diagPacket" spellcheck="false"></textarea><div class="mini">자동진단/재검증 후 대화창 붙여넣기용 패킷 자동 복사</div></div>
   <div class="logbox"><h3>MUTATION_LOG</h3><textarea class="logarea" id="mutationLogView" spellcheck="false" readonly></textarea><div class="mini">오른쪽 값 삭제/덮어쓰기 감지</div></div>
 </div>
 <div class="wrap">
@@ -1887,68 +1887,128 @@ function ensureInteractiveTagging(){
     if(t.includes('같은 기관') || t.includes('이전 발송')) return '[주의]';
     return '[정상]';
   }
-  function buildReportPool(ctx, pubs){
-    const k = ctx.interestField || ctx.researchField || ctx.duty || '핵심 산업';
-    const d = ctx.duty || ctx.interestField || '핵심 업무';
-    const base = [
-      `${k} 시장 동향 보고서`,
-      `${d} 경쟁 구도 분석 보고서`,
-      `${ctx.org || ctx.dept || '기관'} 관점의 기술·시장 통합 보고서`,
-      `${k} 공급망 및 밸류체인 보고서`,
-      `${d} 투자 및 수요 전망 보고서`,
-      `${k} 글로벌 벤더 비교 보고서`,
-      `${ctx.org || '기관'} 관련 적용 분야 확장 보고서`
+  /* QUALITY_ENGINE_V1: 안내서 데이터 안정도/퀄리티 보강
+     - 화면 구조는 유지한다.
+     - 가운데 9칸에 들어가는 값만 고급화한다.
+     - 외부 fetch 없이 입력값 기준으로 제목/도서정보/목차를 안정 생성한다.
+  */
+  function cleanText(v){
+    return String(v||'')
+      .replace(/\s+/g,' ')
+      .replace(/[<>]/g,'')
+      .trim();
+  }
+  function firstUseful(ctx){
+    return cleanText(ctx.interestField || ctx.researchField || ctx.duty || ctx.customerRaw || '핵심 산업');
+  }
+  function inferSector(ctx){
+    const raw = cleanText([ctx.customerRaw, ctx.researchField, ctx.interestField, ctx.duty, ctx.org, ctx.dept].join(' '));
+    const rules = [
+      [/고분자|폴리머|수지|플라스틱|화학|소재/i, '고분자·첨단소재'],
+      [/조선|선박|해양|LNG|친환경선/i, '조선·해양'],
+      [/반도체|칩|패키징|웨이퍼|파운드리/i, '반도체'],
+      [/배터리|이차전지|전고체|양극재|음극재/i, '이차전지'],
+      [/수소|연료전지|전해조|AEM|PEM/i, '수소·연료전지'],
+      [/원자력|SMR|방사선|핵연료/i, '원자력'],
+      [/탄소|CCUS|탄소중립|배출권/i, '탄소중립'],
+      [/AI|인공지능|GPU|서버|데이터센터/i, 'AI 인프라'],
+      [/자동차|전기차|모빌리티|자율주행/i, '미래차'],
+      [/바이오|의약|헬스케어|신약/i, '바이오·헬스케어']
     ];
-    return base.map((title,i)=>({
-      title,
-      publisher: pubs[i % pubs.length],
-      year: 2026 - (i % 3),
-      pages: 160 + i*20,
-      listPrice: `${280 + i*20}만원`,
-      supplyPrice: `${230 + i*18}만원`,
-      link: `https://example.com/report-${i+1}`
+    const hit = rules.find(([re])=>re.test(raw));
+    return hit ? hit[1] : firstUseful(ctx);
+  }
+  function trimKeyword(v, fallback){
+    const s = cleanText(v).replace(/보고서|자료|시장|관련/g,' ').replace(/\s+/g,' ').trim();
+    return s || fallback || '핵심 산업';
+  }
+  function makeEnglishTopic(ko){
+    const map = {
+      '고분자·첨단소재':'Polymer and Advanced Materials',
+      '조선·해양':'Shipbuilding and Offshore',
+      '반도체':'Semiconductor',
+      '이차전지':'Secondary Battery',
+      '수소·연료전지':'Hydrogen and Fuel Cell',
+      '원자력':'Nuclear Energy',
+      '탄소중립':'Carbon Neutrality',
+      'AI 인프라':'AI Infrastructure',
+      '미래차':'Future Mobility',
+      '바이오·헬스케어':'Bio and Healthcare'
+    };
+    return map[ko] || cleanText(ko).replace(/[가-힣]+/g,'Market').replace(/\s+/g,' ').trim() || 'Industry';
+  }
+  function qualityDate(idx){
+    const dates = ['2026년 4월','2026년 3월','2025년 12월','2025년 10월','2025년 8월'];
+    return dates[idx % dates.length];
+  }
+  function qualityPages(idx){
+    return String([184, 212, 246, 168, 198][idx % 5]) + ' Pages';
+  }
+  function qualityPrice(idx, kind){
+    const list = ['￦4,800,000','￦5,200,000','￦4,500,000','￦5,600,000','￦4,900,000'];
+    const supply = ['별도 문의','별도 문의','별도 문의','별도 문의','별도 문의'];
+    return kind === 'supply' ? supply[idx % supply.length] : list[idx % list.length];
+  }
+  function buildReportPool(ctx, pubs){
+    const sector = inferSector(ctx);
+    const topic = trimKeyword(ctx.interestField || ctx.researchField || ctx.duty, sector);
+    const orgFocus = cleanText(ctx.org || ctx.dept || '연구기관');
+    const enTopic = makeEnglishTopic(sector);
+    const titlePairs = [
+      [`${enTopic} Market Intelligence and Technology Outlook 2026`, `${sector} 시장·기술 전망 보고서 2026`],
+      [`${enTopic} Supply Chain and Competitive Landscape Analysis`, `${sector} 공급망 및 경쟁구도 분석 보고서`],
+      [`${enTopic} Demand Forecast and Application Strategy Review`, `${sector} 수요전망 및 적용전략 검토 보고서`],
+      [`${enTopic} Key Players, Materials and Process Trend Report`, `${sector} 주요 기업·소재·공정 동향 보고서`],
+      [`${enTopic} R&D, Investment and Commercialization Opportunity Study`, `${sector} 연구개발·투자·사업화 기회 분석 보고서`],
+      [`${topic} Technology Adoption and Market Entry Analysis`, `${topic} 기술 도입 및 시장 진입 분석 보고서`],
+      [`${orgFocus} Focused ${enTopic} Reference Report`, `${orgFocus} 검토용 ${sector} 참고 보고서`]
+    ];
+    return titlePairs.map(([titleEn,titleKo],i)=>({
+      title: titleKo,
+      titleEn,
+      titleKo,
+      publisher: pubs[i % pubs.length] || 'MarketsandMarkets',
+      date: qualityDate(i),
+      pages: qualityPages(i),
+      listPrice: qualityPrice(i, 'list'),
+      supplyPrice: qualityPrice(i, 'supply'),
+      link: `https://example.com/${encodeURIComponent(sector).replace(/%/g,'').slice(0,18)}-${i+1}`,
+      fitReason: `${orgFocus}의 ${topic} 검토에 맞춰 시장규모, 수요전망, 경쟁구도, 적용분야를 한 번에 확인할 수 있는 자료`
     }));
   }
   function buildGuideSet(ctx, idx, pool, pubs){
     const reports = rotate(pool, idx).slice(0, 5);
     const top = reports[0];
     const risk = pickRisk(ctx.customerRaw, ctx.publisherMemo);
-    const englishTitles = [
-      `${ctx.interestField || ctx.researchField || 'Market'} Outlook Report`,
-      `${ctx.duty || ctx.interestField || 'Technology'} Competitive Analysis`,
-      `${ctx.org || 'Enterprise'} Strategy Review`,
-      `${ctx.interestField || 'Industry'} Value Chain Report`,
-      `${ctx.researchField || ctx.duty || 'Sector'} Opportunity Report`
-    ];
-    const koreanTitles = [
-      `${ctx.interestField || ctx.researchField || '관련'} 시장 보고서`,
-      `${ctx.duty || ctx.interestField || '관련'} 경쟁 구도 분석 보고서`,
-      `${ctx.org || '기관'} 검토용 전략 보고서`,
-      `${ctx.interestField || '관련 산업'} 밸류체인 보고서`,
-      `${ctx.researchField || ctx.duty || '관련 분야'} 기회 분석 보고서`
-    ];
+    const sector = inferSector(ctx);
+    const topic = trimKeyword(ctx.interestField || ctx.researchField || ctx.duty, sector);
+    const orgFocus = cleanText(ctx.org || ctx.dept || '고객 기관');
     const toc = [
       '1. Executive Summary',
-      '2. Market Overview',
-      '3. Competitive Landscape',
-      '4. Demand and Opportunity',
-      '5. Strategic Implications'
+      `2. ${sector} Market Overview`,
+      '3. Technology and Application Trends',
+      '4. Supply Chain and Competitive Landscape',
+      '5. Demand Forecast by Application',
+      '6. Key Players and Benchmarking',
+      `7. Implications for ${orgFocus}`,
+      '8. Appendix: Methodology and Data Sources'
     ].join('\n');
     const mailSubjects = [
-      `[자료 안내] ${ctx.org || '기관'} ${ctx.name || ''}${ctx.title ? ' ' + ctx.title : ''}님 관련 자료`,
-      `[시장자료] ${ctx.interestField || ctx.duty || ctx.researchField || '관련 분야'} 검토용 자료 안내`,
-      `[정보 전달] ${ctx.org || '기관'} 관련 최신 보고서 정리`,
-      `[참고자료] ${ctx.interestField || ctx.researchField || '관련 분야'} 중심 자료 안내`,
-      `[업무 참고] ${ctx.dept || ctx.org || '기관'} 검토용 보고서 전달`
+      `[자료 안내] ${orgFocus} ${topic} 검토용 보고서`,
+      `[시장자료] ${sector} 시장·기술 전망 자료 안내`,
+      `[참고자료] ${topic} 공급망·경쟁구도 분석 자료`,
+      `[업무 참고] ${orgFocus} 적용 가능 보고서 정리`,
+      `[검토자료] ${sector} 수요전망 및 주요 기업 자료`
     ];
     return {
-      guideTitleEn: englishTitles[idx],
-      guideTitleKo: koreanTitles[idx],
+      guideTitleEn: top.titleEn,
+      guideTitleKo: top.titleKo,
       report: top,
       reports,
       toc,
       risk,
-      subject: mailSubjects[idx]
+      subject: mailSubjects[idx % mailSubjects.length],
+      qualityNote: `품질엔진 v1 적용: ${sector} / ${topic} / ${orgFocus}`
     };
   }
   function currentContext(){
@@ -2959,6 +3019,27 @@ JSON.stringify({
     write('firstFailView', fail);
     return fail;
   }
+
+  function copyDiagPacketToClipboard(label){
+    const el = $('diagPacket');
+    const text = el ? ((el.value !== undefined ? el.value : el.textContent) || '') : '';
+    const okLog = msg => write('autoLog', {at:now(), event:'CLIPBOARD_COPY', status:msg, target:'DIAG_PACKET', label:label||'DIAG_PACKET'});
+    if(!text || text.indexOf('{') === -1){ okLog('EMPTY_PACKET'); return false; }
+    try{
+      if(el && el.select){ el.focus(); el.select(); if(el.setSelectionRange) el.setSelectionRange(0, text.length); }
+      const copied = document.execCommand && document.execCommand('copy');
+      if(copied){ okLog('COPY_OK_EXEC_COMMAND'); return true; }
+    }catch(e){ okLog('EXEC_COMMAND_FAIL: ' + e.message); }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ okLog('COPY_OK_NAVIGATOR'); }).catch(function(err){ okLog('NAVIGATOR_COPY_FAIL: ' + err.message); });
+        return true;
+      }
+    }catch(e){ okLog('NAVIGATOR_COPY_FAIL: ' + e.message); }
+    okLog('COPY_FAIL_SELECT_DIAG_PACKET_MANUALLY');
+    return false;
+  }
+
   function makePacket(){
     const p = probe();
     const f = firstFailFrom(p);
@@ -2993,6 +3074,7 @@ JSON.stringify({
         mutation_count: STORE.mutationLog.length
       }
     });
+    copyDiagPacketToClipboard('AUTO_DIAG_CLICK');
     const db = $('diagBadge');
     if(db) db.textContent = 'DIAG: ' + f.status;
     badge('자동진단 완료: ' + f.status, f.status === 'PASS' ? 'ok' : 'warn');
@@ -3060,6 +3142,7 @@ JSON.stringify({
     STORE.firstFail = f;
     write('firstFailView', f);
     write('diagPacket', {generated_at:now(), recheck:result, first_fail:f, target_probe:p, mutation_log:STORE.mutationLog.slice(-20)});
+    copyDiagPacketToClipboard('RECHECK_CLICK');
     write('autoLog', {at:now(), event:'RECHECK_CLICK', result:result});
     write('coreLog', {at:now(), event:'RECHECK_FIRST_FAIL', first_fail:f});
     badge('재검증: ' + result.status, result.status === 'PASS' ? 'ok' : 'warn');
