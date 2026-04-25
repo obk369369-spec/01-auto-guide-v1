@@ -84,12 +84,22 @@
   .state-bad{color:#c62828;font-weight:700;}
   .mini-log{font-size:11px;color:#555;white-space:pre-wrap;line-height:1.45;margin-top:8px;}
 
+  .visible-lock-banner{display:grid;grid-template-columns:1.1fr 1.2fr 1fr 1fr;gap:8px;padding:10px 12px;background:#111827;color:#fff;border-bottom:3px solid #f59e0b;font-size:12px;line-height:1.4;}
+  .visible-lock-banner b{display:block;font-size:13px;margin-bottom:3px;color:#fde68a;}
+  .visible-lock-banner .cell{border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px;background:rgba(255,255,255,.06);}
+  .visible-lock-banner .ok{color:#bbf7d0;font-weight:700;}
+  .visible-lock-banner .warn{color:#fed7aa;font-weight:700;}
+  .fixed-error-panel{border:2px solid #111827;border-radius:10px;background:#fff;margin:10px 0;padding:10px;font-size:12px;line-height:1.5;}
+  .fixed-error-panel h3{margin:0 0 8px 0;font-size:14px;}
+  .fixed-error-panel .row{display:flex;justify-content:space-between;border-bottom:1px dashed #ddd;padding:4px 0;gap:8px;}
+  .fixed-error-panel .row:last-child{border-bottom:0;}
+
 </style>
 
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / SINGLE_WRITE_LOCK_V1 / TARGET_MAP_FIXED / COVERAGE_QA_V1</div>
+    <div class="title">1번 고객 자동화 안내서 - VISIBLE_CHANGE_LOCK_V1 / 화면변화표시 / 단일쓰기잠금 유지</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -189,6 +199,13 @@
         <div class="checkrow"><span>목차 안정도</span><span id="checkToc" class="state-bad">미확인</span></div>
         <div class="checkrow"><span>최종 안정 등급</span><span id="checkGrade" class="state-bad">C</span></div>
         <div class="mini-log" id="checkExplain">실데이터 검증 전</div>
+      </div>
+      <div class="fixed-error-panel" id="fixedErrorPanel">
+        <h3>고정오류 후보 / 반복 차단</h3>
+        <div class="row"><span>EMPTY_midTitleEn</span><span class="state-warn">후보: 영문 타이틀 생성 흐름</span></div>
+        <div class="row"><span>RIGHT_VALUE_EMPTY / guideDate</span><span class="state-warn">후보: 발행일 표시 연결</span></div>
+        <div class="row"><span>TOC_LINE_MERGE</span><span class="state-warn">후보: 목차 줄바꿈 유지</span></div>
+        <div class="hint">같은 error_hash가 2회 반복되면 같은 수정 반복 금지 → 고정오류로 묶고 다른 방식으로 수정</div>
       </div>
 
     </div>
@@ -3165,6 +3182,24 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<script>
+(function(){
+  window.__VISIBLE_CHANGE_LOCK_V1__={version:'VISIBLE_CHANGE_LOCK_V1', applied_at:new Date().toISOString(), rule:'visible version marker + fixed-error candidate panel'};
+  function $(id){return document.getElementById(id);}
+  function put(id,msg){var el=$(id); if(!el) return; if('value' in el) el.value=msg; else el.textContent=msg;}
+  window.addEventListener('load',function(){
+    try{
+      var tag=$('tagBadge'); if(tag) tag.textContent='TAG: VISIBLE_LOCK';
+      var diag=$('diagBadge'); if(diag) diag.textContent='DIAG: VISIBLE_CHANGE_LOCK_V1';
+      var auto=$('autoLog');
+      if(auto && !String(auto.value||auto.textContent||'').includes('VISIBLE_CHANGE_LOCK_V1')){
+        put('autoLog', JSON.stringify({at:new Date().toISOString(),event:'VISIBLE_CHANGE_LOCK_V1',status:'READY',message:'상단 변화표시와 고정오류 후보 패널 적용됨'},null,2));
+      }
+    }catch(e){}
+  });
+})();
+</script>
 </body>
 
 </html>
