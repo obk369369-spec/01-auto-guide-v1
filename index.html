@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_RULE_ONLY_V1 / 6번 목차정리원리만 이식 / 좌우분할 폐기</div>
+    <div class="title">1번 고객 자동화 안내서 - TOC_BALANCE_LAYOUT_V1 / 목차 균형배치 적용 / 기존 진단 유지</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -127,7 +127,7 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_RULE_ONLY_V1 적용</b><br><span class="real-engine-chip">6번 목차 정리 원리만 이식</span><span class="real-engine-chip">좌우분할 폐기</span><span class="real-engine-chip">UI/좌표/패킷 미이식</span></div>
+  <div><b>TOC_BALANCE_LAYOUT_V1 적용</b><br><span class="real-engine-chip">목차 빈공간 채움</span><span class="real-engine-chip">섹션 단위 균형분배</span><span class="real-engine-chip">진단/좌표 유지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
@@ -1837,6 +1837,64 @@ function ensureInteractiveTagging(){
     }
   }
 
+
+  function tocDepth(line){
+    const t=String(line||'').trim();
+    if(/^[IVX]+\./i.test(t)) return 1;
+    if(/^\d+\.\d+/.test(t)) return 3;
+    if(/^\d+[\.)]?\s+/.test(t) || /^\d+[\.)]$/.test(t)) return 2;
+    return 2;
+  }
+  function cleanTocLines(raw){
+    const noise=/^(목차|table of contents|list of tables|list of figures|table\s+\d+|figure\s+\d+)/i;
+    return String(raw||'').replace(/\r/g,'').split('\n')
+      .map(s=>s.trim())
+      .filter(Boolean)
+      .filter(s=>!noise.test(s));
+  }
+  function buildTocGroups(lines){
+    const groups=[]; let current=null;
+    lines.forEach(line=>{
+      if(/^[IVX]+\./i.test(line) || !current){
+        current={title:line, lines:[line]}; groups.push(current);
+      }else{
+        current.lines.push(line);
+      }
+    });
+    return groups;
+  }
+  function balanceTocColumns(lines){
+    const groups=buildTocGroups(lines);
+    if(lines.length<=6) return {left:lines, right:[], mode:'single'};
+    const total=lines.length;
+    const target=Math.ceil(total/2);
+    let left=[], right=[], leftCount=0;
+    groups.forEach((g,idx)=>{
+      const remainGroups=groups.length-idx;
+      if(leftCount < target || remainGroups===groups.length){ left=left.concat(g.lines); leftCount+=g.lines.length; }
+      else right=right.concat(g.lines);
+    });
+    if(right.length===0 && groups.length>1){
+      right=groups.pop().lines;
+      left=groups.flatMap(g=>g.lines);
+    }
+    if(Math.abs(left.length-right.length) > Math.ceil(total*0.35) && groups.length>=3){
+      left=[]; right=[]; leftCount=0;
+      groups.forEach(g=>{
+        if(leftCount + g.lines.length <= target || left.length===0){ left=left.concat(g.lines); leftCount+=g.lines.length; }
+        else right=right.concat(g.lines);
+      });
+    }
+    return {left,right,mode:'balanced_group'};
+  }
+  function renderTocLine(line){
+    const d=tocDepth(line);
+    const margin = d===1 ? '0' : (d===2 ? '14px' : '28px');
+    const weight = d===1 ? '700' : '400';
+    const size = d===1 ? '10.2pt' : '9.6pt';
+    return `<div style="margin:0 0 3px ${margin};font-size:${size};font-weight:${weight};line-height:1.28;word-break:keep-all;overflow-wrap:anywhere;">${escapeHtml(line)}</div>`;
+  }
+
   function syncInputsToPreview(){
     return singleWriteGuide('syncInputsToPreview');
   }
@@ -1864,11 +1922,14 @@ function ensureInteractiveTagging(){
     setText('guideSupplyPrice', supplyPrice);
     const a=doc.getElementById('guideLinkAnchor'); if(a){ a.setAttribute('href', link || '#'); a.textContent='바로가기'; }
     setText('guideLinkText', link);
-    const lines=textLines(toc); const half=Math.ceil(lines.length/2);
-    setHtml('guideTocLeft', lines.slice(0,half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
-    setHtml('guideTocRight', lines.slice(half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
-    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:lines.length}};
-    try{ log(coreLog, `SINGLE_WRITE_LOCK | ${reason} | toc=${lines.length}`); }catch(e){}
+    const lines=cleanTocLines(toc);
+    const layout=balanceTocColumns(lines);
+    const leftHtml=layout.left.map(renderTocLine).join('');
+    const rightHtml=layout.right.map(renderTocLine).join('');
+    setHtml('guideTocLeft', leftHtml);
+    setHtml('guideTocRight', rightHtml);
+    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:lines.length,tocLayout:layout.mode,tocLeft:layout.left.length,tocRight:layout.right.length}};
+    try{ log(coreLog, `SINGLE_WRITE_LOCK | ${reason} | toc=${lines.length} | layout=${layout.mode} | L=${layout.left.length}/R=${layout.right.length}`); }catch(e){}
     return true;
   }
   if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
