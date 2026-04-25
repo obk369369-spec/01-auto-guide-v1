@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / TARGET_MAP_FIXED</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / TARGET_MAP_FIXED / COVERAGE_QA_V1</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -1131,6 +1131,11 @@ ul
 &lt;/body&gt;&lt;/html&gt;"></iframe>
       <div class="status" id="status">오른쪽 원본 정리 중...</div>
     </div>
+  </div>
+  <div class="bottom-panels" id="coverageQaPanel" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="logpanel"><div class="logtitle">누락 슬롯 점검표</div><pre class="diagbox tracebox" id="missingSlotReport">대기</pre><div class="hint">가운데 9칸과 오른쪽 안내서 실제 반영값을 동시에 점검</div></div>
+    <div class="logpanel"><div class="logtitle">수동 안내서 비교 점수표</div><pre class="diagbox tracebox" id="manualGuideScore">대기</pre><div class="hint">도서정보·링크·목차 밀도·빈칸 비율 기준</div></div>
+    <div class="logpanel"><div class="logtitle">엔진 부족 보고</div><pre class="diagbox tracebox" id="engineGapReport">대기</pre><div class="hint">실제 발행사 긁기/반복값/다음 수정 1개 표시</div></div>
   </div>
   <div class="bottom-panels" id="legacyStatusPanel">
     <div class="logpanel">
@@ -3202,6 +3207,53 @@ JSON.stringify({
 })();
 </script>
 
+<script>
+(function(){
+  function $(id,root){return (root||document).getElementById(id);}
+  function val(id){var el=$(id);return el?String(el.value||el.textContent||'').trim():'';}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function text(id,doc){var el=$(id,doc||document);return el?String(el.textContent||el.value||'').replace(/\s+/g,' ').trim():'';}
+  function lineCount(v){return String(v||'').split(/\n+/).map(function(s){return s.trim();}).filter(Boolean).length;}
+  function write(id,data){var el=$(id);if(!el)return;el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
+  function score(){
+    var doc=frameDoc();
+    var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
+    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocRight:text('guideTocRight',doc)}:{};
+    var midKeys=Object.keys(mid);
+    var rightKeys=['guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocRight'];
+    var middleMissing=midKeys.filter(function(k){return !mid[k];});
+    var rightMissing=rightKeys.filter(function(k){return !right[k];});
+    var toc=lineCount(mid.midToc)||lineCount((right.guideTocLeft||'')+'\n'+(right.guideTocRight||''));
+    var middleFill=Math.round((midKeys.length-middleMissing.length)/midKeys.length*100);
+    var rightFill=Math.round((rightKeys.length-rightMissing.length)/rightKeys.length*100);
+    var docScore=Math.min(40,Math.round(((!!mid.midTitleKo)+(!!mid.bookPub)+(!!mid.bookDate)+(!!mid.bookPage)+(!!mid.bookListPrice)+(!!mid.bookSupplyPrice))/6*40));
+    var linkScore=mid.midLink&&(right.guideLinkText||/https?:/.test(String(right.guideLinkText)))?15:0;
+    var tocScore=Math.min(25,Math.round(toc/12*25));
+    var density=rightFill>=90&&toc>=10?20:rightFill>=70?10:0;
+    var total=docScore+linkScore+tocScore+density;
+    var grade=total>=85?'A':total>=70?'B':total>=55?'C':'D';
+    var gap=[];
+    if(middleMissing.length)gap.push('가운데 9칸 누락: '+middleMissing.join(', '));
+    if(rightMissing.length)gap.push('오른쪽 안내서 미반영: '+rightMissing.join(', '));
+    if(toc<10)gap.push('목차 밀도 부족: 현재 '+toc+'줄 / 최소 10~12줄 필요');
+    if(val('bookPub')==='LIVE_ENDPOINT'||!val('bookPub'))gap.push('발행사 실제 후보 엔진 부족: 현재 임시값 또는 빈값');
+    return {generated_at:new Date().toISOString(),middle_fill:middleFill+'%',right_fill:rightFill+'%',toc_lines:toc,score:total,grade:grade,middleMissing:middleMissing,rightMissing:rightMissing,gap:gap};
+  }
+  function renderCoverage(){
+    var r=score();
+    write('missingSlotReport',{status:r.gap.length?'FAIL':'PASS',middle_fill:r.middle_fill,right_fill:r.right_fill,middle_missing:r.middleMissing,right_missing:r.rightMissing});
+    write('manualGuideScore',{score:r.score,grade:r.grade,target:'수동 안내서 수준 85점 이상',toc_lines:r.toc_lines});
+    write('engineGapReport',{status:r.gap.length?'보완 필요':'PASS',gaps:r.gap,next_fix:r.gap[0]||'현재 구조 고정 후 다음 품질 엔진으로 이동',rule:'한 번에 1개 엔진만 수정'});
+    var auto=$('autoLog');if(auto)auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'COVERAGE_QA_RUN',score:r.score,grade:r.grade,first_gap:r.gap[0]||'none'},null,2);
+  }
+  window.runCoverageQa=renderCoverage;
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(renderCoverage,400);
+    ['generateBtn','runTestBtn','diagBtn','recheckBtn'].forEach(function(id){var b=$(id);if(b)b.addEventListener('click',function(){setTimeout(renderCoverage,250);},true);});
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){var e=$(id);if(e)e.addEventListener('input',function(){setTimeout(renderCoverage,150);});});
+  });
+})();
+</script>
 </body>
 
 </html>
