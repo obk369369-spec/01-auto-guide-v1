@@ -1811,9 +1811,40 @@ function ensureInteractiveTagging(){
     }
   }
 
+
+  /* TITLE_EN_FIXED_V1: 영문 타이틀 빈값/() 방지 안전 보정 */
+  function inferEnglishTitleSafe(ko, ctxText){
+    const raw = String((ko||'') + ' ' + (ctxText||'')).trim();
+    const rules = [
+      [/조선|선박|해양|LNG|친환경선/i, 'Shipbuilding and Offshore Industry Market Report 2026'],
+      [/반도체|칩|패키징|웨이퍼|파운드리/i, 'Semiconductor Market and Technology Outlook Report 2026'],
+      [/이차전지|배터리|전고체|양극재|음극재/i, 'Secondary Battery Market and Technology Outlook Report 2026'],
+      [/수소|연료전지|전해조|PEM|AEM/i, 'Hydrogen and Fuel Cell Market Outlook Report 2026'],
+      [/원자력|SMR|방사선|핵연료/i, 'Nuclear Energy Market and Technology Outlook Report 2026'],
+      [/태양광|태양열|재생에너지/i, 'Solar Energy Market and Technology Outlook Report 2026'],
+      [/바이오|의약|헬스케어|신약/i, 'Bio and Healthcare Market Outlook Report 2026'],
+      [/AI|인공지능|GPU|서버|데이터센터/i, 'AI Infrastructure Market Outlook Report 2026'],
+      [/탄소|CCUS|탄소중립|배출권/i, 'Carbon Neutrality Market and Technology Outlook Report 2026']
+    ];
+    const hit = rules.find(([re])=>re.test(raw));
+    if(hit) return hit[1];
+    return 'Market and Technology Outlook Report 2026';
+  }
+  function stabilizeMidTitleEn(){
+    const enEl = document.getElementById('midTitleEn');
+    if(!enEl) return '';
+    const cur = String(enEl.value||'').trim();
+    if(cur && cur !== '()') return cur;
+    const ko = document.getElementById('midTitleKo')?.value || '';
+    const ctx = [document.getElementById('customerRaw')?.value,document.getElementById('researchField')?.value,document.getElementById('interestField')?.value,document.getElementById('duty')?.value].join(' ');
+    const made = inferEnglishTitleSafe(ko, ctx);
+    enEl.value = made;
+    return made;
+  }
+
   function syncInputsToPreview(){
     const doc=frame.contentDocument; if(!doc) return;
-    const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
+    const titleEn=stabilizeMidTitleEn();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
     const pub=(document.getElementById('bookPub')?.value||'').trim();
@@ -2035,10 +2066,10 @@ function ensureInteractiveTagging(){
     };
   }
   function fillMiddleFromGuide(g){
-    document.getElementById('midTitleEn').value = g.guideTitleEn || '';
+    document.getElementById('midTitleEn').value = g.guideTitleEn || inferEnglishTitleSafe(g.guideTitleKo || g.report?.title || '', '');
     document.getElementById('midTitleKo').value = g.guideTitleKo || '';
     document.getElementById('bookPub').value = g.report?.publisher || '';
-    document.getElementById('bookDate').value = String(g.report?.year || '');
+    document.getElementById('bookDate').value = String(g.report?.date || g.report?.year || '');
     document.getElementById('bookPage').value = String(g.report?.pages || '');
     document.getElementById('bookListPrice').value = g.report?.listPrice || '';
     document.getElementById('bookSupplyPrice').value = g.report?.supplyPrice || '';
