@@ -3314,3 +3314,55 @@ endpoint: ${endpoint}`
 </body>
 
 </html>
+<script id="tocCheckSyncV1">
+(function(){
+  'use strict';
+  function $(id,root){return (root||document).getElementById(id);}
+  function val(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
+  function frameDoc(){var f=$('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function write(id,data){var el=$(id); if(!el) return; el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
+  function text(id,doc){var el=$(id,doc||document); return el?String(el.textContent||el.value||'').trim():'';}
+  function tocLineCountFromDom(doc){
+    if(!doc) return 0;
+    var left=$('guideTocLeft',doc), right=$('guideTocRight',doc), nodes=[];
+    [left,right].forEach(function(root){
+      if(!root) return;
+      var divs=root.querySelectorAll('div');
+      if(divs && divs.length){ divs.forEach(function(d){ if(String(d.textContent||'').trim()) nodes.push(d); }); }
+      else if(String(root.textContent||'').trim()){ nodes.push(root); }
+    });
+    return nodes.length;
+  }
+  function tocTextLineCount(v){return String(v||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean).length;}
+  function syncReports(){
+    var doc=frameDoc();
+    var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
+    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocRight:text('guideTocRight',doc)}:{};
+    var midKeys=Object.keys(mid), rightKeys=['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'];
+    var middleMissing=midKeys.filter(function(k){return !mid[k];});
+    var rightMissing=rightKeys.filter(function(k){return !right[k];});
+    var tocLinesDom=tocLineCountFromDom(doc), tocLinesMid=tocTextLineCount(mid.midToc), tocLines=Math.max(tocLinesDom,tocLinesMid);
+    var middleFill=Math.round((midKeys.length-middleMissing.length)/midKeys.length*100), rightFill=Math.round((rightKeys.length-rightMissing.length)/rightKeys.length*100);
+    var tocStatus=tocLines>=18?'PASS':tocLines>=10?'WARN':'FAIL';
+    var docInfoScore=Math.round(((!!mid.midTitleEn)+(!!mid.midTitleKo)+(!!mid.bookPub)+(!!mid.bookDate)+(!!mid.bookPage)+(!!mid.bookListPrice)+(!!mid.bookSupplyPrice)+(!!mid.midLink))/8*45);
+    var tocScore=Math.min(35,Math.round(tocLines/24*35)), rightScore=rightFill>=90?20:rightFill>=70?10:0;
+    var total=docInfoScore+tocScore+rightScore, grade=total>=85?'A':total>=70?'B':total>=55?'C':'D';
+    var gaps=[]; if(middleMissing.length) gaps.push('가운데 누락: '+middleMissing.join(', ')); if(rightMissing.length) gaps.push('오른쪽 누락: '+rightMissing.join(', ')); if(tocLines<18) gaps.push('목차 라인 부족 또는 공간 채움 약함: 현재 '+tocLines+'줄');
+    write('missingSlotReport',{status:gaps.length?'FAIL':'PASS',version:'TOC_CHECK_SYNC_V1',middle_fill:middleFill+'%',right_fill:rightFill+'%',toc_lines_from_dom:tocLinesDom,toc_lines_from_middle:tocLinesMid,middle_missing:middleMissing,right_missing:rightMissing});
+    write('manualGuideScore',{version:'TOC_CHECK_SYNC_V1',score:total,grade:grade,target:'수동 안내서 수준 85점 이상',toc_lines:tocLines,toc_status:tocStatus,rule:'오른쪽 guideTocLeft 실제 DOM div 개수를 우선 계산'});
+    write('engineGapReport',{status:gaps.length?'보완 필요':'PASS',version:'TOC_CHECK_SYNC_V1',gaps:gaps,next_fix:gaps[0]||'목차 공간 채움 세부 조정으로 이동 가능'});
+    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_CHECK_SYNC_V1_RUN',status:gaps.length?'FAIL':'PASS',toc_lines:tocLines,score:total,grade:grade},null,2);
+  }
+  window.runCoverageQa=syncReports; window.runTocCheckSyncV1=syncReports;
+  function install(){
+    var bar=document.createElement('div');
+    bar.style.cssText='padding:8px 12px;background:#e9f7ef;border-bottom:1px solid #9ed0ad;font-weight:700;font-size:13px;';
+    bar.textContent='TOC_CHECK_SYNC_V1 적용: 아래 점검표가 오른쪽 안내서 실제 목차 DOM을 읽어 toc_lines / 채움률 / 안정도를 갱신합니다.';
+    var wrap=document.querySelector('.wrap'); if(wrap && wrap.parentNode) wrap.parentNode.insertBefore(bar,wrap);
+    setTimeout(syncReports,700);
+    ['generateBtn','diagBtn','recheckBtn','runTestBtn'].forEach(function(id){var b=$(id); if(b) b.addEventListener('click',function(){setTimeout(syncReports,600); setTimeout(syncReports,1500);},true);});
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){var e=$(id); if(e)e.addEventListener('input',function(){setTimeout(syncReports,250);});});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
+})();
+</script>
