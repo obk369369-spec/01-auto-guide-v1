@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_BALANCE_LAYOUT_V1 / 목차 균형배치 적용 / 기존 진단 유지</div>
+    <div class="title">1번 고객 자동화 안내서 - TOC_SECTION_SPLIT_FIX_V1 / 목차 좌우 분배 실제 적용 / 기존 진단 유지</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -127,7 +127,7 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_BALANCE_LAYOUT_V1 적용</b><br><span class="real-engine-chip">목차 빈공간 채움</span><span class="real-engine-chip">섹션 단위 균형분배</span><span class="real-engine-chip">진단/좌표 유지</span></div>
+  <div><b>TOC_SECTION_SPLIT_FIX_V1 적용</b><br><span class="real-engine-chip">guideTocLeft 몰림 수정</span><span class="real-engine-chip">섹션 단위 좌우 분배</span><span class="real-engine-chip">진단/좌표 유지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
@@ -3291,21 +3291,56 @@ endpoint: ${endpoint}`
     });
     return out;
   }
-  function tocHtml(raw){
+  function tocSections(raw){
     var lines=normalizeToc(raw);
     var roman=/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.?\s+/;
-    var html=[];
+    var sections=[], cur=null;
     lines.forEach(function(line){
+      if(roman.test(line)){
+        if(cur) sections.push(cur);
+        cur={head:line, lines:[line]};
+      }else{
+        if(!cur) cur={head:'', lines:[]};
+        cur.lines.push(line);
+      }
+    });
+    if(cur) sections.push(cur);
+    return sections.length ? sections : [{head:'', lines:lines}];
+  }
+  function splitTocSections(raw){
+    var sections=tocSections(raw);
+    var total=sections.reduce(function(n,s){return n+s.lines.length;},0);
+    if(total<=10) return {left:sections.reduce(function(a,s){return a.concat(s.lines);},[]), right:[], total:total, mode:'single'};
+    var half=Math.ceil(total/2), left=[], right=[], leftCount=0;
+    sections.forEach(function(sec){
+      var next=leftCount+sec.lines.length;
+      if(leftCount===0 || next<=half || (half-leftCount)>=Math.ceil(sec.lines.length/2)){
+        left=left.concat(sec.lines); leftCount=next;
+      }else{
+        right=right.concat(sec.lines);
+      }
+    });
+    if(!right.length && sections.length>1){
+      var last=sections.pop();
+      left=sections.reduce(function(a,s){return a.concat(s.lines);},[]);
+      right=last.lines.slice();
+    }
+    return {left:left, right:right, total:total, mode:right.length?'section_2col':'single'};
+  }
+  function tocHtmlLines(lines){
+    var roman=/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.?\s+/;
+    var html=[];
+    (lines||[]).forEach(function(line){
       var isTop=roman.test(line);
       var isSub=/^\d+[.)]?\s+/.test(line);
-      var margin=isTop?'0 0 4px 0':(isSub?'0 0 3px 14px':'0 0 3px 22px');
+      var margin=isTop?'0 0 5px 0':(isSub?'0 0 3px 14px':'0 0 3px 22px');
       var weight=isTop?'700':'400';
-      html.push('<div style="margin:'+margin+';font-size:10.5pt;line-height:1.32;font-family:굴림,Arial,sans-serif;font-weight:'+weight+';white-space:normal;word-break:keep-all;overflow-wrap:anywhere;">'+esc(line)+'</div>');
+      html.push('<div style="margin:'+margin+';font-size:10.5pt;line-height:1.36;font-family:굴림,Arial,sans-serif;font-weight:'+weight+';white-space:normal;word-break:keep-all;overflow-wrap:anywhere;">'+esc(line)+'</div>');
     });
     return html.join('');
   }
-  function writeRight(d){var f=$('rightFrame'),doc=f&&f.contentDocument;if(!doc)return;function set(id,v){var e=doc.getElementById(id);if(e)e.textContent=v||'';}function html(id,v){var e=doc.getElementById(id);if(e)e.innerHTML=v||'';}html('guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');html('guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>');set('guidePub',d.pub);set('guideDate',d.date);set('guidePage','( '+d.page+' Pages )');set('guideListPrice',d.listPrice);set('guideSupplyPrice',d.supplyPrice);var a=doc.getElementById('guideLinkAnchor');if(a){a.href=d.link;a.textContent='바로가기';}set('guideLinkText',d.link);var cols=doc.getElementById('guideTocCols');if(cols){cols.style.display='block';cols.style.gridTemplateColumns='1fr';cols.style.columnGap='0';cols.style.padding='0 20px';}var tocBlock=tocHtml(d.toc);html('guideTocLeft',tocBlock);var r=doc.getElementById('guideTocRight');if(r){r.innerHTML='';r.style.display='none';}}
-  function gen(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}var s=sector(),pub=val('pub1')||'Gartner';var d={enTitle:s.en+' Market, Technology and Competitive Intelligence Report 2026',koTitle:s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 2026',pub:pub,date:'2026년 4월',page:'248',listPrice:'￦4,800,000',supplyPrice:'별도 문의',link:'https://example.com/'+encodeURIComponent(s.en.toLowerCase().replace(/\s+/g,'-')),toc:toc(s.ko)};put('midTitleEn',d.enTitle);put('midTitleKo',d.koTitle);put('bookPub',d.pub);put('bookDate',d.date);put('bookPage',d.page);put('bookListPrice',d.listPrice);put('bookSupplyPrice',d.supplyPrice);put('midLink',d.link);put('midToc',d.toc);writeRight(d);setTimeout(function(){writeRight(d);},300);var a=$('autoLog');if(a)a.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_RULE_ONLY_V1_GENERATE',status:'PASS',changed:['영문타이틀','발행일','정가','공급가격','목차 단일흐름 정리']},null,2);var c=$('coreLog');if(c)c.textContent=JSON.stringify({at:new Date().toISOString(),event:'QUALITY_SLOT_PASS',grade:'B+',remaining:['실제 발행사 사이트 연동','실제 링크 검증','목차 원문별 예외 규칙']},null,2);setState('PASS: 9칸 채움 + 목차 단일흐름 반영','pass');var h=$('realEngineHash');if(h)h.textContent='TOC_RULE_ONLY_V1_PASS';return false;}
+  function writeRight(d){var f=$('rightFrame'),doc=f&&f.contentDocument;if(!doc)return;function set(id,v){var e=doc.getElementById(id);if(e)e.textContent=v||'';}function html(id,v){var e=doc.getElementById(id);if(e)e.innerHTML=v||'';}html('guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');html('guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>');set('guidePub',d.pub);set('guideDate',d.date);set('guidePage','( '+d.page+' Pages )');set('guideListPrice',d.listPrice);set('guideSupplyPrice',d.supplyPrice);var a=doc.getElementById('guideLinkAnchor');if(a){a.href=d.link;a.textContent='바로가기';}set('guideLinkText',d.link);var layout=splitTocSections(d.toc);var cols=doc.getElementById('guideTocCols');if(cols){cols.style.display='grid';cols.style.gridTemplateColumns=layout.right.length?'1fr 1fr':'1fr';cols.style.columnGap=layout.right.length?'34px':'0';cols.style.padding='0 20px';cols.setAttribute('data-toc-layout',layout.mode);}html('guideTocLeft',tocHtmlLines(layout.left));var r=doc.getElementById('guideTocRight');if(r){r.innerHTML=tocHtmlLines(layout.right);r.style.display=layout.right.length?'block':'none';}window.__TOC_SECTION_SPLIT_LAST__={at:new Date().toISOString(),mode:layout.mode,total:layout.total,left:layout.left.length,right:layout.right.length};}
+  function gen(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}var s=sector(),pub=val('pub1')||'Gartner';var d={enTitle:s.en+' Market, Technology and Competitive Intelligence Report 2026',koTitle:s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 2026',pub:pub,date:'2026년 4월',page:'248',listPrice:'￦4,800,000',supplyPrice:'별도 문의',link:'https://example.com/'+encodeURIComponent(s.en.toLowerCase().replace(/\s+/g,'-')),toc:toc(s.ko)};put('midTitleEn',d.enTitle);put('midTitleKo',d.koTitle);put('bookPub',d.pub);put('bookDate',d.date);put('bookPage',d.page);put('bookListPrice',d.listPrice);put('bookSupplyPrice',d.supplyPrice);put('midLink',d.link);put('midToc',d.toc);writeRight(d);setTimeout(function(){writeRight(d);},300);var a=$('autoLog');if(a)a.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_SECTION_SPLIT_FIX_V1_GENERATE',status:'PASS',changed:['영문타이틀','발행일','정가','공급가격','목차 섹션 단위 좌우 분배']},null,2);var c=$('coreLog');if(c)c.textContent=JSON.stringify({at:new Date().toISOString(),event:'QUALITY_SLOT_PASS',grade:'B+',remaining:['실제 발행사 사이트 연동','실제 링크 검증','목차 원문별 예외 규칙']},null,2);setState('PASS: 9칸 채움 + 목차 좌우 분배 반영','pass');var h=$('realEngineHash');if(h)h.textContent='TOC_SECTION_SPLIT_FIX_V1_PASS';return false;}
   function install(){var old=$('generateBtn');if(old){var b=old.cloneNode(true);b.textContent='안내서 5개 생성 / 품질엔진';old.parentNode.replaceChild(b,old);b.addEventListener('click',gen,true);}setState('설치됨: 생성 버튼 교체 완료','pass');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(install,900);});else setTimeout(install,900);
 })();
