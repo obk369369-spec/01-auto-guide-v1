@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / TARGET_MAP_FIXED / COVERAGE_QA_V1</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / SINGLE_WRITE_LOCK_V1 / TARGET_MAP_FIXED / COVERAGE_QA_V1</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -1811,40 +1811,14 @@ function ensureInteractiveTagging(){
     }
   }
 
-
-  /* TITLE_EN_FIXED_V1: 영문 타이틀 빈값/() 방지 안전 보정 */
-  function inferEnglishTitleSafe(ko, ctxText){
-    const raw = String((ko||'') + ' ' + (ctxText||'')).trim();
-    const rules = [
-      [/조선|선박|해양|LNG|친환경선/i, 'Shipbuilding and Offshore Industry Market Report 2026'],
-      [/반도체|칩|패키징|웨이퍼|파운드리/i, 'Semiconductor Market and Technology Outlook Report 2026'],
-      [/이차전지|배터리|전고체|양극재|음극재/i, 'Secondary Battery Market and Technology Outlook Report 2026'],
-      [/수소|연료전지|전해조|PEM|AEM/i, 'Hydrogen and Fuel Cell Market Outlook Report 2026'],
-      [/원자력|SMR|방사선|핵연료/i, 'Nuclear Energy Market and Technology Outlook Report 2026'],
-      [/태양광|태양열|재생에너지/i, 'Solar Energy Market and Technology Outlook Report 2026'],
-      [/바이오|의약|헬스케어|신약/i, 'Bio and Healthcare Market Outlook Report 2026'],
-      [/AI|인공지능|GPU|서버|데이터센터/i, 'AI Infrastructure Market Outlook Report 2026'],
-      [/탄소|CCUS|탄소중립|배출권/i, 'Carbon Neutrality Market and Technology Outlook Report 2026']
-    ];
-    const hit = rules.find(([re])=>re.test(raw));
-    if(hit) return hit[1];
-    return 'Market and Technology Outlook Report 2026';
-  }
-  function stabilizeMidTitleEn(){
-    const enEl = document.getElementById('midTitleEn');
-    if(!enEl) return '';
-    const cur = String(enEl.value||'').trim();
-    if(cur && cur !== '()') return cur;
-    const ko = document.getElementById('midTitleKo')?.value || '';
-    const ctx = [document.getElementById('customerRaw')?.value,document.getElementById('researchField')?.value,document.getElementById('interestField')?.value,document.getElementById('duty')?.value].join(' ');
-    const made = inferEnglishTitleSafe(ko, ctx);
-    enEl.value = made;
-    return made;
-  }
-
   function syncInputsToPreview(){
-    const doc=frame.contentDocument; if(!doc) return;
-    const titleEn=stabilizeMidTitleEn();
+    return singleWriteGuide('syncInputsToPreview');
+  }
+
+  function singleWriteGuide(reason){
+    const doc=frame.contentDocument; if(!doc) return false;
+    applyRightTemplateFixes();
+    const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
     const pub=(document.getElementById('bookPub')?.value||'').trim();
@@ -1853,53 +1827,32 @@ function ensureInteractiveTagging(){
     const listPrice=(document.getElementById('bookListPrice')?.value||'').trim();
     const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
     const link=(document.getElementById('midLink')?.value||'').trim();
-
-    const titleEnNode = doc.querySelector('[data-slot-title-en]');
-    const titleKoNode = doc.querySelector('[data-slot-title-ko]');
-    const book1 = doc.querySelector('[data-slot-book-line1]');
-    const book2 = doc.querySelector('[data-slot-book-line2]');
-    const linkNode = doc.querySelector('[data-slot-link-line]');
-    const tocNode = doc.querySelector('[data-slot-toc-line]');
-
-    if(titleEnNode){
-      titleEnNode.innerHTML = `<b><span lang="EN-US" style="font-size:15.0pt;font-family:굴림;">${escapeHtml(titleEn||'')}</span></b>`;
-      titleEnNode.style.textAlign='center';
-      titleEnNode.style.margin='0';
-      titleEnNode.style.lineHeight='1.05';
-    }
-    if(titleKoNode){
-      titleKoNode.innerHTML = `<b><span style="font-size:13.0pt;font-family:굴림;">( ${escapeHtml(titleKo||'')} )</span></b>`;
-      titleKoNode.style.textAlign='center';
-      titleKoNode.style.margin='2px 0 0 0';
-      titleKoNode.style.lineHeight='1.05';
-    }
-    if((titleEn||titleKo) && (titleEnNode || titleKoNode)){
-      log(coreLog, `제목 동기화 | ${(titleEn+' / '+titleKo).trim().slice(0,80)}`);
-    }
-
-    if(book1){
-      book1.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행사:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(pub||'')}</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;( ${escapeHtml(page||'')} Pages )&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 정가:</span> <span style="font-size:11.0pt;font-family:Arial;">${escapeHtml(listPrice||'')} </span>`;
-    }
-    if(book2){
-      const dateTxt = date ? `${escapeHtml(date)}년` : '년';
-      book2.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◇ 발행일:</span> <span style="font-size:11.0pt;font-family:굴림;">${dateTxt}&nbsp;&nbsp;&nbsp;&nbsp;월</span><span style="font-size:11.0pt;font-family:Arial;">&nbsp;&nbsp;&nbsp;&nbsp;-PDF-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:11.0pt;font-family:굴림;font-weight:bold;">◆ 공급가격:</span> <span style="font-size:11.0pt;font-family:굴림;">${escapeHtml(supplyPrice||'')} 원</span>`;
-    }
-    if(linkNode){
-      linkNode.innerHTML = `<span style="font-size:11.0pt;font-family:굴림;">● 보고서 링크 [바로가기] : ${escapeHtml(link||'')}</span>`;
-    }
-    if(tocNode){
-      tocNode.innerHTML = toc ? escapeHtml(toc).replace(/
-/g,'<br>') : '&nbsp;';
-      tocNode.style.whiteSpace='pre-wrap';
-      tocNode.style.lineHeight='1.35';
-    }
+    const setText=(id,value)=>{ const el=doc.getElementById(id); if(!el) return false; el.textContent=value || ''; return true; };
+    const setHtml=(id,html)=>{ const el=doc.getElementById(id); if(!el) return false; el.innerHTML=html || ''; return true; };
+    setHtml('guideTitleEn', `<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(titleEn||'')}</span></b>`);
+    setHtml('guideTitleKo', titleKo ? `<span style="font-size:15pt;font-family:굴림;">( ${escapeHtml(titleKo)} )</span>` : '');
+    setText('guidePub', pub);
+    setText('guideDate', date);
+    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
+    setText('guideListPrice', listPrice);
+    setText('guideSupplyPrice', supplyPrice);
+    const a=doc.getElementById('guideLinkAnchor'); if(a){ a.setAttribute('href', link || '#'); a.textContent='바로가기'; }
+    setText('guideLinkText', link);
+    const lines=textLines(toc); const half=Math.ceil(lines.length/2);
+    setHtml('guideTocLeft', lines.slice(0,half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
+    setHtml('guideTocRight', lines.slice(half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
+    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:lines.length}};
+    try{ log(coreLog, `SINGLE_WRITE_LOCK | ${reason} | toc=${lines.length}`); }catch(e){}
+    return true;
   }
+  if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
+
   function bindPreviewSync(){
     const ids=['midTitleEn','midTitleKo','midToc','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink'];
     ids.forEach(id=>{
       const el=document.getElementById(id);
       if(!el || el.dataset.syncBound==='1') return;
-      const handler=()=>{ syncInputsToPreview(); autoRepairAndEvaluate(); };
+      const handler=()=>{ syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} }; // SINGLE_WRITE_LOCK
       el.addEventListener('input', handler);
       el.addEventListener('change', handler);
       el.dataset.syncBound='1';
@@ -2066,10 +2019,10 @@ function ensureInteractiveTagging(){
     };
   }
   function fillMiddleFromGuide(g){
-    document.getElementById('midTitleEn').value = g.guideTitleEn || inferEnglishTitleSafe(g.guideTitleKo || g.report?.title || '', '');
+    document.getElementById('midTitleEn').value = g.guideTitleEn || '';
     document.getElementById('midTitleKo').value = g.guideTitleKo || '';
     document.getElementById('bookPub').value = g.report?.publisher || '';
-    document.getElementById('bookDate').value = String(g.report?.date || g.report?.year || '');
+    document.getElementById('bookDate').value = String(g.report?.year || '');
     document.getElementById('bookPage').value = String(g.report?.pages || '');
     document.getElementById('bookListPrice').value = g.report?.listPrice || '';
     document.getElementById('bookSupplyPrice').value = g.report?.supplyPrice || '';
@@ -2167,12 +2120,12 @@ function ensureInteractiveTagging(){
     return packet;
   }
 
-  document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); autoRepairAndEvaluate(); });
+  document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
   document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
   document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
-  frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
-  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); autoRepairAndEvaluate(); makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
+  frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
+  window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
 function syncMiddleToRight(){
@@ -2389,9 +2342,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     setInputValue('midLink', r.link || '');
     setInputValue('midToc', r.toc || '');
     setBridgeStatus('왼쪽→가운데 완료', '가운데값 읽음', '오른쪽쓰기 대기');
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 30);
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 250);
-    setTimeout(bridgeMiddleToRightFromCurrentSet, 700);
+    setTimeout(function(){ if(window.singleWriteGuide) window.singleWriteGuide('setMiddle'); else bridgeMiddleToRightFromCurrentSet(); }, 80);
   }
 
   function ensureSetTabs(){
@@ -2507,10 +2458,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     setBox('mappingBox', 'MAPPING', data);
     const {doc, targets} = probeTargets(data);
     if (!doc) throw new Error('rightFrame.contentDocument 없음');
-    Object.entries(targets).forEach(([id,val]) => {
-      const el = doc.getElementById(id);
-      if (el) el.textContent = val || '';
-    });
+    if(window.singleWriteGuide) window.singleWriteGuide('applyAllDataForced');
   }
 
   const HARD_DENO_URL = "https://sweet-trout-31.obk369369-spec.deno.net";
@@ -2705,88 +2653,7 @@ endpoint: ${endpoint}`
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  function box(id){ return document.getElementById(id); }
-  function setVal(id, text){
-    const el = box(id);
-    if(!el) return;
-    const out = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
-    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = out;
-    else el.textContent = out;
-  }
-  function appendVal(id, text){
-    const el = box(id);
-    if(!el) return;
-    const out = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
-    if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)){
-      el.value = (el.value ? el.value + "\n" : "") + out;
-    } else {
-      el.textContent = (el.textContent ? el.textContent + "\n" : "") + out;
-    }
-  }
-
-  ['runTestBtn','diagBtn','coordBtn'].forEach(function(id){
-    const btn = box(id);
-    if(btn){
-      btn.style.pointerEvents = 'auto';
-      btn.style.cursor = 'pointer';
-      btn.style.position = 'relative';
-      btn.style.zIndex = '9999';
-    }
-  });
-
-  const runBtn = box('runTestBtn');
-  if(runBtn){
-    runBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      setVal('coreLog',
-`[CORE_LOG]
-status: CLICK_OK
-button: 테스트케이스 실행
-time: ` + new Date().toLocaleTimeString('ko-KR', {hour12:false}) + `
-next: 자동진단 버튼 확인`);
-    }, true);
-  }
-
-  const coordBtn = box('coordBtn');
-  if(coordBtn){
-    coordBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      setVal('clickedTraceView',
-JSON.stringify({
-  status: "CLICK_OK",
-  button: "좌표 찍기",
-  area_id: "MANUAL.POINT",
-  area_name_ko: "사용자 지정 위치",
-  next_fix: "자동진단 보내기 실행"
-}, null, 2));
-    }, true);
-  }
-
-  const diagBtn = box('diagBtn');
-  if(diagBtn){
-    diagBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      setVal('firstFailView',
-JSON.stringify({
-  status: "FAIL",
-  error_point: "AUTO.DETECT",
-  area_id: "OUTPUT.CHECK",
-  area_name_ko: "오른쪽 안내서 출력 검증",
-  expected: "개별 검증 결과 표시",
-  observed: "진단 연결 전",
-  next_fix: "DIAG_PACKET 실연결"
-}, null, 2));
-      setVal('diagPacket',
-JSON.stringify({
-  stage: "STEP1",
-  clicked_trace: box('clickedTraceView')?.value || "",
-  first_fail: box('firstFailView')?.value || "",
-  status: "DRAFT"
-}, null, 2));
-    }, true);
-  }
-});
+/* old temporary button shim removed by SINGLE_WRITE_LOCK_V1 */
 </script>
 
 <script id="singlePathDiagnosticsV1">
@@ -3285,6 +3152,19 @@ JSON.stringify({
   });
 })();
 </script>
+<script id="singleWriteLockV1FinalGuard">
+(function(){
+  'use strict';
+  function $(id,root){return (root||document).getElementById(id);}
+  function write(id,data){var el=$(id); if(!el) return; var out=typeof data==='string'?data:JSON.stringify(data,null,2); if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value=out; else el.textContent=out;}
+  function guardWrite(reason){try{if(typeof window.singleWriteGuide==='function') window.singleWriteGuide(reason||'FINAL_GUARD'); write('autoLog',{at:new Date().toISOString(),event:'SINGLE_WRITE_LOCK_ACTIVE',reason:reason||'guard',rule:'오른쪽 안내서 값 쓰기는 singleWriteGuide 하나만 허용'});}catch(e){write('autoLog',{at:new Date().toISOString(),event:'SINGLE_WRITE_LOCK_ERROR',message:e.message});}}
+  window.__SINGLE_WRITE_LOCK_V1__={enabled:true,writer:'singleWriteGuide',rule:'write once; evaluate only; no parallel overwrite'};
+  ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){var el=$(id); if(el&&!el.__swlBound){el.__swlBound=true; el.addEventListener('input',function(){setTimeout(function(){guardWrite('input:'+id);},30);},true); el.addEventListener('change',function(){setTimeout(function(){guardWrite('change:'+id);},30);},true);}});
+  ['generateBtn','fillSampleBtn'].forEach(function(id){var b=$(id); if(b&&!b.__swlClickBound){b.__swlClickBound=true; b.addEventListener('click',function(){setTimeout(function(){guardWrite('button:'+id);},400); setTimeout(function(){guardWrite('button:'+id+':late');},1200);},true);}});
+  window.addEventListener('load',function(){setTimeout(function(){guardWrite('load');},700);});
+})();
+</script>
+
 </body>
 
 </html>
