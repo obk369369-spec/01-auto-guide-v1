@@ -89,7 +89,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED</div>
+    <div class="title">1번 고객 자동화 안내서 - 가운데안내서수정본_v59 / BUTTONS_V2 / FINAL_BLOCK_V1 / LOG_FIXED / TARGET_MAP_FIXED</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -2782,9 +2782,40 @@ JSON.stringify({
     if(source === 'right_iframe') return '오른쪽 안내서 iframe 내부';
     return '진단 제외 영역';
   }
+  const RIGHT_TO_MID = {
+    guideTitleEn:'midTitleEn', guideTitleKo:'midTitleKo', guidePub:'bookPub',
+    guideDate:'bookDate', guidePage:'bookPage', guideListPrice:'bookListPrice',
+    guideSupplyPrice:'bookSupplyPrice', guideLinkAnchor:'midLink', guideLinkText:'midLink',
+    guideTocLeft:'midToc', guideTocRight:'midToc'
+  };
+  function mappedRightTarget(el, e){
+    if(!el || !el.closest) return null;
+    const direct = el.closest('#guideTitleEn,#guideTitleKo,#guidePub,#guideDate,#guidePage,#guideListPrice,#guideSupplyPrice,#guideLinkAnchor,#guideLinkText,#guideTocLeft,#guideTocRight');
+    if(direct) return direct;
+    const line1 = el.closest('#guideBookLine1');
+    const line2 = el.closest('#guideBookLine2');
+    const line = line1 || line2;
+    if(line){
+      const rect = line.getBoundingClientRect();
+      const rel = rect.width ? ((e.clientX - rect.left) / rect.width) : 0;
+      let id = '';
+      if(line1) id = rel < 0.44 ? 'guidePub' : (rel < 0.72 ? 'guidePage' : 'guideListPrice');
+      if(line2) id = rel < 0.44 ? 'guideDate' : (rel < 0.72 ? 'guidePdf' : 'guideSupplyPrice');
+      return id ? (line.ownerDocument.getElementById(id) || line) : line;
+    }
+    const linkBlock = el.closest('a,#guideLinkAnchor,#guideLinkText');
+    if(linkBlock){
+      return el.ownerDocument.getElementById('guideLinkText') || el.ownerDocument.getElementById('guideLinkAnchor') || linkBlock;
+    }
+    return null;
+  }
   function makeTrace(e, sourceDoc){
-    const el = e.target;
+    let el = e.target;
     const source = sourceOf(el, sourceDoc);
+    if(source === 'right_iframe'){
+      const mapped = mappedRightTarget(el, e);
+      if(mapped) el = mapped;
+    }
     const areaId = el.id || (el.getAttribute && (el.getAttribute('data-area-id') || el.getAttribute('name'))) || el.tagName.toLowerCase();
     return {
       status: source === 'outside' || source === 'right_outer' ? 'OUT_OF_SCOPE' : 'LOCKED',
@@ -2798,6 +2829,7 @@ JSON.stringify({
       x: e.clientX,
       y: e.clientY,
       source: source,
+      mapped_mid_id: RIGHT_TO_MID[areaId] || '',
       generated_at: now()
     };
   }
@@ -2891,16 +2923,19 @@ JSON.stringify({
     } else if(clicked.source === 'right_iframe'){
       const id = clicked.area_id;
       const v = probeData.right[id] || '';
+      const midId = RIGHT_TO_MID[id] || '';
+      const midValue = midId ? (probeData.middle[midId] || '') : '';
+      const sourceEmpty = midId && !midValue && (!v || v === '__MISSING__');
       fail = {
         status: v && v !== '__MISSING__' ? 'PASS' : 'FAIL',
-        error_point: v === '__MISSING__' ? 'RIGHT.DOM.MISSING' : (v ? 'RIGHT.VALUE.OK' : 'RIGHT.VALUE.EMPTY'),
+        error_point: sourceEmpty ? 'MIDDLE_SOURCE_EMPTY' : (v === '__MISSING__' ? 'RIGHT.DOM.MISSING' : (v ? 'RIGHT.VALUE.OK' : 'RIGHT.VALUE.EMPTY')),
         area_id: id,
         area_name_ko: clicked.area_name_ko,
         selector: clicked.selector,
-        expected: '오른쪽 iframe 내부 실제 DOM 값 존재',
-        observed: v || '빈값',
-        next_fix: v && v !== '__MISSING__' ? '추가 수정 없음' : '오른쪽 실제 id 또는 덮어쓰기 함수 확인',
-        error_hash: (v ? 'RIGHT_' : 'RIGHT_EMPTY_') + id,
+        expected: sourceEmpty ? ('가운데 원본값 존재: #' + midId) : '오른쪽 iframe 내부 실제 DOM 값 존재',
+        observed: sourceEmpty ? ('가운데 #' + midId + ' 빈값 / 오른쪽 #' + id + ' 빈값') : (v || '빈값'),
+        next_fix: v && v !== '__MISSING__' ? '추가 수정 없음' : (sourceEmpty ? ('데이터 수집 또는 가운데 #' + midId + ' 입력값 확인') : '오른쪽 실제 id 또는 덮어쓰기 함수 확인'),
+        error_hash: (sourceEmpty ? 'MID_SOURCE_EMPTY_' : (v ? 'RIGHT_' : 'RIGHT_EMPTY_')) + id,
         retry_count: 0
       };
     } else {
