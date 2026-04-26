@@ -3346,6 +3346,30 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<script id="TOC_WRITEPATH_LOCK_V2_PATCH">
+(function(){
+  function lockNotice(){
+    try{
+      var b=document.getElementById('stateBadge');
+      if(b) b.textContent='STATE: TOC_WRITEPATH_LOCK_V2';
+      var t=document.querySelector('.title');
+      if(t && !/TOC_WRITEPATH_LOCK_V2/.test(t.textContent)) t.textContent=t.textContent+' / TOC_WRITEPATH_LOCK_V2';
+    }catch(e){}
+  }
+  var oldBridge=window.bridgeMiddleToRightFromCurrentSet;
+  window.bridgeMiddleToRightFromCurrentSet=function(){
+    if(typeof window.singleWriteGuide==='function') return window.singleWriteGuide('bridge_LOCKED_TO_SINGLE_WRITE');
+    return oldBridge ? oldBridge.apply(this, arguments) : false;
+  };
+  window.sync=function(){
+    if(typeof window.singleWriteGuide==='function') return window.singleWriteGuide('sync_LOCKED_TO_SINGLE_WRITE');
+    return true;
+  };
+  window.addEventListener('load', lockNotice);
+  setTimeout(lockNotice, 300);
+})();
+</script>
 </body>
 
 </html>
