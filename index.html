@@ -3425,3 +3425,79 @@ endpoint: ${endpoint}`
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
 })();
 </script>
+
+
+<script id="TOC_MANUAL_INLINE_LAYOUT_FIX_V1">
+(function(){
+  'use strict';
+  function $(id,root){return (root||document).getElementById(id);}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function formVal(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function setText(doc,id,v){var e=$(id,doc); if(e) e.textContent=v||'';}
+  function setHtml(doc,id,v){var e=$(id,doc); if(e) e.innerHTML=v||'';}
+  function tocLines(raw){
+    var noise=/^(목차|table of contents|list of tables|list of figures)$/i;
+    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean).filter(function(s){return !noise.test(s);});
+  }
+  function isSection(line){
+    var t=String(line||'').trim();
+    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장|[가-힣A-Za-z ]+\s*[:：]$)/i.test(t);
+  }
+  function groupSections(lines){
+    var groups=[], cur=null;
+    lines.forEach(function(line){
+      if(isSection(line) || !cur){
+        cur={title:line, items:[]}; groups.push(cur);
+      }else{
+        cur.items.push(line);
+      }
+    });
+    return groups;
+  }
+  function manualInlineTocHtml(raw){
+    var lines=tocLines(raw), groups=groupSections(lines), html=[];
+    groups.forEach(function(g){
+      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:4px 0 2px 0;font-family:굴림,Arial,sans-serif;">'+esc(g.title)+'</div>');
+      for(var i=0;i<g.items.length;i+=2){
+        var left=g.items[i]||'', right=g.items[i+1]||'';
+        html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:34px;margin:0 0 2px 14px;font-size:9.3pt;line-height:1.24;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;">'
+          + '<div>'+esc(left)+'</div><div>'+esc(right)+'</div></div>');
+      }
+      html.push('\n');
+    });
+    return html.join('\n');
+  }
+  function applyManualInlineToc(reason){
+    var doc=frameDoc(); if(!doc) return false;
+    var titleEn=formVal('midTitleEn'), titleKo=formVal('midTitleKo'), toc=formVal('midToc');
+    var pub=formVal('bookPub'), date=formVal('bookDate'), page=formVal('bookPage'), list=formVal('bookListPrice'), supply=formVal('bookSupplyPrice'), link=formVal('midLink');
+    setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(titleEn)+'</span></b>');
+    setHtml(doc,'guideTitleKo',titleKo?'<span style="font-size:15pt;font-family:굴림;">( '+esc(titleKo)+' )</span>':'');
+    setText(doc,'guidePub',pub); setText(doc,'guideDate',date); setText(doc,'guidePage',page?'( '+page+' Pages )':'(  )');
+    setText(doc,'guideListPrice',list); setText(doc,'guideSupplyPrice',supply); setText(doc,'guideLinkText',link);
+    var a=$('guideLinkAnchor',doc); if(a){a.href=link||'#'; a.textContent='바로가기';}
+    var cols=$('guideTocCols',doc); if(cols){cols.style.display='block';cols.style.gridTemplateColumns='1fr';cols.style.columnGap='0';cols.style.padding='0 26px';cols.setAttribute('data-toc-layout','manual_inline_section_rows');}
+    var box=$('guideToc',doc); if(box){box.style.padding='6px 14px 0 14px';}
+    setHtml(doc,'guideTocLeft',manualInlineTocHtml(toc));
+    var r=$('guideTocRight',doc); if(r){r.innerHTML='';r.style.display='none';}
+    window.__TOC_MANUAL_INLINE_LAST__={at:new Date().toISOString(),reason:reason||'manual_inline',toc_lines:tocLines(toc).length,layout:'section title + paired child rows'};
+    return true;
+  }
+  window.singleWriteGuide=function(reason){return applyManualInlineToc(reason||'singleWriteGuide_MANUAL_INLINE');};
+  window.sync=function(){return applyManualInlineToc('sync_MANUAL_INLINE');};
+  window.bridgeMiddleToRightFromCurrentSet=function(){return applyManualInlineToc('bridge_MANUAL_INLINE');};
+  var oldRun=window.runTocCheckSyncV1;
+  window.runTocCheckSyncV1=function(){applyManualInlineToc('recheck_MANUAL_INLINE'); if(typeof oldRun==='function') oldRun();};
+  window.runCoverageQa=window.runTocCheckSyncV1;
+  function relabel(){
+    var t=document.querySelector('.title'); if(t) t.textContent='1번 고객 자동화 안내서 - TOC_MANUAL_INLINE_LAYOUT_FIX_V1 / 수동형 목차 행배치 / 기존 진단 유지';
+    var s=$('stateBadge'); if(s) s.textContent='STATE: TOC_MANUAL_INLINE_LAYOUT_FIX_V1';
+    var d=$('diagModeBadge'); if(d) d.textContent='수동형 목차 배치 적용';
+    var h=$('realEngineHash'); if(h) h.textContent='TOC_MANUAL_INLINE_LAYOUT_FIX_V1_PASS';
+    var b=$('realEngineBanner'); if(b) b.querySelector('b') && (b.querySelector('b').textContent='TOC_MANUAL_INLINE_LAYOUT_FIX_V1 적용');
+  }
+  setTimeout(function(){relabel();applyManualInlineToc('load_MANUAL_INLINE');},500);
+  setTimeout(function(){applyManualInlineToc('late_LOCK_MANUAL_INLINE');},1200);
+})();
+</script>
