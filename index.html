@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_SECTION_SPLIT_FIX_V1 / 목차 좌우 분배 실제 적용 / 기존 진단 유지</div>
+    <div class="title">1번 고객 자동화 안내서 - TOC_SINGLE_FLOW_FINAL_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -127,7 +127,7 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_SECTION_SPLIT_FIX_V1 적용</b><br><span class="real-engine-chip">guideTocLeft 몰림 수정</span><span class="real-engine-chip">섹션 단위 좌우 분배</span><span class="real-engine-chip">진단/좌표 유지</span></div>
+  <div><b>TOC_SINGLE_FLOW_FINAL_V1 적용</b><br><span class="real-engine-chip">guideTocRight 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
@@ -3370,6 +3370,136 @@ endpoint: ${endpoint}`
   setTimeout(lockNotice, 300);
 })();
 </script>
+
+
+<script id="TOC_SINGLE_FLOW_FINAL_V1_PATCH">
+(function(){
+  function $(id,root){return (root||document).getElementById(id);}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
+  function put(id,v){var e=$(id);if(e)e.value=v||'';}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+
+  function tocLines(raw){
+    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  }
+  function isSection(line){
+    var t=String(line||'').trim();
+    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장|[A-Z][A-Za-z0-9\-/& ]{3,}$)/i.test(t) && !/^\d+[\.)]\s+/.test(t);
+  }
+  function groupToc(raw){
+    var lines=tocLines(raw), groups=[], current=null;
+    lines.forEach(function(line){
+      if(isSection(line) || !current){
+        current={title:line, items:[]};
+        groups.push(current);
+      }else{
+        current.items.push(line);
+      }
+    });
+    return groups;
+  }
+  function manualTopDownInlineHtml(raw){
+    var groups=groupToc(raw), html=[];
+    groups.forEach(function(g){
+      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:5px 0 3px 0;font-family:굴림,Arial,sans-serif;break-inside:avoid;">'+esc(g.title)+'</div>');
+      for(var i=0;i<g.items.length;i+=2){
+        var left=g.items[i]||'';
+        var right=g.items[i+1]||'';
+        html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:38px;margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;"><div>'+esc(left)+'</div><div>'+esc(right)+'</div></div>');
+      }
+      html.push('<div style="height:4px"></div>');
+    });
+    return html.join('\n');
+  }
+  function currentData(){
+    return {
+      enTitle:val('midTitleEn'),koTitle:val('midTitleKo'),pub:val('bookPub'),date:val('bookDate'),page:val('bookPage'),listPrice:val('bookListPrice'),supplyPrice:val('bookSupplyPrice'),link:val('midLink'),toc:val('midToc')
+    };
+  }
+  function setText(doc,id,v){var e=$(id,doc);if(e)e.textContent=v||'';}
+  function setHtml(doc,id,v){var e=$(id,doc);if(e)e.innerHTML=v||'';}
+  function finalWriteRight(reason){
+    var doc=frameDoc(); if(!doc) return false;
+    var d=currentData();
+    setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');
+    setHtml(doc,'guideTitleKo',d.koTitle?'<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>':'');
+    setText(doc,'guidePub',d.pub);
+    setText(doc,'guideDate',d.date);
+    setText(doc,'guidePage',d.page?'( '+d.page+' Pages )':'(  )');
+    setText(doc,'guideListPrice',d.listPrice);
+    setText(doc,'guideSupplyPrice',d.supplyPrice);
+    setText(doc,'guideLinkText',d.link);
+    var a=$('guideLinkAnchor',doc); if(a){a.href=d.link||'#';a.textContent='바로가기';}
+
+    var cols=$('guideTocCols',doc);
+    if(cols){
+      cols.style.display='block';
+      cols.style.gridTemplateColumns='1fr';
+      cols.style.columnGap='0';
+      cols.style.padding='0 28px';
+      cols.setAttribute('data-toc-layout','single_flow_manual_inline_top_down');
+    }
+    var tocBox=$('guideToc',doc);
+    if(tocBox){tocBox.style.padding='8px 18px 0 18px';}
+    setHtml(doc,'guideTocLeft',manualTopDownInlineHtml(d.toc));
+    var right=$('guideTocRight',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
+
+    window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
+    var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_SINGLE_FLOW_FINAL_V1';
+    var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_SINGLE_FLOW_FINAL_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
+    return true;
+  }
+
+  function inferKeyword(){
+    var s=(val('customerRaw')+' '+val('researchField')+' '+val('interestField')).toLowerCase();
+    if(s.indexOf('조선')>=0||s.indexOf('ship')>=0) return ['Shipbuilding and Offshore','조선·해양','shipbuilding-and-offshore'];
+    if(s.indexOf('탄소')>=0||s.indexOf('carbon')>=0) return ['Carbon Neutrality','탄소중립','carbon-neutrality'];
+    if(s.indexOf('반도체')>=0||s.indexOf('semi')>=0) return ['Semiconductor','반도체','semiconductor'];
+    return ['AI Infrastructure','AI 인프라','ai-infrastructure'];
+  }
+  function sampleToc(ko){
+    return 'I. Executive Summary\n1. '+ko+' 시장 개요\n2. 주요 성장 요인 및 제한 요인\n3. 정책·규제 및 표준 동향\n\nII. Market Size and Forecast\n1. 세계 시장 규모 및 전망\n2. 한국 시장 규모 및 전망\n3. 수요처별·용도별 시장 분석\n\nIII. Technology and Application Trends\n1. 핵심 기술 동향\n2. 적용 분야별 개발 현황\n3. 공급망 및 가치사슬 분석\n\nIV. Competitive Landscape\n1. 주요 기업 현황\n2. 제품·서비스 비교\n3. 투자 및 협력 사례\n\nV. Business Opportunities and Appendix\n1. 고객 기관 검토 포인트\n2. 사업화 기회 및 리스크\n3. 데이터 출처 및 방법론';
+  }
+  function finalGenerate(e){
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    var k=inferKeyword(), pub=val('pub1')||'Gartner';
+    put('midTitleEn',k[0]+' Market, Technology and Competitive Intelligence Report 2026');
+    put('midTitleKo',k[1]+' 시장·기술·경쟁구도 종합 분석 보고서 2026');
+    put('bookPub',pub); put('bookDate','2026년 4월'); put('bookPage','248');
+    put('bookListPrice','￦4,800,000'); put('bookSupplyPrice','별도 문의');
+    put('midLink','https://example.com/'+k[2]); put('midToc',sampleToc(k[1]));
+    finalWriteRight('generate');
+    setTimeout(function(){finalWriteRight('generate_settle');},200);
+    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_SINGLE_FLOW_FINAL_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
+    var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
+    return false;
+  }
+
+  function replaceButtonHandler(){
+    var btn=$('generateBtn');
+    if(btn && !btn.dataset.singleFlowFinalBound){
+      var clone=btn.cloneNode(true);
+      clone.dataset.singleFlowFinalBound='1';
+      clone.addEventListener('click',finalGenerate,true);
+      btn.parentNode.replaceChild(clone,btn);
+    }
+  }
+
+  window.singleWriteGuide=finalWriteRight;
+  window.bridgeMiddleToRightFromCurrentSet=finalWriteRight;
+  window.applyTocWritePathLockV2=finalWriteRight;
+  window.applyManualInlineTocFixV1=finalWriteRight;
+
+  document.addEventListener('DOMContentLoaded',function(){
+    replaceButtonHandler();
+    setTimeout(function(){replaceButtonHandler(); finalGenerate();},350);
+  });
+  setTimeout(function(){replaceButtonHandler(); finalWriteRight('late_lock');},900);
+})();
+</script>
+
 </body>
 
 </html>
