@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_SINGLE_FLOW_FINAL_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치</div>
+    <div class="title">1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -127,7 +127,7 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_SINGLE_FLOW_FINAL_V1 적용</b><br><span class="real-engine-chip">guideTocRight 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
+  <div><b>TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 적용</b><br><span class="real-engine-chip">guideTocRight 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
@@ -1137,7 +1137,7 @@ ul
        font-size:11pt;line-height:1.3;word-break:break-word;overflow-wrap:anywhere;&quot;&gt;
     &lt;div id=&quot;guideTocCols&quot; style=&quot;display:grid;grid-template-columns:1fr 1fr;column-gap:36px;row-gap:0;&quot;&gt;
       &lt;div id=&quot;guideTocLeft&quot;&gt;&lt;/div&gt;
-      &lt;div id=&quot;guideTocRight&quot;&gt;&lt;/div&gt;
+      
     &lt;/div&gt;
   &lt;/div&gt;
 
@@ -1899,9 +1899,40 @@ function ensureInteractiveTagging(){
     return singleWriteGuide('syncInputsToPreview');
   }
 
+  function manualTocLines(raw){
+    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  }
+  function manualIsSection(line){
+    var t=String(line||'').trim();
+    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장)/i.test(t) && !/^\d+[\.)]?\s+/.test(t);
+  }
+  function manualGroupToc(raw){
+    var lines=manualTocLines(raw), groups=[], current=null;
+    lines.forEach(function(line){
+      if(manualIsSection(line) || !current){ current={title:line, items:[]}; groups.push(current); }
+      else current.items.push(line);
+    });
+    return groups;
+  }
+  function manualTopDownInlineHtml(raw){
+    var html=[];
+    manualGroupToc(raw).forEach(function(g){
+      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:5px 0 3px 0;font-family:굴림,Arial,sans-serif;break-inside:avoid;">'+escapeHtml(g.title)+'</div>');
+      for(var i=0;i<g.items.length;i+=2){
+        var left=g.items[i]||'', right=g.items[i+1]||'';
+        if(right){
+          html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:38px;margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;"><div>'+escapeHtml(left)+'</div><div>'+escapeHtml(right)+'</div></div>');
+        }else{
+          html.push('<div class="toc-row" style="margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;">'+escapeHtml(left)+'</div>');
+        }
+      }
+      html.push('<div style="height:4px"></div>');
+    });
+    return html.join('\n');
+  }
   function singleWriteGuide(reason){
-    const doc=frame.contentDocument; if(!doc) return false;
-    applyRightTemplateFixes();
+    const frameEl=document.getElementById('rightFrame');
+    const doc=frameEl && frameEl.contentDocument; if(!doc) return false;
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
@@ -1922,14 +1953,13 @@ function ensureInteractiveTagging(){
     setText('guideSupplyPrice', supplyPrice);
     const a=doc.getElementById('guideLinkAnchor'); if(a){ a.setAttribute('href', link || '#'); a.textContent='바로가기'; }
     setText('guideLinkText', link);
-    const lines=cleanTocLines(toc);
-    const layout=balanceTocColumns(lines);
-    const leftHtml=layout.left.map(renderTocLine).join('');
-    const rightHtml=layout.right.map(renderTocLine).join('');
-    setHtml('guideTocLeft', leftHtml);
-    setHtml('guideTocRight', rightHtml);
-    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:lines.length,tocLayout:layout.mode,tocLeft:layout.left.length,tocRight:layout.right.length}};
-    try{ log(coreLog, `SINGLE_WRITE_LOCK | ${reason} | toc=${lines.length} | layout=${layout.mode} | L=${layout.left.length}/R=${layout.right.length}`); }catch(e){}
+    const cols=doc.getElementById('guideTocCols');
+    if(cols){ cols.style.display='block'; cols.style.gridTemplateColumns='1fr'; cols.style.columnGap='0'; cols.style.padding='0 28px'; cols.setAttribute('data-toc-layout','single_path_deleted_old_scripts'); }
+    const tocBox=doc.getElementById('guideToc'); if(tocBox){ tocBox.style.padding='8px 18px 0 18px'; }
+    setHtml('guideTocLeft', manualTopDownInlineHtml(toc));
+    const right=doc.getElementById('guideTocRight'); if(right){ right.remove(); }
+    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:manualTocLines(toc).length,tocLayout:'single_path_deleted_old_scripts',tocLeft:'all',tocRight:0}};
+    try{ log(coreLog, `TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 | ${reason} | toc=${manualTocLines(toc).length} | guideTocRight=removed`); }catch(e){}
     return true;
   }
   if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
@@ -3270,109 +3300,13 @@ endpoint: ${endpoint}`
   });
 })();
 </script>
-<script id="real-engine-step1-script">
-(function(){
-  var $=function(id){return document.getElementById(id);};
-  var val=function(id){var e=$(id);return (e&&e.value||'').trim();};
-  var put=function(id,v){var e=$(id);if(e)e.value=v;};
-  function setState(t,c){var e=$('realEngineState');if(e){e.textContent=t;e.className=c||'pass';}}
-  function esc(s){return String(s||'').replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
-  function sector(){var raw=[val('keyword'),val('researchField'),val('interestField'),val('customerRaw'),val('duty')].join(' ');var rules=[[/탄소|CCUS|탄소중립|온실가스/i,'탄소중립','Carbon Neutrality'],[/조선|선박|해양|LNG/i,'조선·해양','Shipbuilding and Offshore'],[/반도체|칩|웨이퍼|파운드리/i,'반도체','Semiconductor'],[/수소|연료전지/i,'수소·연료전지','Hydrogen and Fuel Cell'],[/원자력|SMR|방사선/i,'원자력','Nuclear Energy'],[/배터리|이차전지|전고체/i,'이차전지','Secondary Battery'],[/AI|인공지능|GPU|서버/i,'AI 인프라','AI Infrastructure']];for(var i=0;i<rules.length;i++){if(rules[i][0].test(raw))return {ko:rules[i][1],en:rules[i][2]};}var k=(val('keyword')||val('researchField')||val('interestField')||'산업').replace(/\s+/g,' ');return {ko:k,en:'Industry'};}
-  function toc(ko){return ['I. Executive Summary','1. '+ko+' 시장 개요','2. 주요 성장 요인 및 제한 요인','3. 정책·규제 및 표준 동향','','II. Market Size and Forecast','1. 세계 시장 규모 및 전망','2. 한국 시장 규모 및 전망','3. 수요처별·용도별 시장 분석','','III. Technology and Application Trends','1. 핵심 기술 동향','2. 적용 분야별 개발 현황','3. 공급망 및 가치사슬 분석','','IV. Competitive Landscape','1. 주요 기업 현황','2. 제품·서비스 비교','3. 투자 및 협력 사례','','V. Business Opportunities and Appendix','1. 고객 기관 검토 포인트','2. 사업화 기회 및 리스크','3. 데이터 출처 및 방법론'].join('\n');}
-  function normalizeToc(raw){
-    var lines=String(raw||'').split(/\r?\n/).map(function(x){return x.replace(/\s+/g,' ').trim();}).filter(Boolean);
-    var out=[], seen={};
-    lines.forEach(function(line){
-      if(/^(list of tables|list of figures|table\s+\d+|figure\s+\d+)/i.test(line)) return;
-      if(line.length>120 && !/^(I{1,3}|IV|V|VI{0,3}|\d+[.)]|\d+\.)\s/.test(line)) return;
-      var key=line.toLowerCase().replace(/[^a-z0-9가-힣]/g,'');
-      if(!key || seen[key]) return;
-      seen[key]=true; out.push(line);
-    });
-    return out;
-  }
-  function tocSections(raw){
-    var lines=normalizeToc(raw);
-    var roman=/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.?\s+/;
-    var sections=[], cur=null;
-    lines.forEach(function(line){
-      if(roman.test(line)){
-        if(cur) sections.push(cur);
-        cur={head:line, lines:[line]};
-      }else{
-        if(!cur) cur={head:'', lines:[]};
-        cur.lines.push(line);
-      }
-    });
-    if(cur) sections.push(cur);
-    return sections.length ? sections : [{head:'', lines:lines}];
-  }
-  function splitTocSections(raw){
-    var sections=tocSections(raw);
-    var total=sections.reduce(function(n,s){return n+s.lines.length;},0);
-    if(total<=10) return {left:sections.reduce(function(a,s){return a.concat(s.lines);},[]), right:[], total:total, mode:'single'};
-    var half=Math.ceil(total/2), left=[], right=[], leftCount=0;
-    sections.forEach(function(sec){
-      var next=leftCount+sec.lines.length;
-      if(leftCount===0 || next<=half || (half-leftCount)>=Math.ceil(sec.lines.length/2)){
-        left=left.concat(sec.lines); leftCount=next;
-      }else{
-        right=right.concat(sec.lines);
-      }
-    });
-    if(!right.length && sections.length>1){
-      var last=sections.pop();
-      left=sections.reduce(function(a,s){return a.concat(s.lines);},[]);
-      right=last.lines.slice();
-    }
-    return {left:left, right:right, total:total, mode:right.length?'section_2col':'single'};
-  }
-  function tocHtmlLines(lines){
-    var roman=/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.?\s+/;
-    var html=[];
-    (lines||[]).forEach(function(line){
-      var isTop=roman.test(line);
-      var isSub=/^\d+[.)]?\s+/.test(line);
-      var margin=isTop?'0 0 5px 0':(isSub?'0 0 3px 14px':'0 0 3px 22px');
-      var weight=isTop?'700':'400';
-      html.push('<div style="margin:'+margin+';font-size:10.5pt;line-height:1.36;font-family:굴림,Arial,sans-serif;font-weight:'+weight+';white-space:normal;word-break:keep-all;overflow-wrap:anywhere;">'+esc(line)+'</div>');
-    });
-    return html.join('');
-  }
-  function writeRight(d){var f=$('rightFrame'),doc=f&&f.contentDocument;if(!doc)return;function set(id,v){var e=doc.getElementById(id);if(e)e.textContent=v||'';}function html(id,v){var e=doc.getElementById(id);if(e)e.innerHTML=v||'';}html('guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');html('guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>');set('guidePub',d.pub);set('guideDate',d.date);set('guidePage','( '+d.page+' Pages )');set('guideListPrice',d.listPrice);set('guideSupplyPrice',d.supplyPrice);var a=doc.getElementById('guideLinkAnchor');if(a){a.href=d.link;a.textContent='바로가기';}set('guideLinkText',d.link);var layout=splitTocSections(d.toc);var cols=doc.getElementById('guideTocCols');if(cols){cols.style.display='grid';cols.style.gridTemplateColumns=layout.right.length?'1fr 1fr':'1fr';cols.style.columnGap=layout.right.length?'34px':'0';cols.style.padding='0 20px';cols.setAttribute('data-toc-layout',layout.mode);}html('guideTocLeft',tocHtmlLines(layout.left));var r=doc.getElementById('guideTocRight');if(r){r.innerHTML=tocHtmlLines(layout.right);r.style.display=layout.right.length?'block':'none';}window.__TOC_SECTION_SPLIT_LAST__={at:new Date().toISOString(),mode:layout.mode,total:layout.total,left:layout.left.length,right:layout.right.length};}
-  function gen(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}var s=sector(),pub=val('pub1')||'Gartner';var d={enTitle:s.en+' Market, Technology and Competitive Intelligence Report 2026',koTitle:s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 2026',pub:pub,date:'2026년 4월',page:'248',listPrice:'￦4,800,000',supplyPrice:'별도 문의',link:'https://example.com/'+encodeURIComponent(s.en.toLowerCase().replace(/\s+/g,'-')),toc:toc(s.ko)};put('midTitleEn',d.enTitle);put('midTitleKo',d.koTitle);put('bookPub',d.pub);put('bookDate',d.date);put('bookPage',d.page);put('bookListPrice',d.listPrice);put('bookSupplyPrice',d.supplyPrice);put('midLink',d.link);put('midToc',d.toc);writeRight(d);setTimeout(function(){writeRight(d);},300);var a=$('autoLog');if(a)a.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_SECTION_SPLIT_FIX_V1_GENERATE',status:'PASS',changed:['영문타이틀','발행일','정가','공급가격','목차 섹션 단위 좌우 분배']},null,2);var c=$('coreLog');if(c)c.textContent=JSON.stringify({at:new Date().toISOString(),event:'QUALITY_SLOT_PASS',grade:'B+',remaining:['실제 발행사 사이트 연동','실제 링크 검증','목차 원문별 예외 규칙']},null,2);setState('PASS: 9칸 채움 + 목차 좌우 분배 반영','pass');var h=$('realEngineHash');if(h)h.textContent='TOC_SECTION_SPLIT_FIX_V1_PASS';return false;}
-  function install(){var old=$('generateBtn');if(old){var b=old.cloneNode(true);b.textContent='안내서 5개 생성 / 품질엔진';old.parentNode.replaceChild(b,old);b.addEventListener('click',gen,true);}setState('설치됨: 생성 버튼 교체 완료','pass');}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(install,900);});else setTimeout(install,900);
-})();
-</script>
+<!-- removed real-engine-step1-script conflicting old/write path -->
 
 
-<script id="TOC_WRITEPATH_LOCK_V2_PATCH">
-(function(){
-  function lockNotice(){
-    try{
-      var b=document.getElementById('stateBadge');
-      if(b) b.textContent='STATE: TOC_WRITEPATH_LOCK_V2';
-      var t=document.querySelector('.title');
-      if(t && !/TOC_WRITEPATH_LOCK_V2/.test(t.textContent)) t.textContent=t.textContent+' / TOC_WRITEPATH_LOCK_V2';
-    }catch(e){}
-  }
-  var oldBridge=window.bridgeMiddleToRightFromCurrentSet;
-  window.bridgeMiddleToRightFromCurrentSet=function(){
-    if(typeof window.singleWriteGuide==='function') return window.singleWriteGuide('bridge_LOCKED_TO_SINGLE_WRITE');
-    return oldBridge ? oldBridge.apply(this, arguments) : false;
-  };
-  window.sync=function(){
-    if(typeof window.singleWriteGuide==='function') return window.singleWriteGuide('sync_LOCKED_TO_SINGLE_WRITE');
-    return true;
-  };
-  window.addEventListener('load', lockNotice);
-  setTimeout(lockNotice, 300);
-})();
-</script>
+<!-- removed TOC_WRITEPATH_LOCK_V2_PATCH conflicting old/write path -->
 
 
-<script id="TOC_SINGLE_FLOW_FINAL_V1_PATCH">
+<script id="TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_PATCH">
 (function(){
   function $(id,root){return (root||document).getElementById(id);}
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
@@ -3446,9 +3380,9 @@ endpoint: ${endpoint}`
     var right=$('guideTocRight',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
 
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
-    var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_SINGLE_FLOW_FINAL_V1';
+    var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_SINGLE_FLOW_FINAL_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
     return true;
   }
 
@@ -3472,7 +3406,7 @@ endpoint: ${endpoint}`
     put('midLink','https://example.com/'+k[2]); put('midToc',sampleToc(k[1]));
     finalWriteRight('generate');
     setTimeout(function(){finalWriteRight('generate_settle');},200);
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_SINGLE_FLOW_FINAL_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
+    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
     var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
     return false;
   }
@@ -3500,6 +3434,16 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<script id="FINAL_DELETE_OLD_TOC_PATH_GUARD_V1">
+(function(){
+  function $(id,root){return (root||document).getElementById(id)}
+  function val(id){var e=$(id);return e?String(e.value||'').trim():''}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+  window.syncInputsToPreview=window.singleWriteGuide; window.bridgeMiddleToRightFromCurrentSet=window.singleWriteGuide; window.autoRepairAndEvaluate=window.singleWriteGuide; window.applyRightTemplateFixes=function(){return true}; window.bindPreviewSync=function(){return true};
+  window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
+})();
+</script>
 </body>
 
 </html>
@@ -3557,77 +3501,4 @@ endpoint: ${endpoint}`
 </script>
 
 
-<script id="TOC_MANUAL_INLINE_LAYOUT_FIX_V1">
-(function(){
-  'use strict';
-  function $(id,root){return (root||document).getElementById(id);}
-  function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
-  function formVal(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
-  function setText(doc,id,v){var e=$(id,doc); if(e) e.textContent=v||'';}
-  function setHtml(doc,id,v){var e=$(id,doc); if(e) e.innerHTML=v||'';}
-  function tocLines(raw){
-    var noise=/^(목차|table of contents|list of tables|list of figures)$/i;
-    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean).filter(function(s){return !noise.test(s);});
-  }
-  function isSection(line){
-    var t=String(line||'').trim();
-    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장|[가-힣A-Za-z ]+\s*[:：]$)/i.test(t);
-  }
-  function groupSections(lines){
-    var groups=[], cur=null;
-    lines.forEach(function(line){
-      if(isSection(line) || !cur){
-        cur={title:line, items:[]}; groups.push(cur);
-      }else{
-        cur.items.push(line);
-      }
-    });
-    return groups;
-  }
-  function manualInlineTocHtml(raw){
-    var lines=tocLines(raw), groups=groupSections(lines), html=[];
-    groups.forEach(function(g){
-      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:4px 0 2px 0;font-family:굴림,Arial,sans-serif;">'+esc(g.title)+'</div>');
-      for(var i=0;i<g.items.length;i+=2){
-        var left=g.items[i]||'', right=g.items[i+1]||'';
-        html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:34px;margin:0 0 2px 14px;font-size:9.3pt;line-height:1.24;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;">'
-          + '<div>'+esc(left)+'</div><div>'+esc(right)+'</div></div>');
-      }
-      html.push('\n');
-    });
-    return html.join('\n');
-  }
-  function applyManualInlineToc(reason){
-    var doc=frameDoc(); if(!doc) return false;
-    var titleEn=formVal('midTitleEn'), titleKo=formVal('midTitleKo'), toc=formVal('midToc');
-    var pub=formVal('bookPub'), date=formVal('bookDate'), page=formVal('bookPage'), list=formVal('bookListPrice'), supply=formVal('bookSupplyPrice'), link=formVal('midLink');
-    setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(titleEn)+'</span></b>');
-    setHtml(doc,'guideTitleKo',titleKo?'<span style="font-size:15pt;font-family:굴림;">( '+esc(titleKo)+' )</span>':'');
-    setText(doc,'guidePub',pub); setText(doc,'guideDate',date); setText(doc,'guidePage',page?'( '+page+' Pages )':'(  )');
-    setText(doc,'guideListPrice',list); setText(doc,'guideSupplyPrice',supply); setText(doc,'guideLinkText',link);
-    var a=$('guideLinkAnchor',doc); if(a){a.href=link||'#'; a.textContent='바로가기';}
-    var cols=$('guideTocCols',doc); if(cols){cols.style.display='block';cols.style.gridTemplateColumns='1fr';cols.style.columnGap='0';cols.style.padding='0 26px';cols.setAttribute('data-toc-layout','manual_inline_section_rows');}
-    var box=$('guideToc',doc); if(box){box.style.padding='6px 14px 0 14px';}
-    setHtml(doc,'guideTocLeft',manualInlineTocHtml(toc));
-    var r=$('guideTocRight',doc); if(r){r.innerHTML='';r.style.display='none';}
-    window.__TOC_MANUAL_INLINE_LAST__={at:new Date().toISOString(),reason:reason||'manual_inline',toc_lines:tocLines(toc).length,layout:'section title + paired child rows'};
-    return true;
-  }
-  window.singleWriteGuide=function(reason){return applyManualInlineToc(reason||'singleWriteGuide_MANUAL_INLINE');};
-  window.sync=function(){return applyManualInlineToc('sync_MANUAL_INLINE');};
-  window.bridgeMiddleToRightFromCurrentSet=function(){return applyManualInlineToc('bridge_MANUAL_INLINE');};
-  var oldRun=window.runTocCheckSyncV1;
-  window.runTocCheckSyncV1=function(){applyManualInlineToc('recheck_MANUAL_INLINE'); if(typeof oldRun==='function') oldRun();};
-  window.runCoverageQa=window.runTocCheckSyncV1;
-  function relabel(){
-    var t=document.querySelector('.title'); if(t) t.textContent='1번 고객 자동화 안내서 - TOC_MANUAL_INLINE_LAYOUT_FIX_V1 / 수동형 목차 행배치 / 기존 진단 유지';
-    var s=$('stateBadge'); if(s) s.textContent='STATE: TOC_MANUAL_INLINE_LAYOUT_FIX_V1';
-    var d=$('diagModeBadge'); if(d) d.textContent='수동형 목차 배치 적용';
-    var h=$('realEngineHash'); if(h) h.textContent='TOC_MANUAL_INLINE_LAYOUT_FIX_V1_PASS';
-    var b=$('realEngineBanner'); if(b) b.querySelector('b') && (b.querySelector('b').textContent='TOC_MANUAL_INLINE_LAYOUT_FIX_V1 적용');
-  }
-  setTimeout(function(){relabel();applyManualInlineToc('load_MANUAL_INLINE');},500);
-  setTimeout(function(){applyManualInlineToc('late_LOCK_MANUAL_INLINE');},1200);
-})();
-</script>
+<!-- removed TOC_MANUAL_INLINE_LAYOUT_FIX_V1 conflicting old/write path -->
