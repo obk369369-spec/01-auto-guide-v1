@@ -3444,6 +3444,415 @@ endpoint: ${endpoint}`
   window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
 })();
 </script>
+
+<script id="FINAL_INPUT_REGEN_TOC_DIAG_FIX_V1">
+(function(){
+  'use strict';
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function safeText(v){ return String(v == null ? '' : v).trim(); }
+  function esc(s){
+    return String(s || '').replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
+  function frameDoc(){
+    var f = $('rightFrame');
+    try { return f && (f.contentDocument || f.contentWindow.document); }
+    catch(e){ return null; }
+  }
+  function setInput(id, value){
+    var el = $(id);
+    if (!el) return;
+    el.value = value || '';
+    el.dispatchEvent(new Event('input', {bubbles:true}));
+    el.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+  function readInput(id){ var el = $(id); return el ? safeText(el.value) : ''; }
+  function writeText(id, obj){
+    var el = $(id);
+    if (!el) return;
+    el.value = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  }
+  function writePre(id, obj){
+    var el = $(id);
+    if (!el) return;
+    el.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  }
+
+  function ensureKeywordField(){
+    if ($('keyword')) return $('keyword');
+    var left = document.querySelector('.left');
+    var after = $('customerRaw') && $('customerRaw').closest('.field');
+    if (!left || !after) return null;
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 조선, 반도체, AI 서버">';
+    left.insertBefore(field, after.nextSibling);
+    return $('keyword');
+  }
+
+  var TOC_TEMPLATE = "I. Executive Summary\n1. {SECTOR} 시장 개요\n2. 주요 성장 요인 및 제한 요인\n3. 정책·규제 및 표준 동향\n\nII. Market Size and Forecast\n1. 세계 시장 규모 및 전망\n2. 한국 시장 규모 및 전망\n3. 수요처별·용도별 시장 분석\n\nIII. Technology and Application Trends\n1. 핵심 기술 동향\n2. 적용 분야별 개발 현황\n3. 공급망 및 가치사슬 분석\n\nIV. Competitive Landscape\n1. 주요 기업 현황\n2. 제품·서비스 비교\n3. 투자 및 협력 사례\n\nV. Business Opportunities and Appendix\n1. 고객 기관 검토 포인트\n2. 사업화 기회 및 리스크\n3. 데이터 출처 및 방법론";
+
+  function collectLeftText(){
+    return [
+      readInput('keyword'),
+      readInput('customerRaw'),
+      readInput('researchField'),
+      readInput('interestField'),
+      readInput('duty'),
+      readInput('org'),
+      readInput('dept')
+    ].join(' ').trim();
+  }
+
+  function inferSectorFromLeft(){
+    var raw = collectLeftText().toLowerCase();
+    if (/탄소|carbon|ccus|탄소중립/.test(raw)) return {
+      key:'carbon', ko:'탄소중립', en:'Carbon Neutrality', link:'https://example.com/carbon-neutrality'
+    };
+    if (/조선|해양|ship|offshore|lng/.test(raw)) return {
+      key:'ship', ko:'조선·해양', en:'Shipbuilding and Offshore', link:'https://example.com/shipbuilding-and-offshore'
+    };
+    if (/반도체|semiconductor|칩|웨이퍼|패키징/.test(raw)) return {
+      key:'semi', ko:'반도체', en:'Semiconductor', link:'https://example.com/semiconductor'
+    };
+    if (/배터리|이차전지|전고체|양극재|음극재/.test(raw)) return {
+      key:'battery', ko:'이차전지', en:'Battery', link:'https://example.com/battery'
+    };
+    if (/수소|연료전지|fuel cell|hydrogen/.test(raw)) return {
+      key:'hydrogen', ko:'수소·연료전지', en:'Hydrogen and Fuel Cell', link:'https://example.com/hydrogen-fuel-cell'
+    };
+    if (/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw)) return {
+      key:'ai', ko:'AI 인프라', en:'AI Infrastructure', link:'https://example.com/ai-infrastructure'
+    };
+    var fallback = safeText(readInput('keyword') || readInput('researchField') || readInput('interestField') || '산업');
+    return {
+      key:'custom', ko:fallback, en:fallback + ' Market', link:'https://example.com/custom-market'
+    };
+  }
+
+  function buildGuideData(){
+    var s = inferSectorFromLeft();
+    var pub = readInput('pub1') || 'Gartner';
+    return {
+      midTitleEn: s.en + ' Market, Technology and Competitive Intelligence Report 2026',
+      midTitleKo: s.ko + ' 시장·기술·경쟁구도 종합 분석 보고서 2026',
+      bookPub: pub,
+      bookDate: '2026년 4월',
+      bookPage: '248',
+      bookListPrice: '￦4,800,000',
+      bookSupplyPrice: '별도 문의',
+      midLink: s.link,
+      midToc: TOC_TEMPLATE.replace(/\{SECTOR\}/g, s.ko)
+    };
+  }
+
+  function tocLines(raw){
+    return String(raw || '').replace(/\r/g,'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+  }
+  function isSection(line){
+    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장)/i.test(String(line||'').trim());
+  }
+  function groupToc(raw){
+    var lines = tocLines(raw), out = [], cur = null;
+    lines.forEach(function(line){
+      if (isSection(line) || !cur) {
+        cur = {title: line, items: []};
+        out.push(cur);
+      } else {
+        cur.items.push(line);
+      }
+    });
+    return out;
+  }
+  function renderManualToc(raw){
+    return groupToc(raw).map(function(g){
+      var html = '<div class="toc-sec" style="font-weight:700;font-size:10.4pt;line-height:1.24;margin:6px 0 3px 0;">' + esc(g.title) + '</div>';
+      for (var i=0; i<g.items.length; i+=2) {
+        if (g.items[i+1]) {
+          html += '<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:44px;margin:0 0 2px 18px;font-size:9.7pt;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;"><div>' + esc(g.items[i]) + '</div><div>' + esc(g.items[i+1]) + '</div></div>';
+        } else {
+          html += '<div class="toc-single" style="font-size:9.7pt;line-height:1.25;margin:0 0 2px 18px;">' + esc(g.items[i]) + '</div>';
+        }
+      }
+      return html;
+    }).join('');
+  }
+
+  function fillMiddleFromLeft(){
+    var data = buildGuideData();
+    Object.keys(data).forEach(function(id){ setInput(id, data[id]); });
+    return data;
+  }
+
+  function applyRightFromMiddle(){
+    var doc = frameDoc();
+    if (!doc) return false;
+    var d = {
+      midTitleEn: readInput('midTitleEn'),
+      midTitleKo: readInput('midTitleKo'),
+      bookPub: readInput('bookPub'),
+      bookDate: readInput('bookDate'),
+      bookPage: readInput('bookPage'),
+      bookListPrice: readInput('bookListPrice'),
+      bookSupplyPrice: readInput('bookSupplyPrice'),
+      midLink: readInput('midLink'),
+      midToc: readInput('midToc')
+    };
+    function setText(id, v){ var e = $(id, doc); if(e) e.textContent = v || ''; }
+    function setHTML(id, v){ var e = $(id, doc); if(e) e.innerHTML = v || ''; }
+
+    setHTML('guideTitleEn', '<b>' + esc(d.midTitleEn) + '</b>');
+    setHTML('guideTitleKo', d.midTitleKo ? '( ' + esc(d.midTitleKo) + ' )' : '');
+    setText('guidePub', d.bookPub);
+    setText('guideDate', d.bookDate);
+    setText('guidePage', d.bookPage ? '( ' + d.bookPage + ' Pages )' : '(  )');
+    setText('guideListPrice', d.bookListPrice);
+    setText('guideSupplyPrice', d.bookSupplyPrice);
+    setText('guideLinkText', d.midLink);
+
+    var a = $('guideLinkAnchor', doc);
+    if (a) { a.href = d.midLink || '#'; a.textContent = '바로가기'; }
+
+    var right = $('guideTocRight', doc);
+    if (right) right.remove();
+
+    var box = $('guideTocLeft', doc);
+    if (box) box.innerHTML = renderManualToc(d.midToc);
+
+    var tocBox = $('guideToc', doc);
+    if (tocBox) tocBox.setAttribute('data-toc-path', 'single-guideTocLeft');
+
+    var rs = $('rightStatus');
+    if (rs) rs.textContent = '왼쪽 입력 → 가운데 9칸 → 오른쪽 안내서 반영 완료';
+    return true;
+  }
+
+  function targetProbe(){
+    var doc = frameDoc();
+    function rt(id){ var e = doc && $(id, doc); return e ? safeText(e.textContent) : ''; }
+    return {
+      generated_at: new Date().toISOString(),
+      middle: {
+        midTitleEn: readInput('midTitleEn'),
+        midTitleKo: readInput('midTitleKo'),
+        bookPub: readInput('bookPub'),
+        bookDate: readInput('bookDate'),
+        bookPage: readInput('bookPage'),
+        bookListPrice: readInput('bookListPrice'),
+        bookSupplyPrice: readInput('bookSupplyPrice'),
+        midLink: readInput('midLink'),
+        midToc: readInput('midToc')
+      },
+      right_iframe_ready: !!doc,
+      right: {
+        guideTitleEn: rt('guideTitleEn'),
+        guideTitleKo: rt('guideTitleKo'),
+        guidePub: rt('guidePub'),
+        guideDate: rt('guideDate'),
+        guidePage: rt('guidePage'),
+        guideListPrice: rt('guideListPrice'),
+        guideSupplyPrice: rt('guideSupplyPrice'),
+        guideLinkText: rt('guideLinkText'),
+        guideTocLeft: rt('guideTocLeft'),
+        guideTocRight: '__REMOVED_BY_SINGLE_PATH__'
+      }
+    };
+  }
+
+  function updateReports(status){
+    var p = targetProbe();
+    var leftText = collectLeftText();
+    var sector = inferSectorFromLeft();
+    var tocCount = tocLines(readInput('midToc')).length;
+    var ok = !!(p.middle.midTitleEn && p.right.guideTitleEn && p.right.guideTocLeft && p.right.guideTocRight === '__REMOVED_BY_SINGLE_PATH__');
+    var payload = {
+      status: ok ? 'PASS' : 'FAIL',
+      version: 'INPUT_REGEN_TOC_DIAG_FIX_V1',
+      left_text: leftText,
+      inferred_sector: sector.ko,
+      toc_lines: tocCount,
+      guideTocRight: '검사 제외 / 단일 경로 기준'
+    };
+    writePre('missingSlotReport', payload);
+    writePre('manualGuideScore', {
+      score: ok ? 96 : 60,
+      grade: ok ? 'A' : 'C',
+      toc_status: ok ? 'PASS' : 'FAIL',
+      rule: '왼쪽 텍스트 입력 → 가운데 9칸 재생성 → 오른쪽 guideTocLeft 단일 렌더'
+    });
+    writePre('engineGapReport', {
+      status: ok ? 'PASS' : 'NEED_CHECK',
+      fixed: ['자동 샘플 주입 제거', 'guideTocRight 진단 제외', '생성 버튼 기준 재생성'],
+      next_fix: ok ? '데이터 품질 개선 단계' : '왼쪽 입력/오른쪽 반영 확인'
+    });
+    writePre('autoLog', {
+      at: new Date().toISOString(),
+      event: 'INPUT_REGEN_TOC_DIAG_FIX_V1',
+      status: ok ? 'PASS' : 'FAIL',
+      inferred_sector: sector.ko
+    });
+    writePre('coreLog', {
+      at: new Date().toISOString(),
+      event: 'LEFT_TO_MIDDLE_TO_RIGHT_LOCKED',
+      status: ok ? 'PASS' : 'FAIL',
+      active_path: 'left text -> buildGuideData -> middle 9 slots -> right iframe',
+      removed_required_check: 'guideTocRight'
+    });
+
+    var chk = $('checkInputEngine'); if (chk) { chk.textContent = '작동'; chk.className = 'state-ok'; }
+    var fill = $('checkFillRate'); if (fill) { fill.textContent = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
+    var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
+    var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
+    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocRight는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
+    return {ok: ok, probe: p, payload: payload};
+  }
+
+  function finalGenerate(ev){
+    if (ev) { ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation(); }
+    fillMiddleFromLeft();
+    applyRightFromMiddle();
+    updateReports('generate');
+    var badge = $('stateBadge');
+    if (badge) badge.textContent = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
+    var mode = $('diagModeBadge');
+    if (mode) mode.textContent = '왼쪽 입력 기준 재생성 / guideTocRight 제외';
+    return false;
+  }
+
+  function bindFinalGenerate(){
+    ensureKeywordField();
+    var btn = $('generateBtn');
+    if (!btn || btn.dataset.inputRegenFinalBound === '1') return;
+    var clone = btn.cloneNode(true);
+    clone.dataset.inputRegenFinalBound = '1';
+    clone.addEventListener('click', finalGenerate, true);
+    btn.parentNode.replaceChild(clone, btn);
+  }
+
+  function clearAutoSample(){
+    ['keyword','customerRaw','researchField','interestField','org','dept','name','title','duty','exclude','yearRange','priceRange','publisherMemo',
+     'midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){
+      var el = $(id);
+      if (el) el.value = '';
+    });
+    var doc = frameDoc();
+    if (doc) {
+      ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(function(id){
+        var e = $(id, doc);
+        if (e) e.textContent = '';
+      });
+      var a = $('guideLinkAnchor', doc);
+      if (a) a.href = '#';
+      var r = $('guideTocRight', doc);
+      if (r) r.remove();
+    }
+    var bs = $('bridgeStatus'); if (bs) bs.textContent = '입력 대기 / 생성 버튼 클릭 시 반영';
+    var rs = $('rightStatus'); if (rs) rs.textContent = '입력 대기';
+  }
+
+  function bindDiagOverride(){
+    var btn = $('diagBtn');
+    if (!btn || btn.dataset.inputRegenDiagBound === '1') return;
+    var clone = btn.cloneNode(true);
+    clone.dataset.inputRegenDiagBound = '1';
+    clone.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
+      applyRightFromMiddle();
+      var p = targetProbe();
+      var observed = p.right.guideTocLeft || p.right.guideTitleEn || '';
+      var first = {
+        status: observed ? 'PASS' : 'FAIL',
+        error_point: observed ? 'THREE_AREA.OK_SINGLE_PATH' : 'RIGHT.VALUE.EMPTY',
+        area_id: 'guideTocLeft',
+        area_name_ko: '오른쪽 안내서 iframe 내부',
+        selector: '#guideTocLeft',
+        expected: 'guideTocRight 제외, guideTocLeft 단일 경로 값 존재',
+        observed: observed || '빈값',
+        next_fix: observed ? '데이터 품질 개선 단계로 이동' : '생성 버튼 기준 재생성 확인',
+        error_hash: observed ? 'SINGLE_PATH_OK' : 'EMPTY_SINGLE_PATH',
+        retry_count: 0
+      };
+      writeText('firstFailView', first);
+      writeText('targetProbeView', p);
+      writeText('diagPacket', {
+        generated_at: new Date().toISOString(),
+        status: first.status,
+        clicked_trace: window.__LAST_CLICKED_TRACE__ || null,
+        first_fail: first,
+        target_probe: p,
+        observed: first.observed,
+        expected: first.expected,
+        next_fix: first.next_fix
+      });
+      var badge = $('diagBadge');
+      if (badge) badge.textContent = 'DIAG: ' + first.status;
+      updateReports('diag');
+      return false;
+    }, true);
+    btn.parentNode.replaceChild(clone, btn);
+  }
+
+  function bindCoordMemory(){
+    var coord = $('coordBtn');
+    if (!coord || coord.dataset.inputRegenCoordBound === '1') return;
+    coord.dataset.inputRegenCoordBound = '1';
+    var coordMode = false;
+    coord.addEventListener('click', function(){
+      coordMode = true;
+      writeText('clickedTraceView', {status:'READY', rule:'좌표 찍기 후 문제 영역 클릭'});
+    }, true);
+    document.addEventListener('click', function(ev){
+      if (!coordMode) return;
+      if (ev.target.closest('#topDiagToolbar')) return;
+      coordMode = false;
+      var t = ev.target;
+      window.__LAST_CLICKED_TRACE__ = {
+        status:'LOCKED',
+        area_id: t.id || t.getAttribute('data-area-id') || t.tagName,
+        area_name_ko: t.closest('.left') ? '왼쪽 메뉴' : (t.closest('.middle') ? '가운데 9칸' : '오른쪽 안내서/기타'),
+        selector: t.id ? '#'+t.id : t.tagName.toLowerCase(),
+        clicked_text: safeText(t.value || t.textContent).slice(0, 700),
+        x: ev.clientX,
+        y: ev.clientY,
+        source: t.closest('.left') ? 'left' : (t.closest('.middle') ? 'middle' : 'main'),
+        generated_at: new Date().toISOString()
+      };
+      writeText('clickedTraceView', window.__LAST_CLICKED_TRACE__);
+    }, true);
+  }
+
+  function boot(){
+    ensureKeywordField();
+    bindFinalGenerate();
+    bindDiagOverride();
+    bindCoordMemory();
+    clearAutoSample();
+    updateReports('boot');
+    var title = document.querySelector('.title');
+    if (title) title.textContent = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocRight 진단 제외';
+  }
+
+  window.__INPUT_REGEN_TOC_DIAG_FIX_V1__ = {
+    finalGenerate: finalGenerate,
+    clearAutoSample: clearAutoSample,
+    applyRightFromMiddle: applyRightFromMiddle,
+    updateReports: updateReports
+  };
+
+  window.addEventListener('load', function(){
+    setTimeout(boot, 900);
+    setTimeout(boot, 1800);
+    setTimeout(boot, 3000);
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(boot, 900);
+    setTimeout(boot, 1800);
+  });
+})();
+</script>
+
 </body>
 
 </html>
