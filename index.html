@@ -3853,6 +3853,347 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<!-- WIC TOOL1 FINAL ENGINE LOCK V1: external engine, do not inline into Word/iframe HTML -->
+
+<script id="WIC_TOOL1_FINAL_ENGINE_LOCK_V1_INLINE">
+(function(){
+"use strict";
+
+if(window.WIC_TOOL1_FINAL_ENGINE_LOCKED){return;}
+window.WIC_TOOL1_FINAL_ENGINE_LOCKED=true;
+
+const WIC={
+  version:"1.0",
+  clicked_trace:null,
+  first_fail:null,
+  AUTO_LOG:[],
+  CORE_LOG:[],
+  MUTATION_LOG:[],
+  DIAG_PACKET:null,
+  mid:{},
+  last:{}
+};
+window.WIC_TOOL1=WIC;
+
+const FIELD_RULES={
+  title:{guide:["guideTitle"],keys:["title","titleko","booktitle","제목","도서명","보고서명"]},
+  date:{guide:["guideDate"],keys:["date","pubdate","published","발행일","날짜","출간일"]},
+  link:{guide:["guideLink"],keys:["link","url","href","링크","주소"]},
+  toc:{guide:["guideTocLeft","guideToc"],keys:["toc","contents","tableofcontents","목차"]}
+};
+
+function now(){return new Date().toISOString();}
+function norm(v){return String(v||"").replace(/[\s_\-:：\[\]\(\)]/g,"").toLowerCase();}
+function log(type,msg,data){
+  const row={time:now(),type,msg,data:data||null};
+  if(type==="CORE") WIC.CORE_LOG.push(row);
+  else WIC.AUTO_LOG.push(row);
+  renderPanel();
+  return row;
+}
+
+function allDocs(){
+  const list=[document];
+  document.querySelectorAll("iframe").forEach(f=>{
+    try{if(f.contentDocument){list.push(f.contentDocument);}}
+    catch(e){log("AUTO","iframe 접근 실패",{error:String(e)});}
+  });
+  return list;
+}
+
+function makePanel(){
+  let p=document.getElementById("wicTool1FinalPanel");
+  if(p){return p;}
+  p=document.createElement("div");
+  p.id="wicTool1FinalPanel";
+  p.style.cssText="position:fixed;right:12px;bottom:12px;z-index:999999;width:360px;max-height:300px;overflow:auto;background:#101828;color:#fff;border:2px solid #475467;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 26px rgba(0,0,0,.25)";
+  p.innerHTML=
+    '<b>WIC 1번 최종 엔진</b><br>'+
+    '<button id="wicFinalRun" style="margin:6px 4px 6px 0">정리/실행</button>'+
+    '<button id="wicFinalDiag" style="margin:6px 4px 6px 0">자동진단</button>'+
+    '<pre id="wicFinalLog" style="white-space:pre-wrap;background:#030712;color:#e5e7eb;max-height:210px;overflow:auto;padding:6px;border-radius:6px"></pre>';
+  document.body.appendChild(p);
+  p.querySelector("#wicFinalRun").onclick=runEngine;
+  p.querySelector("#wicFinalDiag").onclick=diagnose;
+  return p;
+}
+
+function renderPanel(){
+  const p=document.getElementById("wicFinalLog");
+  if(!p){return;}
+  p.textContent=JSON.stringify({
+    clicked_trace:WIC.clicked_trace,
+    first_fail:WIC.first_fail,
+    AUTO_LOG:WIC.AUTO_LOG.slice(-5),
+    CORE_LOG:WIC.CORE_LOG.slice(-5),
+    MUTATION_LOG:WIC.MUTATION_LOG.slice(-5),
+    DIAG_PACKET:WIC.DIAG_PACKET
+  },null,2);
+}
+
+function readValue(el){
+  if(!el){return "";}
+  if(el.matches&&el.matches("[contenteditable='true']")){return String(el.textContent||"").trim();}
+  return String(el.value||el.textContent||"").trim();
+}
+
+function writeValue(el,value){
+  if(!el){return false;}
+  const v=String(value||"");
+  if(el.tagName==="A"){
+    el.href=v;
+    el.textContent=v;
+  }else if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
+    el.value=v;
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+    el.dispatchEvent(new Event("change",{bubbles:true}));
+  }else{
+    el.textContent=v;
+  }
+  return true;
+}
+
+function inputScore(el,field){
+  const rule=FIELD_RULES[field];
+  const hay=norm([
+    el.id,el.name,el.placeholder,el.getAttribute("aria-label"),
+    el.dataset&&el.dataset.areaId,
+    el.dataset&&el.dataset.areaNameKo,
+    el.className
+  ].join(" "));
+  let score=0;
+  rule.keys.forEach(k=>{if(hay.includes(norm(k))){score+=20;}});
+  if(readValue(el)){score+=5;}
+  return score;
+}
+
+function findInput(field){
+  const candidates=Array.from(document.querySelectorAll("input,textarea,select,[contenteditable='true']"));
+  let best=null,bestScore=0;
+  candidates.forEach(el=>{
+    const s=inputScore(el,field);
+    if(s>bestScore){best=el;bestScore=s;}
+  });
+  return bestScore>0?best:null;
+}
+
+function collectInput(){
+  const mid={};
+  Object.keys(FIELD_RULES).forEach(field=>{
+    const el=findInput(field);
+    const val=readValue(el);
+    if(val){mid[field]=val;}
+  });
+
+  const filled=Array.from(document.querySelectorAll("input,textarea,select"))
+    .map(readValue).filter(Boolean);
+
+  if(!mid.title&&filled[0]){mid.title=filled[0];}
+  if(!mid.date&&filled[1]){mid.date=filled[1];}
+  if(!mid.link&&filled[2]){mid.link=filled[2];}
+  if(!mid.toc&&filled[3]){mid.toc=filled[3];}
+
+  WIC.mid=mid;
+  log("CORE","입력→가운데 데이터 매핑 완료",mid);
+  return mid;
+}
+
+function findGuide(field){
+  const rule=FIELD_RULES[field];
+  for(const doc of allDocs()){
+    for(const id of rule.guide){
+      const el=doc.getElementById(id);
+      if(el){return el;}
+    }
+  }
+
+  for(const doc of allDocs()){
+    const els=Array.from(doc.querySelectorAll("[id]"));
+    for(const el of els){
+      const id=norm(el.id);
+      if(id.includes("guide")){
+        if(field==="title"&&id.includes("title")){return el;}
+        if(field==="date"&&id.includes("date")){return el;}
+        if(field==="link"&&(id.includes("link")||id.includes("url"))){return el;}
+        if(field==="toc"&&id.includes("toc")&&!id.includes("right")){return el;}
+      }
+    }
+  }
+  return null;
+}
+
+function applyOutput(mid){
+  const result={ok:[],fail:[]};
+
+  Object.keys(FIELD_RULES).forEach(field=>{
+    const value=mid[field];
+    if(!value){return;}
+    const target=findGuide(field);
+    if(!target){
+      result.fail.push({field,message:"출력 슬롯 없음"});
+      return;
+    }
+
+    if(field==="toc"){
+      const lines=String(value).split(/\n+/).map(x=>x.trim()).filter(Boolean);
+      writeValue(target,lines.join("\n"));
+    }else{
+      writeValue(target,value);
+    }
+
+    WIC.last[target.id||field]=String(target.textContent||target.value||value);
+    result.ok.push({field,id:target.id||"",value:String(value).slice(0,100)});
+  });
+
+  allDocs().forEach(doc=>{
+    const right=doc.getElementById("guideTocRight");
+    if(right){
+      right.textContent="";
+      right.style.display="none";
+      right.setAttribute("data-wic-disabled","true");
+      log("AUTO","guideTocRight 제거 완료");
+    }
+  });
+
+  log("CORE","가운데→오른쪽 안내서 출력 완료",result);
+  return result;
+}
+
+function installMutation(){
+  if(WIC._mutation){WIC._mutation.disconnect();}
+  WIC._mutation=new MutationObserver(records=>{
+    records.forEach(r=>{
+      const el=r.target.nodeType===3?r.target.parentElement:r.target;
+      if(!el||!el.id){return;}
+      const expected=WIC.last[el.id];
+      if(expected==null){return;}
+      const observed=String(el.textContent||el.value||"");
+      if(el.tagName!=="A"&&observed!==expected){
+        WIC.MUTATION_LOG.push({time:now(),id:el.id,expected,observed});
+        writeValue(el,expected);
+        log("AUTO","값 사라짐 감지 및 복구",{id:el.id});
+      }
+    });
+    renderPanel();
+  });
+
+  allDocs().forEach(doc=>{
+    try{WIC._mutation.observe(doc.body,{childList:true,subtree:true,characterData:true});}
+    catch(e){log("AUTO","mutation 감시 실패",{error:String(e)});}
+  });
+}
+
+function installClickTrace(){
+  function handler(e){
+    const area=e.target.closest&&e.target.closest("[data-area-id],[data-area-name-ko]");
+    WIC.clicked_trace={
+      time:now(),
+      x:e.clientX,
+      y:e.clientY,
+      tag:e.target.tagName,
+      id:e.target.id||"",
+      className:String(e.target.className||""),
+      area_id:area&&area.dataset?area.dataset.areaId||"": "",
+      area_name_ko:area&&area.dataset?area.dataset.areaNameKo||"": "",
+      text:String(e.target.textContent||"").slice(0,80)
+    };
+    renderPanel();
+  }
+
+  document.removeEventListener("click",WIC._clickHandler,true);
+  WIC._clickHandler=handler;
+  document.addEventListener("click",handler,true);
+
+  allDocs().forEach(doc=>{
+    if(doc!==document){
+      try{doc.addEventListener("click",handler,true);}
+      catch(e){log("AUTO","iframe 클릭 추적 실패",{error:String(e)});}
+    }
+  });
+}
+
+function makeFirstFail(checks){
+  const fail=(checks||[]).find(x=>x.status==="FAIL");
+  WIC.first_fail=fail?{
+    time:now(),
+    message:fail.message,
+    field:fail.field||"",
+    id:fail.id||"",
+    clicked_trace:WIC.clicked_trace,
+    next_fix:fail.next_fix||"해당 위치 1개만 수정"
+  }:null;
+  return WIC.first_fail;
+}
+
+function makePacket(){
+  WIC.DIAG_PACKET={
+    created_at:now(),
+    version:"WIC_TOOL1_FINAL_ENGINE_LOCK_V1",
+    mid:WIC.mid,
+    clicked_trace:WIC.clicked_trace,
+    first_fail:WIC.first_fail,
+    AUTO_LOG:WIC.AUTO_LOG,
+    CORE_LOG:WIC.CORE_LOG,
+    MUTATION_LOG:WIC.MUTATION_LOG,
+    target_probe:{
+      guideTitle:!!findGuide("title"),
+      guideDate:!!findGuide("date"),
+      guideLink:!!findGuide("link"),
+      guideTocLeft:!!findGuide("toc")
+    }
+  };
+  renderPanel();
+  return WIC.DIAG_PACKET;
+}
+
+function runEngine(){
+  makePanel();
+  installMutation();
+  installClickTrace();
+
+  const mid=collectInput();
+  const output=applyOutput(mid);
+  const checks=[];
+
+  ["title","date","link","toc"].forEach(field=>{
+    if(!mid[field]){
+      checks.push({status:"FAIL",field,message:field+" 입력값 없음",next_fix:"해당 입력칸 확인"});
+    }
+  });
+
+  output.fail.forEach(f=>{
+    checks.push({status:"FAIL",field:f.field,message:f.field+" 출력 슬롯 없음",next_fix:"guide id 확인"});
+  });
+
+  makeFirstFail(checks);
+  makePacket();
+}
+
+function diagnose(){
+  makePanel();
+  const checks=[];
+  if(!WIC.clicked_trace){
+    checks.push({status:"FAIL",message:"CLICKED_TRACE 없음",next_fix:"오른쪽 안내서 클릭 후 재진단"});
+  }
+  makeFirstFail(checks);
+  makePacket();
+}
+
+window.runWICFinalEngine=runEngine;
+window.diagWICFinalEngine=diagnose;
+
+makePanel();
+installMutation();
+installClickTrace();
+
+document.getElementById("wicFinalRun").onclick=runEngine;
+document.getElementById("wicFinalDiag").onclick=diagnose;
+
+log("CORE","WIC 1번 최종 엔진 설치 완료");
+})();
+</script>
+
 </body>
 
 </html>
