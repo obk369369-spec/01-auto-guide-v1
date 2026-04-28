@@ -3854,239 +3854,119 @@ endpoint: ${endpoint}`
 </script>
 
 
-<!-- WIC TOOL1 FINAL ENGINE LOCK V1: external engine, do not inline into Word/iframe HTML -->
-
-<script id="WIC_TOOL1_SAFE_MODE_V1">
+<script id="WIC_TOOL1_ULTRA_SAFE_V1">
 (function(){
 "use strict";
-if (window.WIC_TOOL1_SAFE_MODE_LOCKED) return;
-window.WIC_TOOL1_SAFE_MODE_LOCKED = true;
+if(window.WIC_TOOL1_ULTRA_SAFE_LOCKED) return;
+window.WIC_TOOL1_ULTRA_SAFE_LOCKED = true;
 
-var WIC = window.WIC_TOOL1_SAFE = {
-  mode: "SAFE",
-  clicked_trace: null,
-  first_fail: null,
-  auto_log: [],
-  core_log: [],
-  mutation_log: [],
-  diag_packet: null,
-  last_written: {}
-};
+window.WIC_ULTRA_SAFE = { mode:"ULTRA_SAFE", clicked_trace:null, last_result:null, diag_packet:null };
 
-function now(){ return new Date().toISOString(); }
-function byId(id, root){ return (root || document).getElementById(id); }
-function val(el){
-  if(!el) return "";
-  return String(("value" in el ? el.value : el.textContent) || "").trim();
-}
-function setText(el, v){
+function $(id){ return document.getElementById(id); }
+function txt(el){ return el ? String(("value" in el ? el.value : el.textContent) || "").trim() : ""; }
+function set(el,v){
   if(!el) return false;
   v = String(v || "");
   if(el.tagName === "A"){ el.href = v; el.textContent = v; }
   else if("value" in el){ el.value = v; }
   else { el.textContent = v; }
-  if(el.id) WIC.last_written[el.id] = v;
   return true;
 }
-function pushLog(kind, msg, data){
-  var row = { time: now(), kind: kind, msg: msg, data: data || null };
-  if(kind === "CORE") WIC.core_log.push(row);
-  else WIC.auto_log.push(row);
-  render();
-  return row;
+function iframeDoc(){
+  var f = $("rightFrame");
+  try { return f && f.contentDocument ? f.contentDocument : null; } catch(e){ return null; }
 }
-function docs(){
-  var out = [document];
-  document.querySelectorAll("iframe").forEach(function(f){
-    try { if(f.contentDocument && f.contentDocument.body) out.push(f.contentDocument); }
-    catch(e){ WIC.auto_log.push({time:now(), kind:"AUTO", msg:"iframe 접근 실패", data:String(e)}); }
-  });
-  return out;
-}
-function findAny(ids){
-  var ds = docs();
-  for(var i=0;i<ds.length;i++){
-    for(var j=0;j<ids.length;j++){
-      var el = ds[i].getElementById(ids[j]);
-      if(el) return el;
-    }
+function findInRight(ids){
+  var d = iframeDoc();
+  if(!d) return null;
+  for(var i=0;i<ids.length;i++){
+    var el = d.getElementById(ids[i]);
+    if(el) return el;
   }
   return null;
 }
-function collectMid(){
-  var mid = {
-    title: val(byId("midTitleEn")) || val(byId("midTitleKo")) || val(byId("customerRaw")) || val(byId("researchField")),
-    titleKo: val(byId("midTitleKo")),
-    publisher: val(byId("bookPub")),
-    date: val(byId("bookDate")),
-    page: val(byId("bookPage")),
-    price: val(byId("bookListPrice")),
-    supply: val(byId("bookSupplyPrice")),
-    link: val(byId("midLink")),
-    toc: val(byId("midToc"))
-  };
-  WIC.mid = mid;
-  pushLog("CORE", "가운데 데이터 수집", mid);
-  return mid;
-}
-function applyGuide(mid){
-  var map = [
-    {field:"title", value: mid.title, ids:["guideTitle","guideTitleEn","guideTitleKo"]},
-    {field:"publisher", value: mid.publisher, ids:["guidePub","guidePublisher","guideBookPub"]},
-    {field:"date", value: mid.date, ids:["guideDate","guidePubDate"]},
-    {field:"page", value: mid.page, ids:["guidePage","guidePages"]},
-    {field:"price", value: mid.price, ids:["guidePrice","guideListPrice"]},
-    {field:"supply", value: mid.supply, ids:["guideSupplyPrice","guideSupply"]},
-    {field:"link", value: mid.link, ids:["guideLink","guideUrl"]},
-    {field:"toc", value: mid.toc, ids:["guideTocLeft","guideToc"]}
-  ];
-  var result = { ok: [], fail: [] };
-  map.forEach(function(m){
-    if(!m.value) return;
-    var target = findAny(m.ids);
-    if(!target){
-      result.fail.push({field:m.field, expected:m.ids});
-      return;
-    }
-    if(m.field === "toc"){
-      setText(target, String(m.value).split(/\n+/).map(function(x){return x.trim();}).filter(Boolean).join("\n"));
-    } else {
-      setText(target, m.value);
-    }
-    result.ok.push({field:m.field, id: target.id || "", value:String(m.value).slice(0,80)});
-  });
-
-  var right = findAny(["guideTocRight"]);
-  if(right){
-    right.textContent = "";
-    right.style.display = "none";
-    right.setAttribute("data-wic-disabled","true");
-  }
-  pushLog("CORE", "오른쪽 안내서 반영", result);
-  return result;
-}
-function installMutationOnce(){
-  if(WIC.mo) return;
-  WIC.mo = new MutationObserver(function(records){
-    records.forEach(function(r){
-      var el = r.target.nodeType === 3 ? r.target.parentElement : r.target;
-      if(!el || !el.id) return;
-      if(WIC.last_written[el.id] == null) return;
-      var observed = ("value" in el ? el.value : el.textContent) || "";
-      var expected = WIC.last_written[el.id];
-      if(String(observed) !== String(expected)){
-        WIC.mutation_log.push({time:now(), id:el.id, expected:expected, observed:String(observed).slice(0,120)});
-        setText(el, expected);
-      }
-    });
-    render();
-  });
-  docs().forEach(function(d){
-    try { WIC.mo.observe(d.body, {childList:true, subtree:true, characterData:true}); } catch(e){}
-  });
-}
-function installClickOnce(){
-  if(WIC.clickInstalled) return;
-  WIC.clickInstalled = true;
-  function handler(e){
-    var area = e.target.closest ? e.target.closest("[data-area-id],[data-area-name-ko]") : null;
-    WIC.clicked_trace = {
-      time: now(),
-      x: e.clientX,
-      y: e.clientY,
-      id: e.target.id || "",
-      tag: e.target.tagName || "",
-      area_id: area && area.dataset ? (area.dataset.areaId || "") : "",
-      area_name_ko: area && area.dataset ? (area.dataset.areaNameKo || "") : "",
-      text: String(e.target.textContent || "").slice(0,80)
-    };
-    render();
-  }
-  document.addEventListener("click", handler, true);
-  docs().forEach(function(d){
-    if(d !== document){
-      try { d.addEventListener("click", handler, true); } catch(e){}
-    }
-  });
-}
-function diagnoseOnly(){
-  var checks = [];
-  if(!WIC.clicked_trace) checks.push({status:"FAIL", msg:"CLICKED_TRACE 없음", next_fix:"문제 위치를 한 번 클릭"});
-  ["guideTitle","guideDate","guideLink","guideTocLeft"].forEach(function(id){
-    if(!findAny([id])) checks.push({status:"FAIL", msg:id+" 없음", next_fix:"오른쪽 실제 id 확인"});
-  });
-  WIC.first_fail = checks[0] || {status:"PASS", msg:"FIRST_FAIL 없음"};
-  WIC.diag_packet = {
-    created_at: now(),
-    mode: "SAFE",
-    clicked_trace: WIC.clicked_trace,
-    first_fail: WIC.first_fail,
-    auto_log: WIC.auto_log,
-    core_log: WIC.core_log,
-    mutation_log: WIC.mutation_log
-  };
-  render();
-}
-function runSafe(){
-  pushLog("AUTO","SAFE 실행 시작");
-  installClickOnce();
-  installMutationOnce();
-  var mid = collectMid();
-  var result = applyGuide(mid);
-  if(result.fail.length){
-    WIC.first_fail = {status:"FAIL", msg:"출력 슬롯 없음", detail:result.fail[0], next_fix:"30번으로 DOM 매핑 재요청"};
-  } else {
-    WIC.first_fail = {status:"PASS", msg:"SAFE 실행 PASS"};
-  }
-  WIC.diag_packet = {
-    created_at: now(),
-    mode: "SAFE",
-    mid: mid,
-    apply_result: result,
-    clicked_trace: WIC.clicked_trace,
-    first_fail: WIC.first_fail,
-    auto_log: WIC.auto_log,
-    core_log: WIC.core_log,
-    mutation_log: WIC.mutation_log
-  };
-  render();
+function render(obj){
+  var el = $("wicUltraLog");
+  if(el) el.textContent = JSON.stringify(obj || window.WIC_ULTRA_SAFE, null, 2);
 }
 function makePanel(){
-  if(byId("wicSafePanel")) return;
+  if($("wicUltraSafePanel")) return;
   var p = document.createElement("div");
-  p.id = "wicSafePanel";
-  p.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;width:360px;max-height:320px;overflow:auto;background:#111827;color:#fff;border:2px solid #f59e0b;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.28)";
-  p.innerHTML = '<b>WIC SAFE MODE</b> <span style="color:#fde68a">수동 실행</span><br>' +
-    '<button id="wicSafeRun" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">WIC 실행</button>' +
-    '<button id="wicSafeDiag" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">자동진단</button>' +
-    '<pre id="wicSafeLog" style="white-space:pre-wrap;background:#030712;color:#e5e7eb;max-height:220px;overflow:auto;padding:7px;border-radius:6px"></pre>';
+  p.id = "wicUltraSafePanel";
+  p.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;width:340px;max-height:280px;overflow:auto;background:#0f172a;color:#fff;border:2px solid #22c55e;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
+  p.innerHTML = '<b>WIC ULTRA SAFE</b> <span style="color:#bbf7d0">패널만 자동 / 실행은 수동</span><br>' +
+    '<button id="wicUltraRun" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">WIC 실행 1회</button>' +
+    '<button id="wicUltraDiag" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">진단 1회</button>' +
+    '<pre id="wicUltraLog" style="white-space:pre-wrap;background:#020617;color:#e5e7eb;max-height:190px;overflow:auto;padding:7px;border-radius:6px"></pre>';
   document.body.appendChild(p);
-  byId("wicSafeRun").onclick = runSafe;
-  byId("wicSafeDiag").onclick = diagnoseOnly;
-  render();
+  $("wicUltraRun").onclick = runOnce;
+  $("wicUltraDiag").onclick = diagOnce;
+  render({status:"READY", note:"화면 로딩 후 버튼을 눌러 1회만 실행"});
 }
-function render(){
-  var el = byId("wicSafeLog");
-  if(!el) return;
-  el.textContent = JSON.stringify({
-    mode: "SAFE",
-    clicked_trace: WIC.clicked_trace,
-    first_fail: WIC.first_fail,
-    auto_log: WIC.auto_log.slice(-5),
-    core_log: WIC.core_log.slice(-5),
-    mutation_log: WIC.mutation_log.slice(-5),
-    diag_packet: WIC.diag_packet
-  }, null, 2);
-}
-window.WIC_SAFE_RUN = runSafe;
-window.WIC_SAFE_DIAG = diagnoseOnly;
+document.addEventListener("click", function(e){
+  if(e.target && (e.target.id === "wicUltraRun" || e.target.id === "wicUltraDiag")) return;
+  window.WIC_ULTRA_SAFE.clicked_trace = {
+    time:new Date().toISOString(),
+    id:e.target.id || "",
+    tag:e.target.tagName || "",
+    text:String(e.target.textContent || "").slice(0,80)
+  };
+}, true);
 
-// SAFE MODE 핵심: DOMContentLoaded 이후 패널만 생성한다. 엔진 실행/값 주입은 절대 자동 실행하지 않는다.
-if(document.readyState === "loading"){
-  document.addEventListener("DOMContentLoaded", makePanel);
-}else{
-  makePanel();
+function runOnce(){
+  var mid = {
+    title: txt($("midTitleEn")) || txt($("midTitleKo")) || txt($("researchField")) || txt($("customerRaw")),
+    titleKo: txt($("midTitleKo")),
+    publisher: txt($("bookPub")),
+    date: txt($("bookDate")),
+    page: txt($("bookPage")),
+    price: txt($("bookListPrice")),
+    supply: txt($("bookSupplyPrice")),
+    link: txt($("midLink")),
+    toc: txt($("midToc"))
+  };
+  var result = {ok:[], fail:[]};
+  [
+    {k:"title", v:mid.title, ids:["guideTitle","guideTitleEn","guideTitleKo"]},
+    {k:"publisher", v:mid.publisher, ids:["guidePub","guidePublisher"]},
+    {k:"date", v:mid.date, ids:["guideDate"]},
+    {k:"page", v:mid.page, ids:["guidePage","guidePages"]},
+    {k:"price", v:mid.price, ids:["guidePrice"]},
+    {k:"supply", v:mid.supply, ids:["guideSupplyPrice"]},
+    {k:"link", v:mid.link, ids:["guideLink"]},
+    {k:"toc", v:mid.toc, ids:["guideTocLeft","guideToc"]}
+  ].forEach(function(m){
+    if(!m.v) return;
+    var target = findInRight(m.ids);
+    if(!target) result.fail.push({field:m.k, ids:m.ids});
+    else {
+      set(target, m.k === "toc" ? String(m.v).split(/\n+/).map(function(x){return x.trim();}).filter(Boolean).join("\n") : m.v);
+      result.ok.push({field:m.k, id:target.id});
+    }
+  });
+  window.WIC_ULTRA_SAFE.last_result = {mid:mid, apply:result};
+  window.WIC_ULTRA_SAFE.diag_packet = {
+    created_at:new Date().toISOString(),
+    mode:"ULTRA_SAFE",
+    clicked_trace:window.WIC_ULTRA_SAFE.clicked_trace,
+    result:window.WIC_ULTRA_SAFE.last_result,
+    first_fail: result.fail[0] || null
+  };
+  render(window.WIC_ULTRA_SAFE.diag_packet);
 }
+function diagOnce(){
+  window.WIC_ULTRA_SAFE.diag_packet = {
+    created_at:new Date().toISOString(),
+    mode:"ULTRA_SAFE",
+    clicked_trace:window.WIC_ULTRA_SAFE.clicked_trace,
+    first_fail: window.WIC_ULTRA_SAFE.clicked_trace ? null : {msg:"CLICKED_TRACE 없음"},
+    rightFrame: !!$("rightFrame"),
+    iframeAccessible: !!iframeDoc()
+  };
+  render(window.WIC_ULTRA_SAFE.diag_packet);
+}
+if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", makePanel); }
+else{ makePanel(); }
 })();
 </script>
 
