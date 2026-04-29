@@ -3974,7 +3974,6 @@ else{ makePanel(); }
 <script id="WIC_TOOL1_DOM_MAPPING_PATCH_V2">
 (function(){
   "use strict";
-
   if(window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED){ return; }
   window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED = true;
 
@@ -3997,7 +3996,7 @@ else{ makePanel(); }
   function findGuide(doc, ids){
     for(const id of ids){
       const el = doc.getElementById(id);
-      if(el){ return { id: id, el: el }; }
+      if(el){ return { id, el }; }
     }
     return null;
   }
@@ -4036,7 +4035,6 @@ else{ makePanel(); }
         reason: "rightFrame iframe 내부 document 접근 실패"
       });
       window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
-      renderResult(result);
       return result;
     }
 
@@ -4051,13 +4049,19 @@ else{ makePanel(); }
       { sourceId: "midToc", targetIds: ["guideTocLeft"] }
     ];
 
-    map.forEach(function(row){
+    map.forEach(row => {
       const value = readMain(row.sourceId);
+
       if(!value){
-        result.empty.push({ sourceId: row.sourceId, targetIds: row.targetIds });
+        result.empty.push({
+          sourceId: row.sourceId,
+          targetIds: row.targetIds
+        });
         return;
       }
+
       const target = findGuide(doc, row.targetIds);
+
       if(!target){
         result.missing.push({
           sourceId: row.sourceId,
@@ -4066,7 +4070,9 @@ else{ makePanel(); }
         });
         return;
       }
+
       const ok = setGuideValue(target, value);
+
       if(ok){
         result.injected.push({
           sourceId: row.sourceId,
@@ -4078,69 +4084,61 @@ else{ makePanel(); }
 
     result.status = result.injected.length > 0 ? "PASS" : "FAIL";
     window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
-    renderResult(result);
     return result;
   };
-
-  function ensurePanel(){
-    let box = document.getElementById("wicDirectSyncPanel");
-    if(box){ return box; }
-    box = document.createElement("div");
-    box.id = "wicDirectSyncPanel";
-    box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;width:360px;max-height:290px;overflow:auto;background:#111827;color:#fff;border:2px solid #38bdf8;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
-    box.innerHTML = '<b>WIC 직접 동기화</b> <span style="color:#bae6fd">버튼 1회 테스트</span><br>' +
-      '<button id="wicDirectSyncBtn" type="button" style="margin:7px 5px 7px 0;padding:6px 10px;font-weight:700">안내서 반영 1회</button>' +
-      '<pre id="wicDirectSyncLog" style="white-space:pre-wrap;background:#020617;color:#e5e7eb;max-height:205px;overflow:auto;padding:7px;border-radius:6px"></pre>';
-    document.body.appendChild(box);
-    document.getElementById("wicDirectSyncBtn").onclick = function(){
-      window.WIC_DIRECT_GUIDE_SYNC();
-    };
-    renderResult({status:"READY", message:"화면 정상 표시 후 안내서 반영 1회 버튼만 누르세요."});
-    return box;
-  }
-
-  function renderResult(result){
-    const log = document.getElementById("wicDirectSyncLog");
-    if(log){ log.textContent = JSON.stringify(result, null, 2); }
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", ensurePanel);
-  }else{
-    ensurePanel();
-  }
 })();
 </script>
-\n
 
-<script id="WIC_TOOL1_RUN_HOOK_PATCH_V1">
+
+<script id="WIC_TOOL1_FINAL_DOM_SYNC_CLEAN_HOOK_V1">
 (function(){
   "use strict";
 
-  function showSyncResult(result){
-    var panel =
+  function removeExtraPanels(){
+    ["wicDirectSyncPanel", "wicSyncResultLog"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.remove();
+    });
+
+    Array.from(document.querySelectorAll("button")).forEach(function(btn){
+      var t = (btn.textContent || "").trim();
+      if(t.includes("안내서 반영 1회") || t.includes("DOM 반영") || t.includes("Sync 반영")){
+        btn.remove();
+      }
+    });
+  }
+
+  function getSafePanel(){
+    return (
       document.getElementById("wicFinalLog") ||
       document.getElementById("wicEngineLog") ||
       document.getElementById("wicLog") ||
       document.getElementById("wicUltraLog") ||
-      document.getElementById("wicDirectSyncLog");
-
-    if(!panel){
-      panel = document.createElement("pre");
-      panel.id = "wicSyncResultLog";
-      panel.style.cssText =
-        "position:fixed;right:12px;bottom:330px;z-index:999999;width:360px;max-height:220px;overflow:auto;background:#111827;color:#fff;padding:8px;border-radius:8px;font-size:12px;";
-      document.body.appendChild(panel);
-    }
-
-    panel.textContent = JSON.stringify({
-      DOM_SYNC_RESULT: result
-    }, null, 2);
+      document.querySelector("#wicSafePanel pre") ||
+      document.querySelector("[data-panel='safe-log']")
+    );
   }
 
-  function runDomSyncAfterMain(){
+  function showResult(result){
+    var panel = getSafePanel();
+    if(!panel) return;
+
+    var current = {};
+    try {
+      current = JSON.parse(panel.textContent || "{}");
+    } catch(e) {
+      current = { previous_log: panel.textContent || "" };
+    }
+
+    current.DOM_SYNC_RESULT = result;
+    panel.textContent = JSON.stringify(current, null, 2);
+  }
+
+  function runDomSync(){
+    removeExtraPanels();
+
     if(typeof window.WIC_DIRECT_GUIDE_SYNC !== "function"){
-      showSyncResult({
+      showResult({
         status: "FAIL",
         reason: "WIC_DIRECT_GUIDE_SYNC 함수 없음"
       });
@@ -4148,57 +4146,51 @@ else{ makePanel(); }
     }
 
     var result = window.WIC_DIRECT_GUIDE_SYNC();
-    showSyncResult(result);
-    return result;
+    showResult(result);
   }
 
-  function hookButton(){
-    var buttons = Array.from(document.querySelectorAll("button"));
-    var runBtn = buttons.find(function(btn){
-      var text = (btn.textContent || "").trim();
-      return text.includes("WIC 실행") ||
-             text.includes("실행 1회") ||
-             text.includes("정리/실행") ||
-             text.includes("안내서 반영");
+  function hookRunButton(){
+    removeExtraPanels();
+
+    var runBtn = Array.from(document.querySelectorAll("button")).find(function(btn){
+      var t = (btn.textContent || "").trim();
+      return t.includes("WIC 실행 1회") ||
+             t.includes("실행 1회") ||
+             t.includes("정리/실행");
     });
 
     if(!runBtn){
-      showSyncResult({
+      showResult({
         status: "FAIL",
-        reason: "WIC 실행 1회 버튼을 찾지 못함"
+        reason: "기존 WIC 실행 1회 버튼 없음"
       });
       return;
     }
 
-    if(runBtn.dataset.wicDomSyncHooked === "true"){
-      showSyncResult({
-        status: "READY",
-        message: "이미 WIC 실행 버튼에 DOM 매핑 후처리 연결됨"
-      });
-      return;
-    }
-
-    runBtn.dataset.wicDomSyncHooked = "true";
+    if(runBtn.dataset.wicFinalDomSyncHooked === "true") return;
+    runBtn.dataset.wicFinalDomSyncHooked = "true";
 
     runBtn.addEventListener("click", function(){
-      setTimeout(function(){
-        runDomSyncAfterMain();
-      }, 80);
-    });
+      setTimeout(runDomSync, 120);
+    }, false);
 
-    showSyncResult({
+    showResult({
       status: "READY",
-      message: "WIC 실행 1회 버튼에 DOM 매핑 후처리 연결 완료"
+      message: "기존 WIC 실행 1회 버튼에 DOM 매핑 후처리 연결 완료"
     });
   }
 
   if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", hookButton);
+    document.addEventListener("DOMContentLoaded", hookRunButton);
   }else{
-    hookButton();
+    hookRunButton();
   }
 
-  window.WIC_RUN_DOM_SYNC_AFTER_MAIN = runDomSyncAfterMain;
+  window.WIC_FINAL_DOM_SYNC_CLEAN_HOOK = {
+    removeExtraPanels: removeExtraPanels,
+    runDomSync: runDomSync,
+    hookRunButton: hookRunButton
+  };
 })();
 </script>
 
