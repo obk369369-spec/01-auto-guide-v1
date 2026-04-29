@@ -4111,7 +4111,98 @@ else{ makePanel(); }
   }
 })();
 </script>
-\n</body>
+\n
+
+<script id="WIC_TOOL1_RUN_HOOK_PATCH_V1">
+(function(){
+  "use strict";
+
+  function showSyncResult(result){
+    var panel =
+      document.getElementById("wicFinalLog") ||
+      document.getElementById("wicEngineLog") ||
+      document.getElementById("wicLog") ||
+      document.getElementById("wicUltraLog") ||
+      document.getElementById("wicDirectSyncLog");
+
+    if(!panel){
+      panel = document.createElement("pre");
+      panel.id = "wicSyncResultLog";
+      panel.style.cssText =
+        "position:fixed;right:12px;bottom:330px;z-index:999999;width:360px;max-height:220px;overflow:auto;background:#111827;color:#fff;padding:8px;border-radius:8px;font-size:12px;";
+      document.body.appendChild(panel);
+    }
+
+    panel.textContent = JSON.stringify({
+      DOM_SYNC_RESULT: result
+    }, null, 2);
+  }
+
+  function runDomSyncAfterMain(){
+    if(typeof window.WIC_DIRECT_GUIDE_SYNC !== "function"){
+      showSyncResult({
+        status: "FAIL",
+        reason: "WIC_DIRECT_GUIDE_SYNC 함수 없음"
+      });
+      return;
+    }
+
+    var result = window.WIC_DIRECT_GUIDE_SYNC();
+    showSyncResult(result);
+    return result;
+  }
+
+  function hookButton(){
+    var buttons = Array.from(document.querySelectorAll("button"));
+    var runBtn = buttons.find(function(btn){
+      var text = (btn.textContent || "").trim();
+      return text.includes("WIC 실행") ||
+             text.includes("실행 1회") ||
+             text.includes("정리/실행") ||
+             text.includes("안내서 반영");
+    });
+
+    if(!runBtn){
+      showSyncResult({
+        status: "FAIL",
+        reason: "WIC 실행 1회 버튼을 찾지 못함"
+      });
+      return;
+    }
+
+    if(runBtn.dataset.wicDomSyncHooked === "true"){
+      showSyncResult({
+        status: "READY",
+        message: "이미 WIC 실행 버튼에 DOM 매핑 후처리 연결됨"
+      });
+      return;
+    }
+
+    runBtn.dataset.wicDomSyncHooked = "true";
+
+    runBtn.addEventListener("click", function(){
+      setTimeout(function(){
+        runDomSyncAfterMain();
+      }, 80);
+    });
+
+    showSyncResult({
+      status: "READY",
+      message: "WIC 실행 1회 버튼에 DOM 매핑 후처리 연결 완료"
+    });
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", hookButton);
+  }else{
+    hookButton();
+  }
+
+  window.WIC_RUN_DOM_SYNC_AFTER_MAIN = runDomSyncAfterMain;
+})();
+</script>
+
+</body>
 
 </html>
 <script id="tocCheckSyncV1">
