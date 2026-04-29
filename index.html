@@ -3970,7 +3970,148 @@ else{ makePanel(); }
 })();
 </script>
 
-</body>
+
+<script id="WIC_TOOL1_DOM_MAPPING_PATCH_V2">
+(function(){
+  "use strict";
+
+  if(window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED){ return; }
+  window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED = true;
+
+  function getRightDoc(){
+    const frame = document.getElementById("rightFrame");
+    if(!frame){ return null; }
+    try{
+      return frame.contentDocument || frame.contentWindow.document;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function readMain(id){
+    const el = document.getElementById(id);
+    if(!el){ return ""; }
+    return String(el.value || el.textContent || "").trim();
+  }
+
+  function findGuide(doc, ids){
+    for(const id of ids){
+      const el = doc.getElementById(id);
+      if(el){ return { id: id, el: el }; }
+    }
+    return null;
+  }
+
+  function setGuideValue(target, value){
+    const el = target.el;
+    if(el.tagName === "A"){
+      el.href = value;
+      el.textContent = value;
+      return true;
+    }
+    if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
+      el.value = value;
+      el.dispatchEvent(new Event("input", { bubbles:true }));
+      el.dispatchEvent(new Event("change", { bubbles:true }));
+      return true;
+    }
+    el.textContent = value;
+    return true;
+  }
+
+  window.WIC_DIRECT_GUIDE_SYNC = function(){
+    const doc = getRightDoc();
+    const result = {
+      engine: "WIC_TOOL1_DOM_MAPPING_PATCH_V2",
+      status: "FAIL",
+      injected: [],
+      missing: [],
+      empty: []
+    };
+
+    if(!doc){
+      result.missing.push({
+        source: "rightFrame",
+        target: "iframe.contentDocument",
+        reason: "rightFrame iframe 내부 document 접근 실패"
+      });
+      window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
+      renderResult(result);
+      return result;
+    }
+
+    const map = [
+      { sourceId: "midTitleEn", targetIds: ["guideTitle", "guideTitleEn"] },
+      { sourceId: "bookPub", targetIds: ["guidePub"] },
+      { sourceId: "bookDate", targetIds: ["guideDate"] },
+      { sourceId: "bookPage", targetIds: ["guidePage", "guidePages"] },
+      { sourceId: "bookListPrice", targetIds: ["guidePrice"] },
+      { sourceId: "bookSupplyPrice", targetIds: ["guideSupplyPrice"] },
+      { sourceId: "midLink", targetIds: ["guideLink"] },
+      { sourceId: "midToc", targetIds: ["guideTocLeft"] }
+    ];
+
+    map.forEach(function(row){
+      const value = readMain(row.sourceId);
+      if(!value){
+        result.empty.push({ sourceId: row.sourceId, targetIds: row.targetIds });
+        return;
+      }
+      const target = findGuide(doc, row.targetIds);
+      if(!target){
+        result.missing.push({
+          sourceId: row.sourceId,
+          targetIds: row.targetIds,
+          reason: "guide id 없음"
+        });
+        return;
+      }
+      const ok = setGuideValue(target, value);
+      if(ok){
+        result.injected.push({
+          sourceId: row.sourceId,
+          targetId: target.id,
+          value: value
+        });
+      }
+    });
+
+    result.status = result.injected.length > 0 ? "PASS" : "FAIL";
+    window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
+    renderResult(result);
+    return result;
+  };
+
+  function ensurePanel(){
+    let box = document.getElementById("wicDirectSyncPanel");
+    if(box){ return box; }
+    box = document.createElement("div");
+    box.id = "wicDirectSyncPanel";
+    box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;width:360px;max-height:290px;overflow:auto;background:#111827;color:#fff;border:2px solid #38bdf8;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
+    box.innerHTML = '<b>WIC 직접 동기화</b> <span style="color:#bae6fd">버튼 1회 테스트</span><br>' +
+      '<button id="wicDirectSyncBtn" type="button" style="margin:7px 5px 7px 0;padding:6px 10px;font-weight:700">안내서 반영 1회</button>' +
+      '<pre id="wicDirectSyncLog" style="white-space:pre-wrap;background:#020617;color:#e5e7eb;max-height:205px;overflow:auto;padding:7px;border-radius:6px"></pre>';
+    document.body.appendChild(box);
+    document.getElementById("wicDirectSyncBtn").onclick = function(){
+      window.WIC_DIRECT_GUIDE_SYNC();
+    };
+    renderResult({status:"READY", message:"화면 정상 표시 후 안내서 반영 1회 버튼만 누르세요."});
+    return box;
+  }
+
+  function renderResult(result){
+    const log = document.getElementById("wicDirectSyncLog");
+    if(log){ log.textContent = JSON.stringify(result, null, 2); }
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", ensurePanel);
+  }else{
+    ensurePanel();
+  }
+})();
+</script>
+\n</body>
 
 </html>
 <script id="tocCheckSyncV1">
