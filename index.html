@@ -4194,6 +4194,127 @@ else{ makePanel(); }
 })();
 </script>
 
+
+<script id="WIC_TOOL1_SAFE_PANEL_FINAL_PATCH_V1">
+(function(){
+  "use strict";
+
+  function getSafePanel(){
+    return (
+      document.getElementById("wicFinalLog") ||
+      document.getElementById("wicEngineLog") ||
+      document.getElementById("wicLog") ||
+      document.getElementById("wicUltraLog") ||
+      document.querySelector("#wicSafePanel pre") ||
+      document.querySelector("[data-panel='safe-log']")
+    );
+  }
+
+  function removeExtra(){
+    ["wicDirectSyncPanel","wicSyncResultLog","wicSyncResultLog","wicDirectSyncLog"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.remove();
+    });
+
+    Array.from(document.querySelectorAll("button")).forEach(function(btn){
+      var t = (btn.textContent || "").trim();
+      if(t.includes("안내서 반영 1회") || t.includes("DOM 반영") || t.includes("Sync 반영")){
+        btn.remove();
+      }
+    });
+  }
+
+  function render(result){
+    var panel = getSafePanel();
+    if(!panel) return;
+
+    result = result || { injected: [], missing: ["결과 없음"], empty: [] };
+    var pass = !!(result && result.injected && result.injected.length > 0);
+
+    var output = {
+      PASS: pass ? "PASS" : "FAIL",
+      DOM_SYNC_RESULT: result,
+      injected: result.injected || [],
+      missing: result.missing || [],
+      empty: result.empty || []
+    };
+
+    panel.textContent = JSON.stringify(output, null, 2);
+  }
+
+  function run(){
+    removeExtra();
+
+    if(typeof window.WIC_DIRECT_GUIDE_SYNC !== "function"){
+      render({
+        status: "FAIL",
+        injected: [],
+        missing: ["WIC_DIRECT_GUIDE_SYNC 없음"],
+        empty: []
+      });
+      return;
+    }
+
+    var result = window.WIC_DIRECT_GUIDE_SYNC();
+    render(result);
+  }
+
+  function hook(){
+    removeExtra();
+
+    var btn = Array.from(document.querySelectorAll("button")).find(function(b){
+      var t = (b.textContent || "").trim();
+      return t.includes("WIC 실행 1회") ||
+             t.includes("실행 1회") ||
+             t.includes("정리/실행");
+    });
+
+    if(!btn){
+      render({
+        status: "FAIL",
+        injected: [],
+        missing: ["기존 WIC 실행 1회 버튼 없음"],
+        empty: []
+      });
+      return;
+    }
+
+    if(btn.dataset.safeHook === "true"){
+      render({
+        status: "READY",
+        injected: [],
+        missing: [],
+        empty: [],
+        message: "기존 WIC 실행 1회 버튼에 최종 SAFE 패널 표시 훅 연결됨"
+      });
+      return;
+    }
+
+    btn.dataset.safeHook = "true";
+
+    btn.addEventListener("click", function(){
+      setTimeout(run, 120);
+    }, false);
+
+    render({
+      status: "READY",
+      injected: [],
+      missing: [],
+      empty: [],
+      message: "기존 WIC 실행 1회 버튼에 최종 SAFE 패널 표시 훅 연결 완료"
+    });
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", hook);
+  }else{
+    hook();
+  }
+
+  window.WIC_SAFE_PANEL_FINAL_RUN = run;
+})();
+</script>
+
 </body>
 
 </html>
