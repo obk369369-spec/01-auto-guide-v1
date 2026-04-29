@@ -3971,11 +3971,76 @@ else{ makePanel(); }
 </script>
 
 
-<script id="WIC_TOOL1_DOM_MAPPING_PATCH_V2">
+
+<script id="WIC_TOOL1_FULL_FLOW_MODULE_V1">
 (function(){
   "use strict";
-  if(window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED){ return; }
-  window.WIC_TOOL1_DOM_MAPPING_PATCH_V2_LOCKED = true;
+
+  if(window.WIC_TOOL1_FULL_FLOW_MODULE_LOCKED){ return; }
+  window.WIC_TOOL1_FULL_FLOW_MODULE_LOCKED = true;
+
+  const MODULE_ID = "WIC_TOOL1_FULL_FLOW_MODULE_V1";
+
+  const CONFIG = {
+    leftToMid: [
+      { keys:["기관"], midId:"midOrg" },
+      { keys:["고객","이름"], midId:"midCustomer" },
+      { keys:["제목","연구분야","관심분야","고객 원문"], midId:"midTitleEn" },
+      { keys:["국문","한글"], midId:"midTitleKo" },
+      { keys:["발행사","우선 발행사"], midId:"bookPub" },
+      { keys:["발행일"], midId:"bookDate" },
+      { keys:["페이지"], midId:"bookPage" },
+      { keys:["정가"], midId:"bookListPrice" },
+      { keys:["공급","공급가격"], midId:"bookSupplyPrice" },
+      { keys:["링크"], midId:"midLink" },
+      { keys:["목차"], midId:"midToc" }
+    ],
+    midToGuide: [
+      { sourceId:"midTitleEn", targetIds:["guideTitle","guideTitleEn"] },
+      { sourceId:"midTitleKo", targetIds:["guideTitleKo"] },
+      { sourceId:"bookPub", targetIds:["guidePub","guidePublisher"] },
+      { sourceId:"bookDate", targetIds:["guideDate","guidePubDate"] },
+      { sourceId:"bookPage", targetIds:["guidePage","guidePages"] },
+      { sourceId:"bookListPrice", targetIds:["guidePrice","guideListPrice"] },
+      { sourceId:"bookSupplyPrice", targetIds:["guideSupplyPrice","guideSupply"] },
+      { sourceId:"midLink", targetIds:["guideLink","guideUrl"] },
+      { sourceId:"midToc", targetIds:["guideTocLeft","guideToc"] }
+    ]
+  };
+
+  function textOf(el){
+    if(!el){ return ""; }
+    return String(("value" in el ? el.value : el.textContent) || "").trim();
+  }
+
+  function setValue(el, value){
+    if(!el || value == null || value === ""){ return false; }
+    value = String(value);
+    if(el.tagName === "A"){
+      el.href = value;
+      el.textContent = value;
+      return true;
+    }
+    if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
+      el.value = value;
+      el.dispatchEvent(new Event("input", {bubbles:true}));
+      el.dispatchEvent(new Event("change", {bubbles:true}));
+      return true;
+    }
+    el.textContent = value;
+    return true;
+  }
+
+  function getSafePanel(){
+    return (
+      document.getElementById("wicFinalLog") ||
+      document.getElementById("wicEngineLog") ||
+      document.getElementById("wicLog") ||
+      document.getElementById("wicUltraLog") ||
+      document.querySelector("#wicSafePanel pre") ||
+      document.querySelector("[data-panel='safe-log']")
+    );
+  }
 
   function getRightDoc(){
     const frame = document.getElementById("rightFrame");
@@ -3987,331 +4052,229 @@ else{ makePanel(); }
     }
   }
 
-  function readMain(id){
-    const el = document.getElementById(id);
-    if(!el){ return ""; }
-    return String(el.value || el.textContent || "").trim();
+  function findLeftValue(keys){
+    const controls = Array.from(document.querySelectorAll("input, textarea, select, [contenteditable='true']"));
+
+    for(const keyword of keys){
+      const direct = controls.find(function(el){
+        const hay = [
+          el.id,
+          el.name,
+          el.placeholder,
+          el.getAttribute("aria-label"),
+          el.dataset && el.dataset.areaNameKo,
+          el.dataset && el.dataset.areaId,
+          el.className
+        ].join(" ");
+        return hay && String(hay).includes(keyword) && textOf(el);
+      });
+      if(direct){ return textOf(direct); }
+
+      const labels = Array.from(document.querySelectorAll("label, div, span, td, th"));
+      const label = labels.find(function(el){
+        return String(el.textContent || "").includes(keyword);
+      });
+
+      if(label){
+        const near = label.querySelector("input, textarea, select, [contenteditable='true']") ||
+          (label.parentElement && label.parentElement.querySelector("input, textarea, select, [contenteditable='true']"));
+        if(near && textOf(near)){ return textOf(near); }
+      }
+    }
+
+    return "";
+  }
+
+  function fillMidFromLeft(){
+    const result = {
+      status:"FAIL",
+      filled:[],
+      missing_mid:[],
+      empty_left:[]
+    };
+
+    CONFIG.leftToMid.forEach(function(row){
+      const value = findLeftValue(row.keys);
+      if(!value){
+        result.empty_left.push({ keys:row.keys, midId:row.midId });
+        return;
+      }
+
+      const mid = document.getElementById(row.midId);
+      if(!mid){
+        result.missing_mid.push(row.midId);
+        return;
+      }
+
+      if(setValue(mid, value)){
+        result.filled.push({ keys:row.keys, midId:row.midId, value:value });
+      }
+    });
+
+    result.status = result.filled.length > 0 ? "PASS" : "FAIL";
+    return result;
   }
 
   function findGuide(doc, ids){
+    if(!doc){ return null; }
     for(const id of ids){
       const el = doc.getElementById(id);
-      if(el){ return { id, el }; }
+      if(el){ return { id:id, el:el }; }
     }
     return null;
   }
 
-  function setGuideValue(target, value){
-    const el = target.el;
-    if(el.tagName === "A"){
-      el.href = value;
-      el.textContent = value;
-      return true;
-    }
-    if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
-      el.value = value;
-      el.dispatchEvent(new Event("input", { bubbles:true }));
-      el.dispatchEvent(new Event("change", { bubbles:true }));
-      return true;
-    }
-    el.textContent = value;
-    return true;
-  }
-
-  window.WIC_DIRECT_GUIDE_SYNC = function(){
+  function syncMidToGuide(){
     const doc = getRightDoc();
     const result = {
-      engine: "WIC_TOOL1_DOM_MAPPING_PATCH_V2",
-      status: "FAIL",
-      injected: [],
-      missing: [],
-      empty: []
+      engine: MODULE_ID,
+      status:"FAIL",
+      injected:[],
+      missing:[],
+      empty:[]
     };
 
     if(!doc){
       result.missing.push({
-        source: "rightFrame",
-        target: "iframe.contentDocument",
-        reason: "rightFrame iframe 내부 document 접근 실패"
+        source:"rightFrame",
+        target:"iframe.contentDocument",
+        reason:"rightFrame iframe 내부 document 접근 실패"
       });
-      window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
       return result;
     }
 
-    const map = [
-      { sourceId: "midTitleEn", targetIds: ["guideTitle", "guideTitleEn"] },
-      { sourceId: "bookPub", targetIds: ["guidePub"] },
-      { sourceId: "bookDate", targetIds: ["guideDate"] },
-      { sourceId: "bookPage", targetIds: ["guidePage", "guidePages"] },
-      { sourceId: "bookListPrice", targetIds: ["guidePrice"] },
-      { sourceId: "bookSupplyPrice", targetIds: ["guideSupplyPrice"] },
-      { sourceId: "midLink", targetIds: ["guideLink"] },
-      { sourceId: "midToc", targetIds: ["guideTocLeft"] }
-    ];
-
-    map.forEach(row => {
-      const value = readMain(row.sourceId);
-
+    CONFIG.midToGuide.forEach(function(row){
+      const value = textOf(document.getElementById(row.sourceId));
       if(!value){
-        result.empty.push({
-          sourceId: row.sourceId,
-          targetIds: row.targetIds
-        });
+        result.empty.push({ sourceId:row.sourceId, targetIds:row.targetIds });
         return;
       }
 
       const target = findGuide(doc, row.targetIds);
-
       if(!target){
         result.missing.push({
-          sourceId: row.sourceId,
-          targetIds: row.targetIds,
-          reason: "guide id 없음"
+          sourceId:row.sourceId,
+          targetIds:row.targetIds,
+          reason:"guide id 없음"
         });
         return;
       }
 
-      const ok = setGuideValue(target, value);
+      const finalValue = row.sourceId === "midToc"
+        ? String(value).split(/\n+/).map(x=>x.trim()).filter(Boolean).join("\n")
+        : value;
 
-      if(ok){
+      if(setValue(target.el, finalValue)){
         result.injected.push({
-          sourceId: row.sourceId,
-          targetId: target.id,
-          value: value
+          sourceId:row.sourceId,
+          targetId:target.id,
+          value:finalValue
         });
       }
     });
 
+    const guideTocRight = doc.getElementById("guideTocRight");
+    if(guideTocRight){
+      guideTocRight.textContent = "";
+      guideTocRight.style.display = "none";
+      guideTocRight.setAttribute("data-wic-disabled","true");
+    }
+
     result.status = result.injected.length > 0 ? "PASS" : "FAIL";
-    window.WIC_LAST_DIRECT_GUIDE_SYNC_RESULT = result;
     return result;
-  };
-})();
-</script>
-
-
-<script id="WIC_TOOL1_FINAL_DOM_SYNC_CLEAN_HOOK_V1">
-(function(){
-  "use strict";
-
-  function removeExtraPanels(){
-    ["wicDirectSyncPanel", "wicSyncResultLog"].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.remove();
-    });
-
-    Array.from(document.querySelectorAll("button")).forEach(function(btn){
-      var t = (btn.textContent || "").trim();
-      if(t.includes("안내서 반영 1회") || t.includes("DOM 반영") || t.includes("Sync 반영")){
-        btn.remove();
-      }
-    });
   }
 
-  function getSafePanel(){
-    return (
-      document.getElementById("wicFinalLog") ||
-      document.getElementById("wicEngineLog") ||
-      document.getElementById("wicLog") ||
-      document.getElementById("wicUltraLog") ||
-      document.querySelector("#wicSafePanel pre") ||
-      document.querySelector("[data-panel='safe-log']")
+  function render(leftMidResult, domResult){
+    const panel = getSafePanel();
+    const pass = !!(
+      leftMidResult &&
+      domResult &&
+      leftMidResult.filled &&
+      leftMidResult.filled.length > 0 &&
+      domResult.injected &&
+      domResult.injected.length > 0
     );
+
+    const output = {
+      MODULE_ID: MODULE_ID,
+      PASS: pass ? "PASS" : "FAIL",
+      LEFT_TO_MID_RESULT: leftMidResult,
+      DOM_SYNC_RESULT: domResult,
+      injected: domResult && domResult.injected ? domResult.injected : [],
+      missing: domResult && domResult.missing ? domResult.missing : [],
+      empty: domResult && domResult.empty ? domResult.empty : []
+    };
+
+    if(panel){
+      panel.textContent = JSON.stringify(output, null, 2);
+    }
+    window.WIC_TOOL1_FULL_FLOW_LAST_RESULT = output;
+    return output;
   }
 
-  function showResult(result){
-    var panel = getSafePanel();
-    if(!panel) return;
-
-    var current = {};
-    try {
-      current = JSON.parse(panel.textContent || "{}");
-    } catch(e) {
-      current = { previous_log: panel.textContent || "" };
-    }
-
-    current.DOM_SYNC_RESULT = result;
-    panel.textContent = JSON.stringify(current, null, 2);
-  }
-
-  function runDomSync(){
-    removeExtraPanels();
-
-    if(typeof window.WIC_DIRECT_GUIDE_SYNC !== "function"){
-      showResult({
-        status: "FAIL",
-        reason: "WIC_DIRECT_GUIDE_SYNC 함수 없음"
-      });
-      return;
-    }
-
-    var result = window.WIC_DIRECT_GUIDE_SYNC();
-    showResult(result);
+  function runFullFlow(){
+    const leftMidResult = fillMidFromLeft();
+    const domResult = syncMidToGuide();
+    return render(leftMidResult, domResult);
   }
 
   function hookRunButton(){
-    removeExtraPanels();
-
-    var runBtn = Array.from(document.querySelectorAll("button")).find(function(btn){
-      var t = (btn.textContent || "").trim();
-      return t.includes("WIC 실행 1회") ||
-             t.includes("실행 1회") ||
-             t.includes("정리/실행");
-    });
-
-    if(!runBtn){
-      showResult({
-        status: "FAIL",
-        reason: "기존 WIC 실행 1회 버튼 없음"
-      });
-      return;
-    }
-
-    if(runBtn.dataset.wicFinalDomSyncHooked === "true") return;
-    runBtn.dataset.wicFinalDomSyncHooked = "true";
-
-    runBtn.addEventListener("click", function(){
-      setTimeout(runDomSync, 120);
-    }, false);
-
-    showResult({
-      status: "READY",
-      message: "기존 WIC 실행 1회 버튼에 DOM 매핑 후처리 연결 완료"
-    });
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", hookRunButton);
-  }else{
-    hookRunButton();
-  }
-
-  window.WIC_FINAL_DOM_SYNC_CLEAN_HOOK = {
-    removeExtraPanels: removeExtraPanels,
-    runDomSync: runDomSync,
-    hookRunButton: hookRunButton
-  };
-})();
-</script>
-
-
-<script id="WIC_TOOL1_SAFE_PANEL_FINAL_PATCH_V1">
-(function(){
-  "use strict";
-
-  function getSafePanel(){
-    return (
-      document.getElementById("wicFinalLog") ||
-      document.getElementById("wicEngineLog") ||
-      document.getElementById("wicLog") ||
-      document.getElementById("wicUltraLog") ||
-      document.querySelector("#wicSafePanel pre") ||
-      document.querySelector("[data-panel='safe-log']")
-    );
-  }
-
-  function removeExtra(){
-    ["wicDirectSyncPanel","wicSyncResultLog","wicSyncResultLog","wicDirectSyncLog"].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.remove();
-    });
-
-    Array.from(document.querySelectorAll("button")).forEach(function(btn){
-      var t = (btn.textContent || "").trim();
-      if(t.includes("안내서 반영 1회") || t.includes("DOM 반영") || t.includes("Sync 반영")){
-        btn.remove();
-      }
-    });
-  }
-
-  function render(result){
-    var panel = getSafePanel();
-    if(!panel) return;
-
-    result = result || { injected: [], missing: ["결과 없음"], empty: [] };
-    var pass = !!(result && result.injected && result.injected.length > 0);
-
-    var output = {
-      PASS: pass ? "PASS" : "FAIL",
-      DOM_SYNC_RESULT: result,
-      injected: result.injected || [],
-      missing: result.missing || [],
-      empty: result.empty || []
-    };
-
-    panel.textContent = JSON.stringify(output, null, 2);
-  }
-
-  function run(){
-    removeExtra();
-
-    if(typeof window.WIC_DIRECT_GUIDE_SYNC !== "function"){
-      render({
-        status: "FAIL",
-        injected: [],
-        missing: ["WIC_DIRECT_GUIDE_SYNC 없음"],
-        empty: []
-      });
-      return;
-    }
-
-    var result = window.WIC_DIRECT_GUIDE_SYNC();
-    render(result);
-  }
-
-  function hook(){
-    removeExtra();
-
-    var btn = Array.from(document.querySelectorAll("button")).find(function(b){
-      var t = (b.textContent || "").trim();
+    const btn = Array.from(document.querySelectorAll("button")).find(function(b){
+      const t = (b.textContent || "").trim();
       return t.includes("WIC 실행 1회") ||
              t.includes("실행 1회") ||
              t.includes("정리/실행");
     });
 
     if(!btn){
-      render({
-        status: "FAIL",
-        injected: [],
-        missing: ["기존 WIC 실행 1회 버튼 없음"],
-        empty: []
-      });
+      render(
+        { status:"FAIL", filled:[], missing_mid:[], empty_left:["기존 실행 버튼 없음"] },
+        { status:"FAIL", injected:[], missing:["기존 WIC 실행 1회 버튼 없음"], empty:[] }
+      );
       return;
     }
 
-    if(btn.dataset.safeHook === "true"){
-      render({
-        status: "READY",
-        injected: [],
-        missing: [],
-        empty: [],
-        message: "기존 WIC 실행 1회 버튼에 최종 SAFE 패널 표시 훅 연결됨"
-      });
-      return;
-    }
-
-    btn.dataset.safeHook = "true";
+    if(btn.dataset.wicFullFlowModuleHooked === "true"){ return; }
+    btn.dataset.wicFullFlowModuleHooked = "true";
 
     btn.addEventListener("click", function(){
-      setTimeout(run, 120);
+      setTimeout(runFullFlow, 120);
     }, false);
 
-    render({
-      status: "READY",
-      injected: [],
-      missing: [],
-      empty: [],
-      message: "기존 WIC 실행 1회 버튼에 최종 SAFE 패널 표시 훅 연결 완료"
+    render(
+      { status:"READY", filled:[], missing_mid:[], empty_left:[] },
+      { status:"READY", injected:[], missing:[], empty:["WIC 실행 1회 대기"] }
+    );
+  }
+
+  function hookLeftInputs(){
+    Array.from(document.querySelectorAll("input, textarea, select, [contenteditable='true']")).forEach(function(el){
+      if(el.dataset.wicFullFlowInputHooked === "true"){ return; }
+      el.dataset.wicFullFlowInputHooked = "true";
+
+      el.addEventListener("input", function(){
+        fillMidFromLeft();
+      }, false);
+
+      el.addEventListener("change", function(){
+        fillMidFromLeft();
+      }, false);
     });
   }
 
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", hook);
-  }else{
-    hook();
-  }
+  window.WIC_TOOL1_FULL_FLOW_MODULE_RUN = runFullFlow;
+  window.WIC_DIRECT_GUIDE_SYNC = syncMidToGuide;
+  window.WIC_LEFT_TO_MID_TO_RIGHT_FLOW = runFullFlow;
 
-  window.WIC_SAFE_PANEL_FINAL_RUN = run;
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", function(){
+      hookRunButton();
+      hookLeftInputs();
+    });
+  }else{
+    hookRunButton();
+    hookLeftInputs();
+  }
 })();
 </script>
 
