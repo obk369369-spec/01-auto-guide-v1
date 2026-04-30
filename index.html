@@ -3972,41 +3972,31 @@ else{ makePanel(); }
 
 
 
-<script id="WIC_TOOL1_FULL_FLOW_MODULE_V1">
+
+<script id="WIC_TOOL1_FULL_FLOW_MODULE_V2_CONTRACTED">
 (function(){
   "use strict";
 
-  if(window.WIC_TOOL1_FULL_FLOW_MODULE_LOCKED){ return; }
-  window.WIC_TOOL1_FULL_FLOW_MODULE_LOCKED = true;
+  if(window.WIC_TOOL1_FULL_FLOW_MODULE_V2_LOCKED){ return; }
+  window.WIC_TOOL1_FULL_FLOW_MODULE_V2_LOCKED = true;
 
-  const MODULE_ID = "WIC_TOOL1_FULL_FLOW_MODULE_V1";
+  const MODULE_ID = "WIC_TOOL1_FULL_FLOW_MODULE_V2_CONTRACTED";
 
-  const CONFIG = {
-    leftToMid: [
-      { keys:["기관"], midId:"midOrg" },
-      { keys:["고객","이름"], midId:"midCustomer" },
-      { keys:["제목","연구분야","관심분야","고객 원문"], midId:"midTitleEn" },
-      { keys:["국문","한글"], midId:"midTitleKo" },
-      { keys:["발행사","우선 발행사"], midId:"bookPub" },
-      { keys:["발행일"], midId:"bookDate" },
-      { keys:["페이지"], midId:"bookPage" },
-      { keys:["정가"], midId:"bookListPrice" },
-      { keys:["공급","공급가격"], midId:"bookSupplyPrice" },
-      { keys:["링크"], midId:"midLink" },
-      { keys:["목차"], midId:"midToc" }
-    ],
-    midToGuide: [
-      { sourceId:"midTitleEn", targetIds:["guideTitle","guideTitleEn"] },
-      { sourceId:"midTitleKo", targetIds:["guideTitleKo"] },
-      { sourceId:"bookPub", targetIds:["guidePub","guidePublisher"] },
-      { sourceId:"bookDate", targetIds:["guideDate","guidePubDate"] },
-      { sourceId:"bookPage", targetIds:["guidePage","guidePages"] },
-      { sourceId:"bookListPrice", targetIds:["guidePrice","guideListPrice"] },
-      { sourceId:"bookSupplyPrice", targetIds:["guideSupplyPrice","guideSupply"] },
-      { sourceId:"midLink", targetIds:["guideLink","guideUrl"] },
-      { sourceId:"midToc", targetIds:["guideTocLeft","guideToc"] }
-    ]
-  };
+  /*
+    CONTRACT_TABLE 요약:
+    LEFT 실제 id:
+      customerRaw, researchField, interestField, org, dept, name, title, duty,
+      pub1, pub2, exclude, yearRange, priceRange, publisherMemo
+    MID 실제 id:
+      midTitleEn, midTitleKo, bookPub, bookDate, bookPage,
+      bookListPrice, bookSupplyPrice, midLink, midToc
+    원칙:
+      - 존재하지 않는 midOrg/midCustomer 생성 금지
+      - 왼쪽에 전용 소스가 없는 midLink/bookPage는 기존 값 보존
+      - 자동 샘플이 아니라 왼쪽 실제 입력값을 조합해 가운데를 재생성
+  */
+
+  function $(id){ return document.getElementById(id); }
 
   function textOf(el){
     if(!el){ return ""; }
@@ -4014,105 +4004,105 @@ else{ makePanel(); }
   }
 
   function setValue(el, value){
-    if(!el || value == null || value === ""){ return false; }
-    value = String(value);
+    if(!el){ return false; }
+    value = String(value || "").trim();
+    if(!value){ return false; }
+
     if(el.tagName === "A"){
       el.href = value;
       el.textContent = value;
       return true;
     }
+
     if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
       el.value = value;
       el.dispatchEvent(new Event("input", {bubbles:true}));
       el.dispatchEvent(new Event("change", {bubbles:true}));
       return true;
     }
+
     el.textContent = value;
     return true;
   }
 
-  function getSafePanel(){
-    return (
-      document.getElementById("wicFinalLog") ||
-      document.getElementById("wicEngineLog") ||
-      document.getElementById("wicLog") ||
-      document.getElementById("wicUltraLog") ||
-      document.querySelector("#wicSafePanel pre") ||
-      document.querySelector("[data-panel='safe-log']")
-    );
+  function readLeft(){
+    return {
+      customerRaw: textOf($("customerRaw")),
+      researchField: textOf($("researchField")),
+      interestField: textOf($("interestField")),
+      org: textOf($("org")),
+      dept: textOf($("dept")),
+      name: textOf($("name")),
+      title: textOf($("title")),
+      duty: textOf($("duty")),
+      pub1: textOf($("pub1")),
+      pub2: textOf($("pub2")),
+      exclude: textOf($("exclude")),
+      yearRange: textOf($("yearRange")),
+      priceRange: textOf($("priceRange")),
+      publisherMemo: textOf($("publisherMemo"))
+    };
+  }
+
+  function buildMid(left){
+    const topic = [left.researchField, left.interestField].filter(Boolean).join(" / ") ||
+      left.customerRaw || left.org || "";
+    const orgPart = [left.org, left.dept].filter(Boolean).join(" ");
+    const dutyPart = left.duty ? " - " + left.duty : "";
+
+    const titleText = topic ? topic : orgPart;
+    const mid = {
+      midTitleEn: titleText ? titleText + " Market Report" : "",
+      midTitleKo: titleText ? titleText + " 시장 보고서" : "",
+      bookPub: left.pub1 || left.pub2 || "",
+      bookDate: left.yearRange || "",
+      bookPage: textOf($("bookPage")),
+      bookListPrice: left.priceRange || textOf($("bookListPrice")),
+      bookSupplyPrice: left.priceRange || textOf($("bookSupplyPrice")),
+      midLink: textOf($("midLink")),
+      midToc: [
+        titleText ? "1. " + titleText + " 개요" : "",
+        orgPart ? "2. " + orgPart + " 적용 검토" : "",
+        left.duty ? "3. 담당업무 기준 검토: " + left.duty : "",
+        left.publisherMemo ? "4. 발행사 조건: " + left.publisherMemo : "",
+        left.exclude ? "5. 제외 조건: " + left.exclude : ""
+      ].filter(Boolean).join("\n")
+    };
+
+    return mid;
+  }
+
+  function fillMid(mid){
+    const result = { status:"FAIL", filled:[], missing_mid:[], empty_source:[] };
+
+    Object.keys(mid).forEach(function(id){
+      const value = mid[id];
+      if(!value){
+        result.empty_source.push(id);
+        return;
+      }
+      const target = $(id);
+      if(!target){
+        result.missing_mid.push(id);
+        return;
+      }
+      if(setValue(target, value)){
+        result.filled.push({ midId:id, value:value });
+      }
+    });
+
+    result.status = result.filled.length > 0 ? "PASS" : "FAIL";
+    return result;
   }
 
   function getRightDoc(){
-    const frame = document.getElementById("rightFrame");
+    const frame = $("rightFrame");
     if(!frame){ return null; }
     try{
       return frame.contentDocument || frame.contentWindow.document;
     }catch(e){
       return null;
     }
-  }
-
-  function findLeftValue(keys){
-    const controls = Array.from(document.querySelectorAll("input, textarea, select, [contenteditable='true']"));
-
-    for(const keyword of keys){
-      const direct = controls.find(function(el){
-        const hay = [
-          el.id,
-          el.name,
-          el.placeholder,
-          el.getAttribute("aria-label"),
-          el.dataset && el.dataset.areaNameKo,
-          el.dataset && el.dataset.areaId,
-          el.className
-        ].join(" ");
-        return hay && String(hay).includes(keyword) && textOf(el);
-      });
-      if(direct){ return textOf(direct); }
-
-      const labels = Array.from(document.querySelectorAll("label, div, span, td, th"));
-      const label = labels.find(function(el){
-        return String(el.textContent || "").includes(keyword);
-      });
-
-      if(label){
-        const near = label.querySelector("input, textarea, select, [contenteditable='true']") ||
-          (label.parentElement && label.parentElement.querySelector("input, textarea, select, [contenteditable='true']"));
-        if(near && textOf(near)){ return textOf(near); }
-      }
-    }
-
-    return "";
-  }
-
-  function fillMidFromLeft(){
-    const result = {
-      status:"FAIL",
-      filled:[],
-      missing_mid:[],
-      empty_left:[]
-    };
-
-    CONFIG.leftToMid.forEach(function(row){
-      const value = findLeftValue(row.keys);
-      if(!value){
-        result.empty_left.push({ keys:row.keys, midId:row.midId });
-        return;
-      }
-
-      const mid = document.getElementById(row.midId);
-      if(!mid){
-        result.missing_mid.push(row.midId);
-        return;
-      }
-
-      if(setValue(mid, value)){
-        result.filled.push({ keys:row.keys, midId:row.midId, value:value });
-      }
-    });
-
-    result.status = result.filled.length > 0 ? "PASS" : "FAIL";
-    return result;
   }
 
   function findGuide(doc, ids){
@@ -4124,27 +4114,29 @@ else{ makePanel(); }
     return null;
   }
 
-  function syncMidToGuide(){
+  function syncMidToRight(){
     const doc = getRightDoc();
-    const result = {
-      engine: MODULE_ID,
-      status:"FAIL",
-      injected:[],
-      missing:[],
-      empty:[]
-    };
+    const result = { engine:MODULE_ID, status:"FAIL", injected:[], missing:[], empty:[] };
 
     if(!doc){
-      result.missing.push({
-        source:"rightFrame",
-        target:"iframe.contentDocument",
-        reason:"rightFrame iframe 내부 document 접근 실패"
-      });
+      result.missing.push({ source:"rightFrame", target:"iframe.contentDocument", reason:"iframe 접근 실패" });
       return result;
     }
 
-    CONFIG.midToGuide.forEach(function(row){
-      const value = textOf(document.getElementById(row.sourceId));
+    const rows = [
+      { sourceId:"midTitleEn", targetIds:["guideTitle","guideTitleEn"] },
+      { sourceId:"midTitleKo", targetIds:["guideTitleKo"] },
+      { sourceId:"bookPub", targetIds:["guidePub","guidePublisher"] },
+      { sourceId:"bookDate", targetIds:["guideDate","guidePubDate"] },
+      { sourceId:"bookPage", targetIds:["guidePage","guidePages"] },
+      { sourceId:"bookListPrice", targetIds:["guidePrice","guideListPrice"] },
+      { sourceId:"bookSupplyPrice", targetIds:["guideSupplyPrice","guideSupply"] },
+      { sourceId:"midLink", targetIds:["guideLink","guideUrl"] },
+      { sourceId:"midToc", targetIds:["guideTocLeft","guideToc"] }
+    ];
+
+    rows.forEach(function(row){
+      const value = textOf($(row.sourceId));
       if(!value){
         result.empty.push({ sourceId:row.sourceId, targetIds:row.targetIds });
         return;
@@ -4152,11 +4144,7 @@ else{ makePanel(); }
 
       const target = findGuide(doc, row.targetIds);
       if(!target){
-        result.missing.push({
-          sourceId:row.sourceId,
-          targetIds:row.targetIds,
-          reason:"guide id 없음"
-        });
+        result.missing.push({ sourceId:row.sourceId, targetIds:row.targetIds, reason:"guide id 없음" });
         return;
       }
 
@@ -4165,60 +4153,71 @@ else{ makePanel(); }
         : value;
 
       if(setValue(target.el, finalValue)){
-        result.injected.push({
-          sourceId:row.sourceId,
-          targetId:target.id,
-          value:finalValue
-        });
+        result.injected.push({ sourceId:row.sourceId, targetId:target.id, value:finalValue });
       }
     });
 
-    const guideTocRight = doc.getElementById("guideTocRight");
-    if(guideTocRight){
-      guideTocRight.textContent = "";
-      guideTocRight.style.display = "none";
-      guideTocRight.setAttribute("data-wic-disabled","true");
+    const right = doc.getElementById("guideTocRight");
+    if(right){
+      right.textContent = "";
+      right.style.display = "none";
+      right.setAttribute("data-wic-disabled", "true");
     }
 
     result.status = result.injected.length > 0 ? "PASS" : "FAIL";
     return result;
   }
 
-  function render(leftMidResult, domResult){
-    const panel = getSafePanel();
-    const pass = !!(
-      leftMidResult &&
-      domResult &&
-      leftMidResult.filled &&
-      leftMidResult.filled.length > 0 &&
-      domResult.injected &&
-      domResult.injected.length > 0
+  function getSafePanel(){
+    return (
+      $("wicFinalLog") ||
+      $("wicEngineLog") ||
+      $("wicLog") ||
+      $("wicUltraLog") ||
+      document.querySelector("#wicSafePanel pre") ||
+      document.querySelector("[data-panel='safe-log']")
     );
+  }
+
+  function render(contract, left, midResult, domResult){
+    const pass = midResult && domResult &&
+      midResult.filled && midResult.filled.length > 0 &&
+      domResult.injected && domResult.injected.length > 0;
 
     const output = {
-      MODULE_ID: MODULE_ID,
+      MODULE_ID,
       PASS: pass ? "PASS" : "FAIL",
-      LEFT_TO_MID_RESULT: leftMidResult,
+      CONTRACT_AUDIT: contract,
+      LEFT_TO_MID_RESULT: midResult,
       DOM_SYNC_RESULT: domResult,
       injected: domResult && domResult.injected ? domResult.injected : [],
       missing: domResult && domResult.missing ? domResult.missing : [],
       empty: domResult && domResult.empty ? domResult.empty : []
     };
 
-    if(panel){
-      panel.textContent = JSON.stringify(output, null, 2);
-    }
+    const panel = getSafePanel();
+    if(panel){ panel.textContent = JSON.stringify(output, null, 2); }
     window.WIC_TOOL1_FULL_FLOW_LAST_RESULT = output;
     return output;
   }
 
-  function runFullFlow(){
-    const leftMidResult = fillMidFromLeft();
-    const domResult = syncMidToGuide();
-    return render(leftMidResult, domResult);
+  function run(){
+    const left = readLeft();
+    const mid = buildMid(left);
+    const midResult = fillMid(mid);
+    const domResult = syncMidToRight();
+
+    const contract = {
+      left_ids:["customerRaw","researchField","interestField","org","dept","name","title","duty","pub1","pub2","exclude","yearRange","priceRange","publisherMemo"],
+      mid_ids:["midTitleEn","midTitleKo","bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink","midToc"],
+      missing_known:["midOrg","midCustomer"],
+      rule:"존재하지 않는 mid id 생성 금지 / 기존 PASS 구간 유지 / 왼쪽 실제 입력값으로 가운데 재생성"
+    };
+
+    return render(contract, left, midResult, domResult);
   }
 
-  function hookRunButton(){
+  function hook(){
     const btn = Array.from(document.querySelectorAll("button")).find(function(b){
       const t = (b.textContent || "").trim();
       return t.includes("WIC 실행 1회") ||
@@ -4228,52 +4227,51 @@ else{ makePanel(); }
 
     if(!btn){
       render(
-        { status:"FAIL", filled:[], missing_mid:[], empty_left:["기존 실행 버튼 없음"] },
-        { status:"FAIL", injected:[], missing:["기존 WIC 실행 1회 버튼 없음"], empty:[] }
+        { error:"실행 버튼 없음" },
+        {},
+        { status:"FAIL", filled:[], missing_mid:["실행 버튼 없음"], empty_source:[] },
+        { status:"FAIL", injected:[], missing:["실행 버튼 없음"], empty:[] }
       );
       return;
     }
 
-    if(btn.dataset.wicFullFlowModuleHooked === "true"){ return; }
-    btn.dataset.wicFullFlowModuleHooked = "true";
+    if(btn.dataset.wicTool1FullFlowV2Hooked === "true"){ return; }
+    btn.dataset.wicTool1FullFlowV2Hooked = "true";
+    btn.addEventListener("click", function(){ setTimeout(run, 100); }, false);
 
-    btn.addEventListener("click", function(){
-      setTimeout(runFullFlow, 120);
-    }, false);
-
-    render(
-      { status:"READY", filled:[], missing_mid:[], empty_left:[] },
-      { status:"READY", injected:[], missing:[], empty:["WIC 실행 1회 대기"] }
-    );
+    const panel = getSafePanel();
+    if(panel){
+      panel.textContent = JSON.stringify({
+        MODULE_ID,
+        PASS:"READY",
+        message:"WIC 실행 1회 클릭 시 왼쪽→가운데→오른쪽 전체 흐름을 실행합니다."
+      }, null, 2);
+    }
   }
 
-  function hookLeftInputs(){
+  function hookLeftPreview(){
     Array.from(document.querySelectorAll("input, textarea, select, [contenteditable='true']")).forEach(function(el){
-      if(el.dataset.wicFullFlowInputHooked === "true"){ return; }
-      el.dataset.wicFullFlowInputHooked = "true";
-
+      if(el.dataset.wicTool1LeftPreviewHooked === "true"){ return; }
+      el.dataset.wicTool1LeftPreviewHooked = "true";
       el.addEventListener("input", function(){
-        fillMidFromLeft();
-      }, false);
-
-      el.addEventListener("change", function(){
-        fillMidFromLeft();
+        const left = readLeft();
+        const mid = buildMid(left);
+        fillMid(mid);
       }, false);
     });
   }
 
-  window.WIC_TOOL1_FULL_FLOW_MODULE_RUN = runFullFlow;
-  window.WIC_DIRECT_GUIDE_SYNC = syncMidToGuide;
-  window.WIC_LEFT_TO_MID_TO_RIGHT_FLOW = runFullFlow;
+  window.WIC_TOOL1_FULL_FLOW_MODULE_RUN = run;
+  window.WIC_DIRECT_GUIDE_SYNC = syncMidToRight;
 
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", function(){
-      hookRunButton();
-      hookLeftInputs();
+      hook();
+      hookLeftPreview();
     });
   }else{
-    hookRunButton();
-    hookLeftInputs();
+    hook();
+    hookLeftPreview();
   }
 })();
 </script>
