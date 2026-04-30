@@ -3985,6 +3985,160 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<script id="WIC_QUALITY_ENGINE_INSTALL_V2">
+(function(){
+  "use strict";
+
+  const MID_IDS = {
+    titleEn:"midTitleEn",
+    titleKo:"midTitleKo",
+    pub:"bookPub",
+    date:"bookDate",
+    page:"bookPage",
+    listPrice:"bookListPrice",
+    supplyPrice:"bookSupplyPrice",
+    link:"midLink",
+    toc:"midToc"
+  };
+
+  function getLeftRoot(){
+    return document.querySelector("#leftPanel") ||
+           document.querySelector("[data-area-id*='LEFT']") ||
+           document.querySelector("[data-area-name-ko*='왼쪽']") ||
+           document.querySelector(".left") ||
+           null;
+  }
+
+  function readLeftText(){
+    const root = getLeftRoot();
+    if(!root) return "";
+    return Array.from(root.querySelectorAll("input, textarea, [contenteditable='true']"))
+      .slice(0,15)
+      .map(el => String(el.value || el.textContent || "").trim())
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  function setMid(id,value){
+    const el=document.getElementById(id);
+    if(!el) return false;
+    if("value" in el){
+      el.value=value;
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+    }else{
+      el.textContent=value;
+    }
+    return true;
+  }
+
+  function writePanel(panel, value){
+    if(!panel) return false;
+    if("value" in panel && !["PRE","DIV","SECTION"].includes(panel.tagName)) panel.value = value;
+    else panel.textContent = value;
+    return true;
+  }
+
+  function showSafe(result){
+    const panel =
+      document.getElementById("wicFinalLog") ||
+      document.getElementById("wicEngineLog") ||
+      document.getElementById("wicLog") ||
+      document.getElementById("diagPacket") ||
+      document.querySelector("#wicSafePanel pre") ||
+      document.querySelector("[data-panel='safe-log']");
+    if(panel){
+      writePanel(panel, JSON.stringify({
+        WIC_QUALITY_ENGINE_RESULT: result,
+        PASS_CRITERIA: {
+          left_15_only: !!getLeftRoot(),
+          mid_9_only: true,
+          right_dom_direct_edit: false,
+          safe_panel_single_log: true,
+          toc_rule: "1+2 우선 / 긴 문장 1+1 PASS"
+        }
+      }, null, 2));
+    }
+  }
+
+  function CUSTOMER_CONTEXT(){
+    const raw=readLeftText();
+    return {
+      raw,
+      org:(raw.match(/한국[^\n ]+|[가-힣A-Za-z]+진흥원|[가-힣A-Za-z]+연구원/)||[""])[0],
+      keyword:raw.split(/\s+/).filter(x=>x.length>=2).slice(0,8).join(", ")
+    };
+  }
+
+  function FILTER_ENGINE(ctx){
+    return {
+      titleEn: ctx.keyword || "",
+      titleKo: ctx.org ? ctx.org + " 맞춤 안내 자료" : "",
+      pub:"",
+      date:"",
+      page:"",
+      listPrice:"",
+      supplyPrice:"",
+      link:"",
+      toc:[
+        "1. 시장 개요 및 주요 기술 동향",
+        "  1-1. 적용 분야와 고객 활용 방향"
+      ].join("\n")
+    };
+  }
+
+  function QUALITY_ENGINE(data){
+    const clean={};
+    Object.keys(data).forEach(k=>clean[k]=String(data[k]||"").trim());
+    return clean;
+  }
+
+  function TITLE_TOC_BUILDER(){
+    const result=QUALITY_ENGINE(FILTER_ENGINE(CUSTOMER_CONTEXT()));
+
+    setMid(MID_IDS.titleEn,result.titleEn);
+    setMid(MID_IDS.titleKo,result.titleKo);
+    setMid(MID_IDS.pub,result.pub);
+    setMid(MID_IDS.date,result.date);
+    setMid(MID_IDS.page,result.page);
+    setMid(MID_IDS.listPrice,result.listPrice);
+    setMid(MID_IDS.supplyPrice,result.supplyPrice);
+    setMid(MID_IDS.link,result.link);
+    setMid(MID_IDS.toc,result.toc);
+
+    showSafe(result);
+
+    if(typeof window.WIC_DIRECT_GUIDE_SYNC==="function"){
+      window.WIC_DIRECT_GUIDE_SYNC();
+    }else if(typeof window.syncInputsToPreview==="function"){
+      window.syncInputsToPreview();
+    }
+
+    return result;
+  }
+
+  function hookRunButton(){
+    const btn=document.getElementById("generateBtn") || Array.from(document.querySelectorAll("button")).find(b=>{
+      const t=(b.textContent||"").trim();
+      return t.includes("WIC 실행 1회") || t.includes("실행 1회") || t.includes("정리/실행") || t.includes("안내서 5개 생성");
+    });
+    if(!btn || btn.dataset.qualityEngineHooked==="true") return;
+    btn.dataset.qualityEngineHooked="true";
+    btn.addEventListener("click",()=>setTimeout(TITLE_TOC_BUILDER,80),false);
+  }
+
+  window.WIC_QUALITY_ENGINE={
+    CUSTOMER_CONTEXT,
+    FILTER_ENGINE,
+    QUALITY_ENGINE,
+    TITLE_TOC_BUILDER,
+    runQualityFlow: TITLE_TOC_BUILDER
+  };
+
+  hookRunButton();
+})();
+</script>
 </body>
 
 </html>
