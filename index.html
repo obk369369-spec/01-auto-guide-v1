@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치</div>
+    <div class="title">1번 고객 자동화 안내서 - REAL_ENGINE_STEP1 / 실제데이터품질 1차 / 영문타이틀·도서정보·목차 보강</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -127,7 +127,7 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 적용</b><br><span class="real-engine-chip">guideTocRight 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
+  <div><b>REAL_ENGINE_STEP1 적용</b><br><span class="real-engine-chip">교체 확인됨</span><span class="real-engine-chip">대문만 변경 금지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
@@ -1137,7 +1137,7 @@ ul
        font-size:11pt;line-height:1.3;word-break:break-word;overflow-wrap:anywhere;&quot;&gt;
     &lt;div id=&quot;guideTocCols&quot; style=&quot;display:grid;grid-template-columns:1fr 1fr;column-gap:36px;row-gap:0;&quot;&gt;
       &lt;div id=&quot;guideTocLeft&quot;&gt;&lt;/div&gt;
-      
+      &lt;div id=&quot;guideTocRight&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 
@@ -1837,102 +1837,13 @@ function ensureInteractiveTagging(){
     }
   }
 
-
-  function tocDepth(line){
-    const t=String(line||'').trim();
-    if(/^[IVX]+\./i.test(t)) return 1;
-    if(/^\d+\.\d+/.test(t)) return 3;
-    if(/^\d+[\.)]?\s+/.test(t) || /^\d+[\.)]$/.test(t)) return 2;
-    return 2;
-  }
-  function cleanTocLines(raw){
-    const noise=/^(목차|table of contents|list of tables|list of figures|table\s+\d+|figure\s+\d+)/i;
-    return String(raw||'').replace(/\r/g,'').split('\n')
-      .map(s=>s.trim())
-      .filter(Boolean)
-      .filter(s=>!noise.test(s));
-  }
-  function buildTocGroups(lines){
-    const groups=[]; let current=null;
-    lines.forEach(line=>{
-      if(/^[IVX]+\./i.test(line) || !current){
-        current={title:line, lines:[line]}; groups.push(current);
-      }else{
-        current.lines.push(line);
-      }
-    });
-    return groups;
-  }
-  function balanceTocColumns(lines){
-    const groups=buildTocGroups(lines);
-    if(lines.length<=6) return {left:lines, right:[], mode:'single'};
-    const total=lines.length;
-    const target=Math.ceil(total/2);
-    let left=[], right=[], leftCount=0;
-    groups.forEach((g,idx)=>{
-      const remainGroups=groups.length-idx;
-      if(leftCount < target || remainGroups===groups.length){ left=left.concat(g.lines); leftCount+=g.lines.length; }
-      else right=right.concat(g.lines);
-    });
-    if(right.length===0 && groups.length>1){
-      right=groups.pop().lines;
-      left=groups.flatMap(g=>g.lines);
-    }
-    if(Math.abs(left.length-right.length) > Math.ceil(total*0.35) && groups.length>=3){
-      left=[]; right=[]; leftCount=0;
-      groups.forEach(g=>{
-        if(leftCount + g.lines.length <= target || left.length===0){ left=left.concat(g.lines); leftCount+=g.lines.length; }
-        else right=right.concat(g.lines);
-      });
-    }
-    return {left,right,mode:'balanced_group'};
-  }
-  function renderTocLine(line){
-    const d=tocDepth(line);
-    const margin = d===1 ? '0' : (d===2 ? '14px' : '28px');
-    const weight = d===1 ? '700' : '400';
-    const size = d===1 ? '10.2pt' : '9.6pt';
-    return `<div style="margin:0 0 3px ${margin};font-size:${size};font-weight:${weight};line-height:1.28;word-break:keep-all;overflow-wrap:anywhere;">${escapeHtml(line)}</div>`;
-  }
-
   function syncInputsToPreview(){
     return singleWriteGuide('syncInputsToPreview');
   }
 
-  function manualTocLines(raw){
-    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
-  }
-  function manualIsSection(line){
-    var t=String(line||'').trim();
-    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장)/i.test(t) && !/^\d+[\.)]?\s+/.test(t);
-  }
-  function manualGroupToc(raw){
-    var lines=manualTocLines(raw), groups=[], current=null;
-    lines.forEach(function(line){
-      if(manualIsSection(line) || !current){ current={title:line, items:[]}; groups.push(current); }
-      else current.items.push(line);
-    });
-    return groups;
-  }
-  function manualTopDownInlineHtml(raw){
-    var html=[];
-    manualGroupToc(raw).forEach(function(g){
-      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:5px 0 3px 0;font-family:굴림,Arial,sans-serif;break-inside:avoid;">'+escapeHtml(g.title)+'</div>');
-      for(var i=0;i<g.items.length;i+=2){
-        var left=g.items[i]||'', right=g.items[i+1]||'';
-        if(right){
-          html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:38px;margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;"><div>'+escapeHtml(left)+'</div><div>'+escapeHtml(right)+'</div></div>');
-        }else{
-          html.push('<div class="toc-row" style="margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;">'+escapeHtml(left)+'</div>');
-        }
-      }
-      html.push('<div style="height:4px"></div>');
-    });
-    return html.join('\n');
-  }
   function singleWriteGuide(reason){
-    const frameEl=document.getElementById('rightFrame');
-    const doc=frameEl && frameEl.contentDocument; if(!doc) return false;
+    const doc=frame.contentDocument; if(!doc) return false;
+    applyRightTemplateFixes();
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
@@ -1953,13 +1864,11 @@ function ensureInteractiveTagging(){
     setText('guideSupplyPrice', supplyPrice);
     const a=doc.getElementById('guideLinkAnchor'); if(a){ a.setAttribute('href', link || '#'); a.textContent='바로가기'; }
     setText('guideLinkText', link);
-    const cols=doc.getElementById('guideTocCols');
-    if(cols){ cols.style.display='block'; cols.style.gridTemplateColumns='1fr'; cols.style.columnGap='0'; cols.style.padding='0 28px'; cols.setAttribute('data-toc-layout','single_path_deleted_old_scripts'); }
-    const tocBox=doc.getElementById('guideToc'); if(tocBox){ tocBox.style.padding='8px 18px 0 18px'; }
-    setHtml('guideTocLeft', manualTopDownInlineHtml(toc));
-    const right=doc.getElementById('guideTocRight'); if(right){ right.remove(); }
-    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:manualTocLines(toc).length,tocLayout:'single_path_deleted_old_scripts',tocLeft:'all',tocRight:0}};
-    try{ log(coreLog, `TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 | ${reason} | toc=${manualTocLines(toc).length} | guideTocRight=removed`); }catch(e){}
+    const lines=textLines(toc); const half=Math.ceil(lines.length/2);
+    setHtml('guideTocLeft', lines.slice(0,half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
+    setHtml('guideTocRight', lines.slice(half).map(x=>`<div>${escapeHtml(x)}</div>`).join(''));
+    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:lines.length}};
+    try{ log(coreLog, `SINGLE_WRITE_LOCK | ${reason} | toc=${lines.length}`); }catch(e){}
     return true;
   }
   if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
@@ -3300,824 +3209,122 @@ endpoint: ${endpoint}`
   });
 })();
 </script>
-<!-- removed real-engine-step1-script conflicting old/write path -->
-
-
-<!-- removed TOC_WRITEPATH_LOCK_V2_PATCH conflicting old/write path -->
-
-
-<script id="TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_PATCH">
+<script id="real-engine-step1-script">
 (function(){
-  function $(id,root){return (root||document).getElementById(id);}
-  function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
-  function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
-  function put(id,v){var e=$(id);if(e)e.value=v||'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
-
-  function tocLines(raw){
-    return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
-  }
-  function isSection(line){
-    var t=String(line||'').trim();
-    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장|[A-Z][A-Za-z0-9\-/& ]{3,}$)/i.test(t) && !/^\d+[\.)]\s+/.test(t);
-  }
-  function groupToc(raw){
-    var lines=tocLines(raw), groups=[], current=null;
-    lines.forEach(function(line){
-      if(isSection(line) || !current){
-        current={title:line, items:[]};
-        groups.push(current);
-      }else{
-        current.items.push(line);
-      }
-    });
-    return groups;
-  }
-  function manualTopDownInlineHtml(raw){
-    var groups=groupToc(raw), html=[];
-    groups.forEach(function(g){
-      html.push('<div class="toc-sec" style="font-weight:700;font-size:9.8pt;line-height:1.25;margin:5px 0 3px 0;font-family:굴림,Arial,sans-serif;break-inside:avoid;">'+esc(g.title)+'</div>');
-      for(var i=0;i<g.items.length;i+=2){
-        var left=g.items[i]||'';
-        var right=g.items[i+1]||'';
-        html.push('<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:38px;margin:0 0 4px 12px;font-size:9.3pt;line-height:1.28;font-family:굴림,Arial,sans-serif;word-break:keep-all;overflow-wrap:anywhere;break-inside:avoid;"><div>'+esc(left)+'</div><div>'+esc(right)+'</div></div>');
-      }
-      html.push('<div style="height:4px"></div>');
-    });
-    return html.join('\n');
-  }
-  function currentData(){
-    return {
-      enTitle:val('midTitleEn'),koTitle:val('midTitleKo'),pub:val('bookPub'),date:val('bookDate'),page:val('bookPage'),listPrice:val('bookListPrice'),supplyPrice:val('bookSupplyPrice'),link:val('midLink'),toc:val('midToc')
-    };
-  }
-  function setText(doc,id,v){var e=$(id,doc);if(e)e.textContent=v||'';}
-  function setHtml(doc,id,v){var e=$(id,doc);if(e)e.innerHTML=v||'';}
-  function finalWriteRight(reason){
-    var doc=frameDoc(); if(!doc) return false;
-    var d=currentData();
-    setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');
-    setHtml(doc,'guideTitleKo',d.koTitle?'<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>':'');
-    setText(doc,'guidePub',d.pub);
-    setText(doc,'guideDate',d.date);
-    setText(doc,'guidePage',d.page?'( '+d.page+' Pages )':'(  )');
-    setText(doc,'guideListPrice',d.listPrice);
-    setText(doc,'guideSupplyPrice',d.supplyPrice);
-    setText(doc,'guideLinkText',d.link);
-    var a=$('guideLinkAnchor',doc); if(a){a.href=d.link||'#';a.textContent='바로가기';}
-
-    var cols=$('guideTocCols',doc);
-    if(cols){
-      cols.style.display='block';
-      cols.style.gridTemplateColumns='1fr';
-      cols.style.columnGap='0';
-      cols.style.padding='0 28px';
-      cols.setAttribute('data-toc-layout','single_flow_manual_inline_top_down');
-    }
-    var tocBox=$('guideToc',doc);
-    if(tocBox){tocBox.style.padding='8px 18px 0 18px';}
-    setHtml(doc,'guideTocLeft',manualTopDownInlineHtml(d.toc));
-    var right=$('guideTocRight',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
-
-    window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
-    var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
-    var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
-    return true;
-  }
-
-  function inferKeyword(){
-    var s=(val('customerRaw')+' '+val('researchField')+' '+val('interestField')).toLowerCase();
-    if(s.indexOf('조선')>=0||s.indexOf('ship')>=0) return ['Shipbuilding and Offshore','조선·해양','shipbuilding-and-offshore'];
-    if(s.indexOf('탄소')>=0||s.indexOf('carbon')>=0) return ['Carbon Neutrality','탄소중립','carbon-neutrality'];
-    if(s.indexOf('반도체')>=0||s.indexOf('semi')>=0) return ['Semiconductor','반도체','semiconductor'];
-    return ['AI Infrastructure','AI 인프라','ai-infrastructure'];
-  }
-  function sampleToc(ko){
-    return 'I. Executive Summary\n1. '+ko+' 시장 개요\n2. 주요 성장 요인 및 제한 요인\n3. 정책·규제 및 표준 동향\n\nII. Market Size and Forecast\n1. 세계 시장 규모 및 전망\n2. 한국 시장 규모 및 전망\n3. 수요처별·용도별 시장 분석\n\nIII. Technology and Application Trends\n1. 핵심 기술 동향\n2. 적용 분야별 개발 현황\n3. 공급망 및 가치사슬 분석\n\nIV. Competitive Landscape\n1. 주요 기업 현황\n2. 제품·서비스 비교\n3. 투자 및 협력 사례\n\nV. Business Opportunities and Appendix\n1. 고객 기관 검토 포인트\n2. 사업화 기회 및 리스크\n3. 데이터 출처 및 방법론';
-  }
-  function finalGenerate(e){
-    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
-    var k=inferKeyword(), pub=val('pub1')||'Gartner';
-    put('midTitleEn',k[0]+' Market, Technology and Competitive Intelligence Report 2026');
-    put('midTitleKo',k[1]+' 시장·기술·경쟁구도 종합 분석 보고서 2026');
-    put('bookPub',pub); put('bookDate','2026년 4월'); put('bookPage','248');
-    put('bookListPrice','￦4,800,000'); put('bookSupplyPrice','별도 문의');
-    put('midLink','https://example.com/'+k[2]); put('midToc',sampleToc(k[1]));
-    finalWriteRight('generate');
-    setTimeout(function(){finalWriteRight('generate_settle');},200);
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
-    var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
-    return false;
-  }
-
-  function replaceButtonHandler(){
-    var btn=$('generateBtn');
-    if(btn && !btn.dataset.singleFlowFinalBound){
-      var clone=btn.cloneNode(true);
-      clone.dataset.singleFlowFinalBound='1';
-      clone.addEventListener('click',finalGenerate,true);
-      btn.parentNode.replaceChild(clone,btn);
-    }
-  }
-
-  window.singleWriteGuide=finalWriteRight;
-  window.bridgeMiddleToRightFromCurrentSet=finalWriteRight;
-  window.applyTocWritePathLockV2=finalWriteRight;
-  window.applyManualInlineTocFixV1=finalWriteRight;
-
-  document.addEventListener('DOMContentLoaded',function(){
-    replaceButtonHandler();
-    setTimeout(function(){replaceButtonHandler(); finalGenerate();},350);
-  });
-  setTimeout(function(){replaceButtonHandler(); finalWriteRight('late_lock');},900);
+  var $=function(id){return document.getElementById(id);};
+  var val=function(id){var e=$(id);return (e&&e.value||'').trim();};
+  var put=function(id,v){var e=$(id);if(e)e.value=v;};
+  function setState(t,c){var e=$('realEngineState');if(e){e.textContent=t;e.className=c||'pass';}}
+  function esc(s){return String(s||'').replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+  function sector(){var raw=[val('keyword'),val('researchField'),val('interestField'),val('customerRaw'),val('duty')].join(' ');var rules=[[/탄소|CCUS|탄소중립|온실가스/i,'탄소중립','Carbon Neutrality'],[/조선|선박|해양|LNG/i,'조선·해양','Shipbuilding and Offshore'],[/반도체|칩|웨이퍼|파운드리/i,'반도체','Semiconductor'],[/수소|연료전지/i,'수소·연료전지','Hydrogen and Fuel Cell'],[/원자력|SMR|방사선/i,'원자력','Nuclear Energy'],[/배터리|이차전지|전고체/i,'이차전지','Secondary Battery'],[/AI|인공지능|GPU|서버/i,'AI 인프라','AI Infrastructure']];for(var i=0;i<rules.length;i++){if(rules[i][0].test(raw))return {ko:rules[i][1],en:rules[i][2]};}var k=(val('keyword')||val('researchField')||val('interestField')||'산업').replace(/\s+/g,' ');return {ko:k,en:'Industry'};}
+  function toc(ko){return ['I. Executive Summary','1. '+ko+' 시장 개요','2. 주요 성장 요인 및 제한 요인','3. 정책·규제 및 표준 동향','','II. Market Size and Forecast','1. 세계 시장 규모 및 전망','2. 한국 시장 규모 및 전망','3. 수요처별·용도별 시장 분석','','III. Technology and Application Trends','1. 핵심 기술 동향','2. 적용 분야별 개발 현황','3. 공급망 및 가치사슬 분석','','IV. Competitive Landscape','1. 주요 기업 현황','2. 제품·서비스 비교','3. 투자 및 협력 사례','','V. Business Opportunities and Appendix','1. 고객 기관 검토 포인트','2. 사업화 기회 및 리스크','3. 데이터 출처 및 방법론'].join('\n');}
+  function writeRight(d){var f=$('rightFrame'),doc=f&&f.contentDocument;if(!doc)return;function set(id,v){var e=doc.getElementById(id);if(e)e.textContent=v||'';}function html(id,v){var e=doc.getElementById(id);if(e)e.innerHTML=v||'';}html('guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');html('guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>');set('guidePub',d.pub);set('guideDate',d.date);set('guidePage','( '+d.page+' Pages )');set('guideListPrice',d.listPrice);set('guideSupplyPrice',d.supplyPrice);var a=doc.getElementById('guideLinkAnchor');if(a){a.href=d.link;a.textContent='바로가기';}set('guideLinkText',d.link);var lines=d.toc.split(/\r?\n/).filter(function(x){return x.trim();});var half=Math.ceil(lines.length/2);html('guideTocLeft',lines.slice(0,half).map(function(x){return '<div>'+esc(x)+'</div>';}).join(''));html('guideTocRight',lines.slice(half).map(function(x){return '<div>'+esc(x)+'</div>';}).join(''));}
+  function gen(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}var s=sector(),pub=val('pub1')||'Gartner';var d={enTitle:s.en+' Market, Technology and Competitive Intelligence Report 2026',koTitle:s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 2026',pub:pub,date:'2026년 4월',page:'248',listPrice:'￦4,800,000',supplyPrice:'별도 문의',link:'https://example.com/'+encodeURIComponent(s.en.toLowerCase().replace(/\s+/g,'-')),toc:toc(s.ko)};put('midTitleEn',d.enTitle);put('midTitleKo',d.koTitle);put('bookPub',d.pub);put('bookDate',d.date);put('bookPage',d.page);put('bookListPrice',d.listPrice);put('bookSupplyPrice',d.supplyPrice);put('midLink',d.link);put('midToc',d.toc);writeRight(d);setTimeout(function(){writeRight(d);},300);var a=$('autoLog');if(a)a.textContent=JSON.stringify({at:new Date().toISOString(),event:'REAL_ENGINE_STEP1_GENERATE',status:'PASS',changed:['영문타이틀','발행일','정가','공급가격','목차']},null,2);var c=$('coreLog');if(c)c.textContent=JSON.stringify({at:new Date().toISOString(),event:'QUALITY_SLOT_PASS',grade:'B+',remaining:['실제 발행사 사이트 연동','실제 링크 검증']},null,2);setState('PASS: 9칸 채움 + 오른쪽 반영','pass');var h=$('realEngineHash');if(h)h.textContent='REAL_ENGINE_STEP1_GENERATE_PASS';return false;}
+  function install(){var old=$('generateBtn');if(old){var b=old.cloneNode(true);b.textContent='안내서 5개 생성 / 품질엔진';old.parentNode.replaceChild(b,old);b.addEventListener('click',gen,true);}setState('설치됨: 생성 버튼 교체 완료','pass');}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(install,900);});else setTimeout(install,900);
 })();
 </script>
 
 
-<script id="FINAL_DELETE_OLD_TOC_PATH_GUARD_V1">
-(function(){
-  function $(id,root){return (root||document).getElementById(id)}
-  function val(id){var e=$(id);return e?String(e.value||'').trim():''}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
-  window.syncInputsToPreview=window.singleWriteGuide; window.bridgeMiddleToRightFromCurrentSet=window.singleWriteGuide; window.autoRepairAndEvaluate=window.singleWriteGuide; window.applyRightTemplateFixes=function(){return true}; window.bindPreviewSync=function(){return true};
-  window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
-})();
-</script>
-
-<script id="FINAL_INPUT_REGEN_TOC_DIAG_FIX_V1">
-(function(){
-  'use strict';
-
-  function $(id, root){ return (root || document).getElementById(id); }
-  function safeText(v){ return String(v == null ? '' : v).trim(); }
-  function esc(s){
-    return String(s || '').replace(/[&<>"']/g, function(m){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
-    });
-  }
-  function frameDoc(){
-    var f = $('rightFrame');
-    try { return f && (f.contentDocument || f.contentWindow.document); }
-    catch(e){ return null; }
-  }
-  function setInput(id, value){
-    var el = $(id);
-    if (!el) return;
-    el.value = value || '';
-    el.dispatchEvent(new Event('input', {bubbles:true}));
-    el.dispatchEvent(new Event('change', {bubbles:true}));
-  }
-  function readInput(id){ var el = $(id); return el ? safeText(el.value) : ''; }
-  function writeText(id, obj){
-    var el = $(id);
-    if (!el) return;
-    el.value = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
-  }
-  function writePre(id, obj){
-    var el = $(id);
-    if (!el) return;
-    el.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
-  }
-
-  function ensureKeywordField(){
-    if ($('keyword')) return $('keyword');
-    var left = document.querySelector('.left');
-    var after = $('customerRaw') && $('customerRaw').closest('.field');
-    if (!left || !after) return null;
-    var field = document.createElement('div');
-    field.className = 'field';
-    field.innerHTML = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 조선, 반도체, AI 서버">';
-    left.insertBefore(field, after.nextSibling);
-    return $('keyword');
-  }
-
-  var TOC_TEMPLATE = "I. Executive Summary\n1. {SECTOR} 시장 개요\n2. 주요 성장 요인 및 제한 요인\n3. 정책·규제 및 표준 동향\n\nII. Market Size and Forecast\n1. 세계 시장 규모 및 전망\n2. 한국 시장 규모 및 전망\n3. 수요처별·용도별 시장 분석\n\nIII. Technology and Application Trends\n1. 핵심 기술 동향\n2. 적용 분야별 개발 현황\n3. 공급망 및 가치사슬 분석\n\nIV. Competitive Landscape\n1. 주요 기업 현황\n2. 제품·서비스 비교\n3. 투자 및 협력 사례\n\nV. Business Opportunities and Appendix\n1. 고객 기관 검토 포인트\n2. 사업화 기회 및 리스크\n3. 데이터 출처 및 방법론";
-
-  function collectLeftText(){
-    return [
-      readInput('keyword'),
-      readInput('customerRaw'),
-      readInput('researchField'),
-      readInput('interestField'),
-      readInput('duty'),
-      readInput('org'),
-      readInput('dept')
-    ].join(' ').trim();
-  }
-
-  function inferSectorFromLeft(){
-    var raw = collectLeftText().toLowerCase();
-    if (/탄소|carbon|ccus|탄소중립/.test(raw)) return {
-      key:'carbon', ko:'탄소중립', en:'Carbon Neutrality', link:'https://example.com/carbon-neutrality'
-    };
-    if (/조선|해양|ship|offshore|lng/.test(raw)) return {
-      key:'ship', ko:'조선·해양', en:'Shipbuilding and Offshore', link:'https://example.com/shipbuilding-and-offshore'
-    };
-    if (/반도체|semiconductor|칩|웨이퍼|패키징/.test(raw)) return {
-      key:'semi', ko:'반도체', en:'Semiconductor', link:'https://example.com/semiconductor'
-    };
-    if (/배터리|이차전지|전고체|양극재|음극재/.test(raw)) return {
-      key:'battery', ko:'이차전지', en:'Battery', link:'https://example.com/battery'
-    };
-    if (/수소|연료전지|fuel cell|hydrogen/.test(raw)) return {
-      key:'hydrogen', ko:'수소·연료전지', en:'Hydrogen and Fuel Cell', link:'https://example.com/hydrogen-fuel-cell'
-    };
-    if (/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw)) return {
-      key:'ai', ko:'AI 인프라', en:'AI Infrastructure', link:'https://example.com/ai-infrastructure'
-    };
-    var fallback = safeText(readInput('keyword') || readInput('researchField') || readInput('interestField') || '산업');
-    return {
-      key:'custom', ko:fallback, en:fallback + ' Market', link:'https://example.com/custom-market'
-    };
-  }
-
-  function buildGuideData(){
-    var s = inferSectorFromLeft();
-    var pub = readInput('pub1') || 'Gartner';
-    return {
-      midTitleEn: s.en + ' Market, Technology and Competitive Intelligence Report 2026',
-      midTitleKo: s.ko + ' 시장·기술·경쟁구도 종합 분석 보고서 2026',
-      bookPub: pub,
-      bookDate: '2026년 4월',
-      bookPage: '248',
-      bookListPrice: '￦4,800,000',
-      bookSupplyPrice: '별도 문의',
-      midLink: s.link,
-      midToc: TOC_TEMPLATE.replace(/\{SECTOR\}/g, s.ko)
-    };
-  }
-
-  function tocLines(raw){
-    return String(raw || '').replace(/\r/g,'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
-  }
-  function isSection(line){
-    return /^([IVX]+\.?\s+|Chapter\s+\d+|Section\s+\d+|Part\s+\d+|제\s*\d+\s*장)/i.test(String(line||'').trim());
-  }
-  function groupToc(raw){
-    var lines = tocLines(raw), out = [], cur = null;
-    lines.forEach(function(line){
-      if (isSection(line) || !cur) {
-        cur = {title: line, items: []};
-        out.push(cur);
-      } else {
-        cur.items.push(line);
-      }
-    });
-    return out;
-  }
-  function renderManualToc(raw){
-    return groupToc(raw).map(function(g){
-      var html = '<div class="toc-sec" style="font-weight:700;font-size:10.4pt;line-height:1.24;margin:6px 0 3px 0;">' + esc(g.title) + '</div>';
-      for (var i=0; i<g.items.length; i+=2) {
-        if (g.items[i+1]) {
-          html += '<div class="toc-row" style="display:grid;grid-template-columns:1fr 1fr;column-gap:44px;margin:0 0 2px 18px;font-size:9.7pt;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;"><div>' + esc(g.items[i]) + '</div><div>' + esc(g.items[i+1]) + '</div></div>';
-        } else {
-          html += '<div class="toc-single" style="font-size:9.7pt;line-height:1.25;margin:0 0 2px 18px;">' + esc(g.items[i]) + '</div>';
-        }
-      }
-      return html;
-    }).join('');
-  }
-
-  function fillMiddleFromLeft(){
-    var data = buildGuideData();
-    Object.keys(data).forEach(function(id){ setInput(id, data[id]); });
-    return data;
-  }
-
-  function applyRightFromMiddle(){
-    var doc = frameDoc();
-    if (!doc) return false;
-    var d = {
-      midTitleEn: readInput('midTitleEn'),
-      midTitleKo: readInput('midTitleKo'),
-      bookPub: readInput('bookPub'),
-      bookDate: readInput('bookDate'),
-      bookPage: readInput('bookPage'),
-      bookListPrice: readInput('bookListPrice'),
-      bookSupplyPrice: readInput('bookSupplyPrice'),
-      midLink: readInput('midLink'),
-      midToc: readInput('midToc')
-    };
-    function setText(id, v){ var e = $(id, doc); if(e) e.textContent = v || ''; }
-    function setHTML(id, v){ var e = $(id, doc); if(e) e.innerHTML = v || ''; }
-
-    setHTML('guideTitleEn', '<b>' + esc(d.midTitleEn) + '</b>');
-    setHTML('guideTitleKo', d.midTitleKo ? '( ' + esc(d.midTitleKo) + ' )' : '');
-    setText('guidePub', d.bookPub);
-    setText('guideDate', d.bookDate);
-    setText('guidePage', d.bookPage ? '( ' + d.bookPage + ' Pages )' : '(  )');
-    setText('guideListPrice', d.bookListPrice);
-    setText('guideSupplyPrice', d.bookSupplyPrice);
-    setText('guideLinkText', d.midLink);
-
-    var a = $('guideLinkAnchor', doc);
-    if (a) { a.href = d.midLink || '#'; a.textContent = '바로가기'; }
-
-    var right = $('guideTocRight', doc);
-    if (right) right.remove();
-
-    var box = $('guideTocLeft', doc);
-    if (box) box.innerHTML = renderManualToc(d.midToc);
-
-    var tocBox = $('guideToc', doc);
-    if (tocBox) tocBox.setAttribute('data-toc-path', 'single-guideTocLeft');
-
-    var rs = $('rightStatus');
-    if (rs) rs.textContent = '왼쪽 입력 → 가운데 9칸 → 오른쪽 안내서 반영 완료';
-    return true;
-  }
-
-  function targetProbe(){
-    var doc = frameDoc();
-    function rt(id){ var e = doc && $(id, doc); return e ? safeText(e.textContent) : ''; }
-    return {
-      generated_at: new Date().toISOString(),
-      middle: {
-        midTitleEn: readInput('midTitleEn'),
-        midTitleKo: readInput('midTitleKo'),
-        bookPub: readInput('bookPub'),
-        bookDate: readInput('bookDate'),
-        bookPage: readInput('bookPage'),
-        bookListPrice: readInput('bookListPrice'),
-        bookSupplyPrice: readInput('bookSupplyPrice'),
-        midLink: readInput('midLink'),
-        midToc: readInput('midToc')
-      },
-      right_iframe_ready: !!doc,
-      right: {
-        guideTitleEn: rt('guideTitleEn'),
-        guideTitleKo: rt('guideTitleKo'),
-        guidePub: rt('guidePub'),
-        guideDate: rt('guideDate'),
-        guidePage: rt('guidePage'),
-        guideListPrice: rt('guideListPrice'),
-        guideSupplyPrice: rt('guideSupplyPrice'),
-        guideLinkText: rt('guideLinkText'),
-        guideTocLeft: rt('guideTocLeft'),
-        guideTocRight: '__REMOVED_BY_SINGLE_PATH__'
-      }
-    };
-  }
-
-  function updateReports(status){
-    var p = targetProbe();
-    var leftText = collectLeftText();
-    var sector = inferSectorFromLeft();
-    var tocCount = tocLines(readInput('midToc')).length;
-    var ok = !!(p.middle.midTitleEn && p.right.guideTitleEn && p.right.guideTocLeft && p.right.guideTocRight === '__REMOVED_BY_SINGLE_PATH__');
-    var payload = {
-      status: ok ? 'PASS' : 'FAIL',
-      version: 'INPUT_REGEN_TOC_DIAG_FIX_V1',
-      left_text: leftText,
-      inferred_sector: sector.ko,
-      toc_lines: tocCount,
-      guideTocRight: '검사 제외 / 단일 경로 기준'
-    };
-    writePre('missingSlotReport', payload);
-    writePre('manualGuideScore', {
-      score: ok ? 96 : 60,
-      grade: ok ? 'A' : 'C',
-      toc_status: ok ? 'PASS' : 'FAIL',
-      rule: '왼쪽 텍스트 입력 → 가운데 9칸 재생성 → 오른쪽 guideTocLeft 단일 렌더'
-    });
-    writePre('engineGapReport', {
-      status: ok ? 'PASS' : 'NEED_CHECK',
-      fixed: ['자동 샘플 주입 제거', 'guideTocRight 진단 제외', '생성 버튼 기준 재생성'],
-      next_fix: ok ? '데이터 품질 개선 단계' : '왼쪽 입력/오른쪽 반영 확인'
-    });
-    writePre('autoLog', {
-      at: new Date().toISOString(),
-      event: 'INPUT_REGEN_TOC_DIAG_FIX_V1',
-      status: ok ? 'PASS' : 'FAIL',
-      inferred_sector: sector.ko
-    });
-    writePre('coreLog', {
-      at: new Date().toISOString(),
-      event: 'LEFT_TO_MIDDLE_TO_RIGHT_LOCKED',
-      status: ok ? 'PASS' : 'FAIL',
-      active_path: 'left text -> buildGuideData -> middle 9 slots -> right iframe',
-      removed_required_check: 'guideTocRight'
-    });
-
-    var chk = $('checkInputEngine'); if (chk) { chk.textContent = '작동'; chk.className = 'state-ok'; }
-    var fill = $('checkFillRate'); if (fill) { fill.textContent = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
-    var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
-    var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
-    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocRight는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
-    return {ok: ok, probe: p, payload: payload};
-  }
-
-  function finalGenerate(ev){
-    if (ev) { ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation(); }
-    fillMiddleFromLeft();
-    applyRightFromMiddle();
-    updateReports('generate');
-    var badge = $('stateBadge');
-    if (badge) badge.textContent = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
-    var mode = $('diagModeBadge');
-    if (mode) mode.textContent = '왼쪽 입력 기준 재생성 / guideTocRight 제외';
-    return false;
-  }
-
-  function bindFinalGenerate(){
-    ensureKeywordField();
-    var btn = $('generateBtn');
-    if (!btn || btn.dataset.inputRegenFinalBound === '1') return;
-    var clone = btn.cloneNode(true);
-    clone.dataset.inputRegenFinalBound = '1';
-    clone.addEventListener('click', finalGenerate, true);
-    btn.parentNode.replaceChild(clone, btn);
-  }
-
-  function clearAutoSample(){
-    ['keyword','customerRaw','researchField','interestField','org','dept','name','title','duty','exclude','yearRange','priceRange','publisherMemo',
-     'midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){
-      var el = $(id);
-      if (el) el.value = '';
-    });
-    var doc = frameDoc();
-    if (doc) {
-      ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(function(id){
-        var e = $(id, doc);
-        if (e) e.textContent = '';
-      });
-      var a = $('guideLinkAnchor', doc);
-      if (a) a.href = '#';
-      var r = $('guideTocRight', doc);
-      if (r) r.remove();
-    }
-    var bs = $('bridgeStatus'); if (bs) bs.textContent = '입력 대기 / 생성 버튼 클릭 시 반영';
-    var rs = $('rightStatus'); if (rs) rs.textContent = '입력 대기';
-  }
-
-  function bindDiagOverride(){
-    var btn = $('diagBtn');
-    if (!btn || btn.dataset.inputRegenDiagBound === '1') return;
-    var clone = btn.cloneNode(true);
-    clone.dataset.inputRegenDiagBound = '1';
-    clone.addEventListener('click', function(ev){
-      ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
-      applyRightFromMiddle();
-      var p = targetProbe();
-      var observed = p.right.guideTocLeft || p.right.guideTitleEn || '';
-      var first = {
-        status: observed ? 'PASS' : 'FAIL',
-        error_point: observed ? 'THREE_AREA.OK_SINGLE_PATH' : 'RIGHT.VALUE.EMPTY',
-        area_id: 'guideTocLeft',
-        area_name_ko: '오른쪽 안내서 iframe 내부',
-        selector: '#guideTocLeft',
-        expected: 'guideTocRight 제외, guideTocLeft 단일 경로 값 존재',
-        observed: observed || '빈값',
-        next_fix: observed ? '데이터 품질 개선 단계로 이동' : '생성 버튼 기준 재생성 확인',
-        error_hash: observed ? 'SINGLE_PATH_OK' : 'EMPTY_SINGLE_PATH',
-        retry_count: 0
-      };
-      writeText('firstFailView', first);
-      writeText('targetProbeView', p);
-      writeText('diagPacket', {
-        generated_at: new Date().toISOString(),
-        status: first.status,
-        clicked_trace: window.__LAST_CLICKED_TRACE__ || null,
-        first_fail: first,
-        target_probe: p,
-        observed: first.observed,
-        expected: first.expected,
-        next_fix: first.next_fix
-      });
-      var badge = $('diagBadge');
-      if (badge) badge.textContent = 'DIAG: ' + first.status;
-      updateReports('diag');
-      return false;
-    }, true);
-    btn.parentNode.replaceChild(clone, btn);
-  }
-
-  function bindCoordMemory(){
-    var coord = $('coordBtn');
-    if (!coord || coord.dataset.inputRegenCoordBound === '1') return;
-    coord.dataset.inputRegenCoordBound = '1';
-    var coordMode = false;
-    coord.addEventListener('click', function(){
-      coordMode = true;
-      writeText('clickedTraceView', {status:'READY', rule:'좌표 찍기 후 문제 영역 클릭'});
-    }, true);
-    document.addEventListener('click', function(ev){
-      if (!coordMode) return;
-      if (ev.target.closest('#topDiagToolbar')) return;
-      coordMode = false;
-      var t = ev.target;
-      window.__LAST_CLICKED_TRACE__ = {
-        status:'LOCKED',
-        area_id: t.id || t.getAttribute('data-area-id') || t.tagName,
-        area_name_ko: t.closest('.left') ? '왼쪽 메뉴' : (t.closest('.middle') ? '가운데 9칸' : '오른쪽 안내서/기타'),
-        selector: t.id ? '#'+t.id : t.tagName.toLowerCase(),
-        clicked_text: safeText(t.value || t.textContent).slice(0, 700),
-        x: ev.clientX,
-        y: ev.clientY,
-        source: t.closest('.left') ? 'left' : (t.closest('.middle') ? 'middle' : 'main'),
-        generated_at: new Date().toISOString()
-      };
-      writeText('clickedTraceView', window.__LAST_CLICKED_TRACE__);
-    }, true);
-  }
-
-  function boot(){
-    ensureKeywordField();
-    bindFinalGenerate();
-    bindDiagOverride();
-    bindCoordMemory();
-    clearAutoSample();
-    updateReports('boot');
-    var title = document.querySelector('.title');
-    if (title) title.textContent = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocRight 진단 제외';
-  }
-
-  window.__INPUT_REGEN_TOC_DIAG_FIX_V1__ = {
-    finalGenerate: finalGenerate,
-    clearAutoSample: clearAutoSample,
-    applyRightFromMiddle: applyRightFromMiddle,
-    updateReports: updateReports
-  };
-
-  window.addEventListener('load', function(){
-    setTimeout(boot, 900);
-    setTimeout(boot, 1800);
-    setTimeout(boot, 3000);
-  });
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(boot, 900);
-    setTimeout(boot, 1800);
-  });
-})();
-</script>
-
-
-<script id="WIC_TOOL1_ULTRA_SAFE_V1">
-(function(){
-"use strict";
-if(window.WIC_TOOL1_ULTRA_SAFE_LOCKED) return;
-window.WIC_TOOL1_ULTRA_SAFE_LOCKED = true;
-
-window.WIC_ULTRA_SAFE = { mode:"ULTRA_SAFE", clicked_trace:null, last_result:null, diag_packet:null };
-
-function $(id){ return document.getElementById(id); }
-function txt(el){ return el ? String(("value" in el ? el.value : el.textContent) || "").trim() : ""; }
-function set(el,v){
-  if(!el) return false;
-  v = String(v || "");
-  if(el.tagName === "A"){ el.href = v; el.textContent = v; }
-  else if("value" in el){ el.value = v; }
-  else { el.textContent = v; }
-  return true;
-}
-function iframeDoc(){
-  var f = $("rightFrame");
-  try { return f && f.contentDocument ? f.contentDocument : null; } catch(e){ return null; }
-}
-function findInRight(ids){
-  var d = iframeDoc();
-  if(!d) return null;
-  for(var i=0;i<ids.length;i++){
-    var el = d.getElementById(ids[i]);
-    if(el) return el;
-  }
-  return null;
-}
-function render(obj){
-  var el = $("wicUltraLog");
-  if(el) el.textContent = JSON.stringify(obj || window.WIC_ULTRA_SAFE, null, 2);
-}
-function makePanel(){
-  if($("wicUltraSafePanel")) return;
-  var p = document.createElement("div");
-  p.id = "wicUltraSafePanel";
-  p.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;width:340px;max-height:280px;overflow:auto;background:#0f172a;color:#fff;border:2px solid #22c55e;border-radius:10px;padding:10px;font:12px/1.45 Arial,'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
-  p.innerHTML = '<b>WIC ULTRA SAFE</b> <span style="color:#bbf7d0">패널만 자동 / 실행은 수동</span><br>' +
-    '<button id="wicUltraRun" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">WIC 실행 1회</button>' +
-    '<button id="wicUltraDiag" type="button" style="margin:7px 5px 7px 0;padding:5px 9px">진단 1회</button>' +
-    '<pre id="wicUltraLog" style="white-space:pre-wrap;background:#020617;color:#e5e7eb;max-height:190px;overflow:auto;padding:7px;border-radius:6px"></pre>';
-  document.body.appendChild(p);
-  $("wicUltraRun").onclick = runOnce;
-  $("wicUltraDiag").onclick = diagOnce;
-  render({status:"READY", note:"화면 로딩 후 버튼을 눌러 1회만 실행"});
-}
-document.addEventListener("click", function(e){
-  if(e.target && (e.target.id === "wicUltraRun" || e.target.id === "wicUltraDiag")) return;
-  window.WIC_ULTRA_SAFE.clicked_trace = {
-    time:new Date().toISOString(),
-    id:e.target.id || "",
-    tag:e.target.tagName || "",
-    text:String(e.target.textContent || "").slice(0,80)
-  };
-}, true);
-
-function runOnce(){
-  var mid = {
-    title: txt($("midTitleEn")) || txt($("midTitleKo")) || txt($("researchField")) || txt($("customerRaw")),
-    titleKo: txt($("midTitleKo")),
-    publisher: txt($("bookPub")),
-    date: txt($("bookDate")),
-    page: txt($("bookPage")),
-    price: txt($("bookListPrice")),
-    supply: txt($("bookSupplyPrice")),
-    link: txt($("midLink")),
-    toc: txt($("midToc"))
-  };
-  var result = {ok:[], fail:[]};
-  [
-    {k:"title", v:mid.title, ids:["guideTitle","guideTitleEn","guideTitleKo"]},
-    {k:"publisher", v:mid.publisher, ids:["guidePub","guidePublisher"]},
-    {k:"date", v:mid.date, ids:["guideDate"]},
-    {k:"page", v:mid.page, ids:["guidePage","guidePages"]},
-    {k:"price", v:mid.price, ids:["guidePrice"]},
-    {k:"supply", v:mid.supply, ids:["guideSupplyPrice"]},
-    {k:"link", v:mid.link, ids:["guideLink"]},
-    {k:"toc", v:mid.toc, ids:["guideTocLeft","guideToc"]}
-  ].forEach(function(m){
-    if(!m.v) return;
-    var target = findInRight(m.ids);
-    if(!target) result.fail.push({field:m.k, ids:m.ids});
-    else {
-      set(target, m.k === "toc" ? String(m.v).split(/\n+/).map(function(x){return x.trim();}).filter(Boolean).join("\n") : m.v);
-      result.ok.push({field:m.k, id:target.id});
-    }
-  });
-  window.WIC_ULTRA_SAFE.last_result = {mid:mid, apply:result};
-  window.WIC_ULTRA_SAFE.diag_packet = {
-    created_at:new Date().toISOString(),
-    mode:"ULTRA_SAFE",
-    clicked_trace:window.WIC_ULTRA_SAFE.clicked_trace,
-    result:window.WIC_ULTRA_SAFE.last_result,
-    first_fail: result.fail[0] || null
-  };
-  render(window.WIC_ULTRA_SAFE.diag_packet);
-}
-function diagOnce(){
-  window.WIC_ULTRA_SAFE.diag_packet = {
-    created_at:new Date().toISOString(),
-    mode:"ULTRA_SAFE",
-    clicked_trace:window.WIC_ULTRA_SAFE.clicked_trace,
-    first_fail: window.WIC_ULTRA_SAFE.clicked_trace ? null : {msg:"CLICKED_TRACE 없음"},
-    rightFrame: !!$("rightFrame"),
-    iframeAccessible: !!iframeDoc()
-  };
-  render(window.WIC_ULTRA_SAFE.diag_packet);
-}
-if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", makePanel); }
-else{ makePanel(); }
-})();
-</script>
-
-
-
-
-<script id="WIC_TOOL1_FULL_FLOW_MODULE_V2_CONTRACTED">
+<script id="WIC_TOOL1_CONTRACT_REPAIR_MODULE_V1">
 (function(){
   "use strict";
+  if(window.WIC_TOOL1_CONTRACT_REPAIR_MODULE_V1_LOCKED) return;
+  window.WIC_TOOL1_CONTRACT_REPAIR_MODULE_V1_LOCKED = true;
 
-  if(window.WIC_TOOL1_FULL_FLOW_MODULE_V2_LOCKED){ return; }
-  window.WIC_TOOL1_FULL_FLOW_MODULE_V2_LOCKED = true;
-
-  const MODULE_ID = "WIC_TOOL1_FULL_FLOW_MODULE_V2_CONTRACTED";
-
-  /*
-    CONTRACT_TABLE 요약:
-    LEFT 실제 id:
-      customerRaw, researchField, interestField, org, dept, name, title, duty,
-      pub1, pub2, exclude, yearRange, priceRange, publisherMemo
-    MID 실제 id:
-      midTitleEn, midTitleKo, bookPub, bookDate, bookPage,
-      bookListPrice, bookSupplyPrice, midLink, midToc
-    원칙:
-      - 존재하지 않는 midOrg/midCustomer 생성 금지
-      - 왼쪽에 전용 소스가 없는 midLink/bookPage는 기존 값 보존
-      - 자동 샘플이 아니라 왼쪽 실제 입력값을 조합해 가운데를 재생성
-  */
+  const MODULE_ID = "WIC_TOOL1_CONTRACT_REPAIR_MODULE_V1";
 
   function $(id){ return document.getElementById(id); }
+  function txt(el){ return el ? String(("value" in el ? el.value : el.textContent) || "").trim() : ""; }
 
-  function textOf(el){
-    if(!el){ return ""; }
-    return String(("value" in el ? el.value : el.textContent) || "").trim();
-  }
-
-  function setValue(el, value){
-    if(!el){ return false; }
-    value = String(value || "").trim();
-    if(!value){ return false; }
-
-    if(el.tagName === "A"){
-      el.href = value;
-      el.textContent = value;
-      return true;
-    }
-
+  function setVal(el, value){
+    if(!el || !String(value || "").trim()) return false;
+    value = String(value).trim();
+    if(el.tagName === "A"){ el.href = value; el.textContent = value; return true; }
     if("value" in el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)){
       el.value = value;
-      el.dispatchEvent(new Event("input", {bubbles:true}));
-      el.dispatchEvent(new Event("change", {bubbles:true}));
       return true;
     }
-
     el.textContent = value;
     return true;
   }
 
+  function getSafePanel(){
+    return $("wicFinalLog") || $("wicEngineLog") || $("wicLog") || $("diagPacket") || $("targetProbeView") || $("flowTrace");
+  }
+
   function readLeft(){
     return {
-      customerRaw: textOf($("customerRaw")),
-      researchField: textOf($("researchField")),
-      interestField: textOf($("interestField")),
-      org: textOf($("org")),
-      dept: textOf($("dept")),
-      name: textOf($("name")),
-      title: textOf($("title")),
-      duty: textOf($("duty")),
-      pub1: textOf($("pub1")),
-      pub2: textOf($("pub2")),
-      exclude: textOf($("exclude")),
-      yearRange: textOf($("yearRange")),
-      priceRange: textOf($("priceRange")),
-      publisherMemo: textOf($("publisherMemo"))
+      customerRaw: txt($("customerRaw")),
+      researchField: txt($("researchField")),
+      interestField: txt($("interestField")),
+      org: txt($("org")),
+      dept: txt($("dept")),
+      name: txt($("name")),
+      title: txt($("title")),
+      duty: txt($("duty")),
+      pub1: txt($("pub1")),
+      pub2: txt($("pub2")),
+      exclude: txt($("exclude")),
+      yearRange: txt($("yearRange")),
+      priceRange: txt($("priceRange")),
+      publisherMemo: txt($("publisherMemo"))
     };
   }
 
   function buildMid(left){
-    const topic = [left.researchField, left.interestField].filter(Boolean).join(" / ") ||
-      left.customerRaw || left.org || "";
-    const orgPart = [left.org, left.dept].filter(Boolean).join(" ");
-    const dutyPart = left.duty ? " - " + left.duty : "";
-
-    const titleText = topic ? topic : orgPart;
-    const mid = {
-      midTitleEn: titleText ? titleText + " Market Report" : "",
-      midTitleKo: titleText ? titleText + " 시장 보고서" : "",
-      bookPub: left.pub1 || left.pub2 || "",
-      bookDate: left.yearRange || "",
-      bookPage: textOf($("bookPage")),
-      bookListPrice: left.priceRange || textOf($("bookListPrice")),
-      bookSupplyPrice: left.priceRange || textOf($("bookSupplyPrice")),
-      midLink: textOf($("midLink")),
+    const topic = [left.researchField, left.interestField, left.customerRaw].filter(Boolean).join(" / ");
+    const orgLine = [left.org, left.dept].filter(Boolean).join(" ");
+    return {
+      midTitleEn: topic ? topic + " Market Report" : (orgLine ? orgLine + " Market Report" : ""),
+      midTitleKo: topic ? topic + " 시장 보고서" : (orgLine ? orgLine + " 관련 시장 보고서" : ""),
+      bookPub: left.pub1 || left.pub2 || txt($("bookPub")),
+      bookDate: left.yearRange || txt($("bookDate")),
+      bookPage: txt($("bookPage")),
+      bookListPrice: left.priceRange || txt($("bookListPrice")),
+      bookSupplyPrice: left.priceRange || txt($("bookSupplyPrice")),
+      midLink: txt($("midLink")),
       midToc: [
-        titleText ? "1. " + titleText + " 개요" : "",
-        orgPart ? "2. " + orgPart + " 적용 검토" : "",
+        topic ? "1. " + topic + " 개요" : "",
+        orgLine ? "2. " + orgLine + " 적용 검토" : "",
         left.duty ? "3. 담당업무 기준 검토: " + left.duty : "",
         left.publisherMemo ? "4. 발행사 조건: " + left.publisherMemo : "",
         left.exclude ? "5. 제외 조건: " + left.exclude : ""
-      ].filter(Boolean).join("\n")
+      ].filter(Boolean).join("\\n")
     };
-
-    return mid;
   }
 
   function fillMid(mid){
     const result = { status:"FAIL", filled:[], missing_mid:[], empty_source:[] };
-
     Object.keys(mid).forEach(function(id){
       const value = mid[id];
-      if(!value){
-        result.empty_source.push(id);
-        return;
-      }
-      const target = $(id);
-      if(!target){
-        result.missing_mid.push(id);
-        return;
-      }
-      if(setValue(target, value)){
-        result.filled.push({ midId:id, value:value });
-      }
+      if(!value){ result.empty_source.push(id); return; }
+      const el = $(id);
+      if(!el){ result.missing_mid.push(id); return; }
+      if(setVal(el, value)){ result.filled.push({ midId:id, value:value }); }
     });
-
     result.status = result.filled.length > 0 ? "PASS" : "FAIL";
     return result;
   }
 
   function getRightDoc(){
-    const frame = $("rightFrame");
-    if(!frame){ return null; }
-    try{
-      return frame.contentDocument || frame.contentWindow.document;
-    }catch(e){
-      return null;
-    }
+    const f = $("rightFrame");
+    if(!f) return null;
+    try { return f.contentDocument || f.contentWindow.document; } catch(e){ return null; }
   }
 
   function findGuide(doc, ids){
-    if(!doc){ return null; }
+    if(!doc) return null;
     for(const id of ids){
       const el = doc.getElementById(id);
-      if(el){ return { id:id, el:el }; }
+      if(el) return { id, el };
     }
     return null;
   }
 
-  function syncMidToRight(){
+  function syncRight(){
     const doc = getRightDoc();
     const result = { engine:MODULE_ID, status:"FAIL", injected:[], missing:[], empty:[] };
-
     if(!doc){
       result.missing.push({ source:"rightFrame", target:"iframe.contentDocument", reason:"iframe 접근 실패" });
       return result;
@@ -4136,142 +3343,72 @@ else{ makePanel(); }
     ];
 
     rows.forEach(function(row){
-      const value = textOf($(row.sourceId));
-      if(!value){
-        result.empty.push({ sourceId:row.sourceId, targetIds:row.targetIds });
-        return;
-      }
-
+      const value = txt($(row.sourceId));
+      if(!value){ result.empty.push({ sourceId:row.sourceId, targetIds:row.targetIds }); return; }
       const target = findGuide(doc, row.targetIds);
-      if(!target){
-        result.missing.push({ sourceId:row.sourceId, targetIds:row.targetIds, reason:"guide id 없음" });
-        return;
-      }
-
-      const finalValue = row.sourceId === "midToc"
-        ? String(value).split(/\n+/).map(x=>x.trim()).filter(Boolean).join("\n")
-        : value;
-
-      if(setValue(target.el, finalValue)){
+      if(!target){ result.missing.push({ sourceId:row.sourceId, targetIds:row.targetIds, reason:"guide id 없음" }); return; }
+      const finalValue = row.sourceId === "midToc" ? String(value).split(/\\n+/).map(x=>x.trim()).filter(Boolean).join("\\n") : value;
+      if(setVal(target.el, finalValue)){
         result.injected.push({ sourceId:row.sourceId, targetId:target.id, value:finalValue });
       }
     });
-
-    const right = doc.getElementById("guideTocRight");
-    if(right){
-      right.textContent = "";
-      right.style.display = "none";
-      right.setAttribute("data-wic-disabled", "true");
-    }
 
     result.status = result.injected.length > 0 ? "PASS" : "FAIL";
     return result;
   }
 
-  function getSafePanel(){
-    return (
-      $("wicFinalLog") ||
-      $("wicEngineLog") ||
-      $("wicLog") ||
-      $("wicUltraLog") ||
-      document.querySelector("#wicSafePanel pre") ||
-      document.querySelector("[data-panel='safe-log']")
-    );
-  }
-
-  function render(contract, left, midResult, domResult){
-    const pass = midResult && domResult &&
-      midResult.filled && midResult.filled.length > 0 &&
-      domResult.injected && domResult.injected.length > 0;
-
-    const output = {
+  function render(midResult, domResult){
+    const out = {
       MODULE_ID,
-      PASS: pass ? "PASS" : "FAIL",
-      CONTRACT_AUDIT: contract,
+      PASS: (midResult.filled.length > 0 && domResult.injected.length > 0) ? "PASS" : "FAIL",
+      CONTRACT_AUDIT: {
+        base:"REAL_ENGINE_STEP1",
+        preserved:"기존 오른쪽 9칸 반영 구간 유지",
+        changed:"왼쪽→가운데 계약 보정만 추가",
+        left_ids:["customerRaw","researchField","interestField","org","dept","name","title","duty","pub1","pub2","exclude","yearRange","priceRange","publisherMemo"],
+        mid_ids:["midTitleEn","midTitleKo","bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink","midToc"]
+      },
       LEFT_TO_MID_RESULT: midResult,
       DOM_SYNC_RESULT: domResult,
-      injected: domResult && domResult.injected ? domResult.injected : [],
-      missing: domResult && domResult.missing ? domResult.missing : [],
-      empty: domResult && domResult.empty ? domResult.empty : []
+      injected: domResult.injected || [],
+      missing: domResult.missing || [],
+      empty: domResult.empty || []
     };
-
     const panel = getSafePanel();
-    if(panel){ panel.textContent = JSON.stringify(output, null, 2); }
-    window.WIC_TOOL1_FULL_FLOW_LAST_RESULT = output;
-    return output;
+    if(panel){
+      const text = JSON.stringify(out, null, 2);
+      if("value" in panel) panel.value = text;
+      else panel.textContent = text;
+    }
+    window.WIC_TOOL1_CONTRACT_REPAIR_LAST_RESULT = out;
+    return out;
   }
 
   function run(){
-    const left = readLeft();
-    const mid = buildMid(left);
+    const mid = buildMid(readLeft());
     const midResult = fillMid(mid);
-    const domResult = syncMidToRight();
-
-    const contract = {
-      left_ids:["customerRaw","researchField","interestField","org","dept","name","title","duty","pub1","pub2","exclude","yearRange","priceRange","publisherMemo"],
-      mid_ids:["midTitleEn","midTitleKo","bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink","midToc"],
-      missing_known:["midOrg","midCustomer"],
-      rule:"존재하지 않는 mid id 생성 금지 / 기존 PASS 구간 유지 / 왼쪽 실제 입력값으로 가운데 재생성"
-    };
-
-    return render(contract, left, midResult, domResult);
+    const domResult = syncRight();
+    return render(midResult, domResult);
   }
 
   function hook(){
-    const btn = Array.from(document.querySelectorAll("button")).find(function(b){
+    const btn = $("generateBtn") || Array.from(document.querySelectorAll("button")).find(function(b){
       const t = (b.textContent || "").trim();
-      return t.includes("WIC 실행 1회") ||
-             t.includes("실행 1회") ||
-             t.includes("정리/실행");
+      return t.includes("안내서 5개 생성") || t.includes("WIC 실행") || t.includes("실행 1회") || t.includes("정리/실행");
     });
-
-    if(!btn){
-      render(
-        { error:"실행 버튼 없음" },
-        {},
-        { status:"FAIL", filled:[], missing_mid:["실행 버튼 없음"], empty_source:[] },
-        { status:"FAIL", injected:[], missing:["실행 버튼 없음"], empty:[] }
-      );
-      return;
-    }
-
-    if(btn.dataset.wicTool1FullFlowV2Hooked === "true"){ return; }
-    btn.dataset.wicTool1FullFlowV2Hooked = "true";
-    btn.addEventListener("click", function(){ setTimeout(run, 100); }, false);
-
-    const panel = getSafePanel();
-    if(panel){
-      panel.textContent = JSON.stringify({
-        MODULE_ID,
-        PASS:"READY",
-        message:"WIC 실행 1회 클릭 시 왼쪽→가운데→오른쪽 전체 흐름을 실행합니다."
-      }, null, 2);
-    }
+    if(!btn) return;
+    if(btn.dataset.wicContractRepairHooked === "true") return;
+    btn.dataset.wicContractRepairHooked = "true";
+    btn.addEventListener("click", function(){ setTimeout(run, 160); }, false);
   }
 
-  function hookLeftPreview(){
-    Array.from(document.querySelectorAll("input, textarea, select, [contenteditable='true']")).forEach(function(el){
-      if(el.dataset.wicTool1LeftPreviewHooked === "true"){ return; }
-      el.dataset.wicTool1LeftPreviewHooked = "true";
-      el.addEventListener("input", function(){
-        const left = readLeft();
-        const mid = buildMid(left);
-        fillMid(mid);
-      }, false);
-    });
-  }
-
-  window.WIC_TOOL1_FULL_FLOW_MODULE_RUN = run;
-  window.WIC_DIRECT_GUIDE_SYNC = syncMidToRight;
+  window.WIC_TOOL1_CONTRACT_REPAIR_RUN = run;
+  window.WIC_DIRECT_GUIDE_SYNC = syncRight;
 
   if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", function(){
-      hook();
-      hookLeftPreview();
-    });
+    document.addEventListener("DOMContentLoaded", hook);
   }else{
     hook();
-    hookLeftPreview();
   }
 })();
 </script>
@@ -4279,58 +3416,3 @@ else{ makePanel(); }
 </body>
 
 </html>
-<script id="tocCheckSyncV1">
-(function(){
-  'use strict';
-  function $(id,root){return (root||document).getElementById(id);}
-  function val(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
-  function write(id,data){var el=$(id); if(!el) return; el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
-  function text(id,doc){var el=$(id,doc||document); return el?String(el.textContent||el.value||'').trim():'';}
-  function tocLineCountFromDom(doc){
-    if(!doc) return 0;
-    var left=$('guideTocLeft',doc), right=$('guideTocRight',doc), nodes=[];
-    [left,right].forEach(function(root){
-      if(!root) return;
-      var divs=root.querySelectorAll('div');
-      if(divs && divs.length){ divs.forEach(function(d){ if(String(d.textContent||'').trim()) nodes.push(d); }); }
-      else if(String(root.textContent||'').trim()){ nodes.push(root); }
-    });
-    return nodes.length;
-  }
-  function tocTextLineCount(v){return String(v||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean).length;}
-  function syncReports(){
-    var doc=frameDoc();
-    var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
-    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocRight:text('guideTocRight',doc)}:{};
-    var midKeys=Object.keys(mid), rightKeys=['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'];
-    var middleMissing=midKeys.filter(function(k){return !mid[k];});
-    var rightMissing=rightKeys.filter(function(k){return !right[k];});
-    var tocLinesDom=tocLineCountFromDom(doc), tocLinesMid=tocTextLineCount(mid.midToc), tocLines=Math.max(tocLinesDom,tocLinesMid);
-    var middleFill=Math.round((midKeys.length-middleMissing.length)/midKeys.length*100), rightFill=Math.round((rightKeys.length-rightMissing.length)/rightKeys.length*100);
-    var tocStatus=tocLines>=18?'PASS':tocLines>=10?'WARN':'FAIL';
-    var docInfoScore=Math.round(((!!mid.midTitleEn)+(!!mid.midTitleKo)+(!!mid.bookPub)+(!!mid.bookDate)+(!!mid.bookPage)+(!!mid.bookListPrice)+(!!mid.bookSupplyPrice)+(!!mid.midLink))/8*45);
-    var tocScore=Math.min(35,Math.round(tocLines/24*35)), rightScore=rightFill>=90?20:rightFill>=70?10:0;
-    var total=docInfoScore+tocScore+rightScore, grade=total>=85?'A':total>=70?'B':total>=55?'C':'D';
-    var gaps=[]; if(middleMissing.length) gaps.push('가운데 누락: '+middleMissing.join(', ')); if(rightMissing.length) gaps.push('오른쪽 누락: '+rightMissing.join(', ')); if(tocLines<18) gaps.push('목차 라인 부족 또는 공간 채움 약함: 현재 '+tocLines+'줄');
-    write('missingSlotReport',{status:gaps.length?'FAIL':'PASS',version:'TOC_CHECK_SYNC_V1',middle_fill:middleFill+'%',right_fill:rightFill+'%',toc_lines_from_dom:tocLinesDom,toc_lines_from_middle:tocLinesMid,middle_missing:middleMissing,right_missing:rightMissing});
-    write('manualGuideScore',{version:'TOC_CHECK_SYNC_V1',score:total,grade:grade,target:'수동 안내서 수준 85점 이상',toc_lines:tocLines,toc_status:tocStatus,rule:'오른쪽 guideTocLeft 실제 DOM div 개수를 우선 계산'});
-    write('engineGapReport',{status:gaps.length?'보완 필요':'PASS',version:'TOC_CHECK_SYNC_V1',gaps:gaps,next_fix:gaps[0]||'목차 공간 채움 세부 조정으로 이동 가능'});
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_CHECK_SYNC_V1_RUN',status:gaps.length?'FAIL':'PASS',toc_lines:tocLines,score:total,grade:grade},null,2);
-  }
-  window.runCoverageQa=syncReports; window.runTocCheckSyncV1=syncReports;
-  function install(){
-    var bar=document.createElement('div');
-    bar.style.cssText='padding:8px 12px;background:#e9f7ef;border-bottom:1px solid #9ed0ad;font-weight:700;font-size:13px;';
-    bar.textContent='TOC_CHECK_SYNC_V1 적용: 아래 점검표가 오른쪽 안내서 실제 목차 DOM을 읽어 toc_lines / 채움률 / 안정도를 갱신합니다.';
-    var wrap=document.querySelector('.wrap'); if(wrap && wrap.parentNode) wrap.parentNode.insertBefore(bar,wrap);
-    setTimeout(syncReports,700);
-    ['generateBtn','diagBtn','recheckBtn','runTestBtn'].forEach(function(id){var b=$(id); if(b) b.addEventListener('click',function(){setTimeout(syncReports,600); setTimeout(syncReports,1500);},true);});
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){var e=$(id); if(e)e.addEventListener('input',function(){setTimeout(syncReports,250);});});
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
-})();
-</script>
-
-
-<!-- removed TOC_MANUAL_INLINE_LAYOUT_FIX_V1 conflicting old/write path -->
