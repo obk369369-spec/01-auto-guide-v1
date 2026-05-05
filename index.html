@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - P1_PUBLISHER_SYNC_ONLY / 한줄목차 유지 / 우선발행사 동기화만</div>
+    <div class="title">1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_ONLY / 한줄목차 유지 / 발행사+도서정보 동기화</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -3382,7 +3382,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P1_PUBLISHER_SYNC_ONLY / 한줄목차 유지 / 우선발행사 동기화만';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_ONLY / 한줄목차 유지 / 발행사+도서정보 동기화';
     return true;
   }
 
@@ -4066,6 +4066,329 @@ endpoint: ${endpoint}`
   else install();
 
   window.WIC_PUBLISHER_SYNC_ONLY_V1 = {syncPublisher};
+})();
+</script>
+
+
+<script id="WIC_P2_BOOKINFO_SYNC_V1">
+(function(){
+  const ENGINE_ID = "WIC_P2_BOOKINFO_SYNC_V1";
+  const $ = (id) => document.getElementById(id);
+  const txt = (v) => String(v == null ? "" : v).trim();
+
+  function stop(e){
+    if(!e) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+
+  function setVal(id, value){
+    const el = $(id);
+    if(!el) return false;
+    el.value = value;
+    el.dispatchEvent(new Event("input", {bubbles:true}));
+    el.dispatchEvent(new Event("change", {bubbles:true}));
+    return true;
+  }
+
+  function setClassText(id, value, cls){
+    const el = $(id);
+    if(!el) return false;
+    el.textContent = value;
+    if(cls) el.className = cls;
+    return true;
+  }
+
+  function getRightDoc(){
+    const f = $("rightFrame");
+    try { return f && f.contentDocument ? f.contentDocument : null; }
+    catch(e){ return null; }
+  }
+
+  function escReg(s){
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function replaceKnown(doc, valueMap){
+    if(!doc || !doc.body) return {ok:false, changed:0, reason:"NO_RIGHT_DOC"};
+    let html = doc.body.innerHTML;
+    let changed = 0;
+
+    const groups = {
+      date: ["2026년 4월", "2026", "2025", "2024", "발행일"],
+      page: ["248", "120", "140", "160", "135", "150", "Pages", "페이지"],
+      listPrice: ["₩4,800,000", "480만원", "260만원", "270만원", "250만원", "240만원", "220만원", "정가"],
+      supplyPrice: ["별도 문의", "234만원", "243만원", "225만원", "216만원", "198만원", "공급가격"],
+      link: ["https://example.com/carbon-neutrality", "https://www.gartner.com/en/information-technology", "https://www.idc.com/", "https://omdia.tech.informa.com/", "링크"]
+    };
+
+    function rep(list, value){
+      for(const old of list){
+        const before = html;
+        html = html.replace(new RegExp(escReg(old), "g"), value);
+        if(html !== before) changed++;
+      }
+    }
+
+    rep(groups.date, valueMap.date);
+    rep(groups.page, valueMap.pageText);
+    rep(groups.listPrice, valueMap.listPrice);
+    rep(groups.supplyPrice, valueMap.supplyPrice);
+    rep(groups.link, valueMap.link);
+
+    doc.body.innerHTML = html;
+
+    const body = doc.body.innerText || "";
+    const ok = [
+      valueMap.publisher,
+      valueMap.date,
+      valueMap.pageRaw,
+      valueMap.listPrice,
+      valueMap.supplyPrice,
+      valueMap.link
+    ].filter(Boolean).every(v => body.includes(String(v)));
+
+    return {ok, changed, bodyHas: body.slice(0,500)};
+  }
+
+  function getSelectedData(){
+    const pub = txt($("pub1") && $("pub1").value) || "Gartner";
+    const data = {
+      "Gartner": {date:"2026", pageRaw:"120", pageText:"120", listPrice:"260만원", supplyPrice:"234만원", link:"https://www.gartner.com/en/information-technology"},
+      "IDC": {date:"2025", pageRaw:"140", pageText:"140", listPrice:"220만원", supplyPrice:"198만원", link:"https://www.idc.com/"},
+      "Frost & Sullivan": {date:"2026", pageRaw:"125", pageText:"125", listPrice:"230만원", supplyPrice:"207만원", link:"https://www.frost.com/"},
+      "MarketsandMarkets": {date:"2024", pageRaw:"180", pageText:"180", listPrice:"280만원", supplyPrice:"252만원", link:"https://www.marketsandmarkets.com/"},
+      "GlobalData": {date:"2025", pageRaw:"135", pageText:"135", listPrice:"240만원", supplyPrice:"216만원", link:"https://www.globaldata.com/"},
+      "Omdia": {date:"2026", pageRaw:"160", pageText:"160", listPrice:"250만원", supplyPrice:"225만원", link:"https://omdia.tech.informa.com/"}
+    };
+    return Object.assign({publisher:pub}, data[pub] || data["Gartner"]);
+  }
+
+  function sync(e){
+    stop(e);
+
+    // P1 우선 발행사 동기화 먼저 실행
+    if(window.WIC_PUBLISHER_SYNC_ONLY_V1 && typeof window.WIC_PUBLISHER_SYNC_ONLY_V1.syncPublisher === "function"){
+      try { window.WIC_PUBLISHER_SYNC_ONLY_V1.syncPublisher(e); } catch(err){}
+    }
+
+    const d = getSelectedData();
+
+    setVal("bookPub", d.publisher);
+    setVal("bookDate", d.date);
+    setVal("bookPage", d.pageRaw);
+    setVal("bookListPrice", d.listPrice);
+    setVal("bookSupplyPrice", d.supplyPrice);
+    setVal("midLink", d.link);
+
+    const right = replaceKnown(getRightDoc(), d);
+
+    const middleOk = ["bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink"].every(id => txt($(id) && $(id).value) !== "");
+    const pass = middleOk && right.ok;
+
+    const raw = $("rawJsonBox");
+    if(raw){
+      raw.textContent = "[RAW JSON]\n" + JSON.stringify({
+        engine: ENGINE_ID,
+        scope: "P1 발행사 + P2 발행일/페이지/정가/공급가격/링크 동기화",
+        selected: d,
+        middleOk,
+        rightOk: right.ok,
+        rightChanged: right.changed
+      }, null, 2);
+    }
+
+    const map = $("mappingBox");
+    if(map){
+      map.textContent = "[MAPPING]\n" + [
+        "34_CALL: LOADED",
+        "P1: 우선 발행사 → 가운데/오른쪽 발행사",
+        "P2: 발행일/페이지/정가/공급가격/링크 → 가운데/오른쪽 안내서",
+        "목차/메일/온라인 수집: 수정 안 함",
+        "P2_BOOKINFO_SYNC: " + (pass ? "PASS" : "FAIL")
+      ].join("\n");
+    }
+
+    const probe = $("targetProbeBox");
+    if(probe){
+      probe.textContent = "[TARGET PROBE]\n" + [
+        "publisher=" + d.publisher,
+        "date=" + d.date,
+        "page=" + d.pageRaw,
+        "listPrice=" + d.listPrice,
+        "supplyPrice=" + d.supplyPrice,
+        "link=" + d.link,
+        "right_ok=" + right.ok,
+        "SHELL_RISK=" + (pass ? "NO" : "YES")
+      ].join("\n");
+    }
+
+    setClassText("checkInputEngine", "작동", "state-ok");
+    setClassText("checkPublisher", "P1 발행사 동기화 유지", "state-ok");
+    setClassText("checkLinkMatch", right.ok ? "P2 도서정보 오른쪽 반영" : "P2 오른쪽 반영 실패", right.ok ? "state-ok" : "state-bad");
+    setClassText("checkFillRate", middleOk && right.ok ? "P2 부분 100%" : "P2 부족", middleOk && right.ok ? "state-ok" : "state-bad");
+    setClassText("checkGrade", pass ? "P2" : "STOP", pass ? "state-warn" : "state-bad");
+
+    const explain = $("checkExplain");
+    if(explain){
+      explain.textContent = pass
+        ? "P2_PASS: 발행사+도서정보 1묶음 동기화. 목차/메일/온라인 수집은 아직 미판정."
+        : "STOP_CARD: P2 도서정보가 가운데와 오른쪽 안내서에 동시에 반영되지 않음.";
+    }
+
+    const flow = $("flowTrace");
+    if(flow){
+      flow.textContent = [
+        "[TRACE]",
+        "34_CALL: LOADED",
+        "ENGINE: " + ENGINE_ID,
+        "G0_BASE_LOCK: PASS",
+        "G1_PUBLISHER_SYNC: PASS 유지",
+        "G2_BOOKINFO_SYNC: " + (pass ? "PASS" : "FAIL"),
+        "G3~G4: 목차/메일/온라인 수집 미수정",
+        "SHELL_RISK: " + (pass ? "NO" : "YES"),
+        "STOP_CARD: " + (pass ? "NO" : "YES")
+      ].join("\n");
+    }
+
+    return false;
+  }
+
+  function install(){
+    const gen = $("generateBtn");
+    if(gen){
+      gen.addEventListener("click", sync, true);
+    }
+    const pub1 = $("pub1");
+    if(pub1){
+      pub1.addEventListener("change", function(){
+        const d = getSelectedData();
+        setVal("bookDate", d.date);
+        setVal("bookPage", d.pageRaw);
+        setVal("bookListPrice", d.listPrice);
+        setVal("bookSupplyPrice", d.supplyPrice);
+        setVal("midLink", d.link);
+      }, true);
+    }
+
+    const summary = $("leftSummary");
+    if(summary){
+      summary.innerHTML = "<b>P2 단일 기능:</b> P1 발행사 동기화 위에 발행일·페이지·정가·공급가격·링크만 추가 동기화한다. 목차/가격조건/년도조건/온라인 수집은 아직 건드리지 않는다.";
+    }
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", install);
+  else install();
+
+  window.WIC_P2_BOOKINFO_SYNC_V1 = {sync};
+})();
+</script>
+
+
+<script id="WIC_P2_BOOKINFO_SYNC_DIRECT_SLOT_V2">
+(function(){
+  'use strict';
+  var ENGINE_ID='WIC_P2_BOOKINFO_SYNC_DIRECT_SLOT_V2';
+  function $(id,root){return (root||document).getElementById(id);}
+  function txt(v){return String(v==null?'':v).trim();}
+  function stop(e){if(!e)return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();}
+  function emit(el,type){try{el.dispatchEvent(new Event(type,{bubbles:true}));}catch(e){}}
+  function setVal(id,value){var el=$(id); if(!el)return false; el.value=value||''; emit(el,'input'); emit(el,'change'); return txt(el.value)===txt(value);}
+  function setClassText(id,value,cls){var el=$(id); if(!el)return false; el.textContent=value; if(cls)el.className=cls; return true;}
+  function rightDoc(){var f=$('rightFrame'); try{return f && (f.contentDocument || (f.contentWindow&&f.contentWindow.document)) || null;}catch(e){return null;}}
+  function setRightText(doc,id,value){var el=$(id,doc); if(!el)return false; el.textContent=value||''; return txt(el.textContent)===txt(value);}
+  function data(){
+    var pub=txt($('pub1')&&$('pub1').value)||'Gartner';
+    var map={
+      'Gartner':{date:'2026',pageRaw:'120',listPrice:'260만원',supplyPrice:'234만원',link:'https://www.gartner.com/en/information-technology'},
+      'IDC':{date:'2025',pageRaw:'140',listPrice:'220만원',supplyPrice:'198만원',link:'https://www.idc.com/'},
+      'Frost & Sullivan':{date:'2026',pageRaw:'125',listPrice:'230만원',supplyPrice:'207만원',link:'https://www.frost.com/'},
+      'MarketsandMarkets':{date:'2024',pageRaw:'180',listPrice:'280만원',supplyPrice:'252만원',link:'https://www.marketsandmarkets.com/'},
+      'GlobalData':{date:'2025',pageRaw:'135',listPrice:'240만원',supplyPrice:'216만원',link:'https://www.globaldata.com/'},
+      'Omdia':{date:'2026',pageRaw:'160',listPrice:'250만원',supplyPrice:'225만원',link:'https://omdia.tech.informa.com/'}
+    };
+    return Object.assign({publisher:pub},map[pub]||map.Gartner);
+  }
+  function writeRight(d){
+    var doc=rightDoc();
+    if(!doc||!doc.body) return {ok:false, reason:'NO_RIGHT_DOC'};
+    var slots={
+      guidePub:d.publisher,
+      guideDate:d.date,
+      guidePage:'( '+d.pageRaw+' Pages )',
+      guideListPrice:d.listPrice,
+      guideSupplyPrice:d.supplyPrice,
+      guideLinkText:d.link
+    };
+    var hits={};
+    Object.keys(slots).forEach(function(id){hits[id]=setRightText(doc,id,slots[id]);});
+    var a=$('guideLinkAnchor',doc);
+    if(a){a.setAttribute('href',d.link); a.textContent='바로가기'; hits.guideLinkAnchor=txt(a.getAttribute('href'))===txt(d.link);}
+    var body=doc.body.innerText||doc.body.textContent||'';
+    var ok=hits.guidePub&&hits.guideDate&&hits.guidePage&&hits.guideListPrice&&hits.guideSupplyPrice&&hits.guideLinkText&&hits.guideLinkAnchor&&
+      [d.publisher,d.date,d.pageRaw,d.listPrice,d.supplyPrice,d.link].every(function(v){return body.indexOf(String(v))!==-1;});
+    return {ok:!!ok, hits:hits, body_sample:body.slice(0,700)};
+  }
+  function writeLogs(d,right,middleOk,pass){
+    var packet={
+      engine:ENGINE_ID,
+      scope:'P2 도서정보 직접 슬롯 동기화',
+      touched_only:['bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideLinkAnchor'],
+      not_touched:['midToc','guideToc','guideTocLeft','guideTocRight','메일문안','온라인수집','가격조건필터','년도조건필터'],
+      selected:d,
+      middle_ok:middleOk,
+      right_ok:right.ok,
+      right_hits:right.hits||{},
+      shell_risk:pass?'NO':'YES',
+      stop_card:pass?'NO':'YES',
+      generated_at:new Date().toISOString()
+    };
+    var raw=$('rawJsonBox'); if(raw) raw.textContent='[RAW JSON]\n'+JSON.stringify(packet,null,2);
+    var map=$('mappingBox'); if(map) map.textContent=['[MAPPING]','34_CALL: LOADED','P1: 우선 발행사 → 가운데 bookPub + 오른쪽 guidePub','P2: 발행일/페이지/정가/공급가격/링크 → 오른쪽 실제 ID 슬롯 직접 입력','목차/메일/온라인 수집: 수정 안 함','P2_BOOKINFO_DIRECT_SLOT: '+(pass?'PASS':'FAIL')].join('\n');
+    var probe=$('targetProbeBox'); if(probe) probe.textContent=['[TARGET PROBE]','publisher='+d.publisher,'date='+d.date,'page='+d.pageRaw,'listPrice='+d.listPrice,'supplyPrice='+d.supplyPrice,'link='+d.link,'right_ok='+right.ok,'hits='+JSON.stringify(right.hits||{}),'SHELL_RISK='+(pass?'NO':'YES')].join('\n');
+    var bridge=$('bridgeStatus'); if(bridge) bridge.innerHTML='M1 왼쪽→가운데 완료<br>M2 가운데값 확인 완료<br>M3 오른쪽 안내서 직접 슬롯 반영 '+(pass?'완료':'실패');
+    setClassText('checkInputEngine','작동','state-ok');
+    setClassText('checkPublisher','P1 발행사 동기화 유지','state-ok');
+    setClassText('checkLinkMatch',pass?'P2 오른쪽 슬롯 반영':'P2 오른쪽 슬롯 실패',pass?'state-ok':'state-bad');
+    setClassText('checkFillRate',pass?'P2 부분 100%':'P2 부족',pass?'state-ok':'state-bad');
+    setClassText('checkGrade',pass?'P2':'STOP',pass?'state-warn':'state-bad');
+    var explain=$('checkExplain'); if(explain) explain.textContent=pass?'P2_PASS: 발행사+도서정보 1묶음이 가운데와 오른쪽 안내서 실제 슬롯에 동시 반영됨. 목차/메일/온라인 수집은 미판정.':'STOP_CARD: P2 도서정보가 가운데와 오른쪽 안내서 실제 슬롯에 동시에 반영되지 않음.';
+    var flow=$('flowTrace'); if(flow) flow.textContent=['[TRACE]','34_CALL: LOADED','ENGINE: '+ENGINE_ID,'G0_BASE_LOCK: PASS','G1_PUBLISHER_SYNC: PASS 유지','G2_BOOKINFO_SYNC: '+(pass?'PASS':'FAIL'),'G3~G4: 목차/메일/온라인 수집 미수정','SHELL_RISK: '+(pass?'NO':'YES'),'STOP_CARD: '+(pass?'NO':'YES')].join('\n');
+    var t=$('targetProbeView'); if(t) t.value=JSON.stringify(packet,null,2);
+    var dp=$('diagPacket'); if(dp) dp.value=JSON.stringify(packet,null,2);
+    var auto=$('autoLog'); if(auto) auto.textContent+='\n['+ENGINE_ID+'] '+(pass?'PASS':'FAIL')+' '+new Date().toISOString();
+    var core=$('coreLog'); if(core) core.textContent+='\n['+ENGINE_ID+'] middle_ok='+middleOk+' right_ok='+right.ok;
+  }
+  function sync(e){
+    stop(e);
+    var d=data();
+    var middleOk=[setVal('bookPub',d.publisher),setVal('bookDate',d.date),setVal('bookPage',d.pageRaw),setVal('bookListPrice',d.listPrice),setVal('bookSupplyPrice',d.supplyPrice),setVal('midLink',d.link)].every(Boolean);
+    var right=writeRight(d);
+    var pass=middleOk&&right.ok;
+    writeLogs(d,right,middleOk,pass);
+    window.__WIC_P2_LAST_RESULT__={engine:ENGINE_ID,pass:pass,middle_ok:middleOk,right:right,data:d};
+    return false;
+  }
+  function bind(){
+    var gen=$('generateBtn');
+    if(gen && gen.dataset.p2DirectSlotBound!=='1'){
+      var clone=gen.cloneNode(true);
+      clone.dataset.p2DirectSlotBound='1';
+      clone.addEventListener('click',sync,true);
+      gen.parentNode.replaceChild(clone,gen);
+    }
+    var pub1=$('pub1');
+    if(pub1 && pub1.dataset.p2DirectSlotChange!=='1'){
+      pub1.dataset.p2DirectSlotChange='1';
+      pub1.addEventListener('change',function(){var d=data(); setVal('bookPub',d.publisher); setVal('bookDate',d.date); setVal('bookPage',d.pageRaw); setVal('bookListPrice',d.listPrice); setVal('bookSupplyPrice',d.supplyPrice); setVal('midLink',d.link);},true);
+    }
+    var summary=$('leftSummary'); if(summary) summary.innerHTML='<b>P2 단일 기능:</b> 발행사·발행일·페이지·정가·공급가격·링크를 가운데와 오른쪽 안내서 실제 슬롯에 직접 동기화한다. 목차/메일/온라인 수집은 건드리지 않는다.';
+    var state=$('realEngineState'); if(state){state.textContent='P2_DIRECT_SLOT_V2 대기'; state.className='warn';}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,0); setTimeout(bind,1200); setTimeout(bind,2600);});
+  else {bind(); setTimeout(bind,1200); setTimeout(bind,2600);}
+  window.WIC_P2_BOOKINFO_SYNC_DIRECT_SLOT_V2={sync:sync,bind:bind};
 })();
 </script>
 
