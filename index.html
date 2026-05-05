@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치</div>
+    <div class="title">1번 고객 자동화 안내서 - P1_PUBLISHER_SYNC_ONLY / 한줄목차 유지 / 우선발행사 동기화만</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -3382,7 +3382,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P1_PUBLISHER_SYNC_ONLY / 한줄목차 유지 / 우선발행사 동기화만';
     return true;
   }
 
@@ -3854,295 +3854,218 @@ endpoint: ${endpoint}`
 </script>
 
 
-<script id="WIC_ENGINE_COMBO_ON_INPUT_REGEN_TOC_V1">
+<script id="WIC_PUBLISHER_SYNC_ONLY_V1">
 (function(){
-  const ENGINE_ID = 'WIC_ENGINE_COMBO_ON_INPUT_REGEN_TOC_V1';
-  const $ = (id, root) => (root || document).getElementById(id);
-  const txt = (v) => String(v == null ? '' : v).trim();
+  const ENGINE_ID = "WIC_PUBLISHER_SYNC_ONLY_V1";
+  const $ = (id) => document.getElementById(id);
+  const txt = (v) => String(v == null ? "" : v).trim();
 
-  function stop(e){ if(e){ e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation(); } }
+  function stop(e){
+    if(!e) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+
   function setVal(id, value){
-    const el=$(id); if(!el) return;
-    el.value = value == null ? '' : String(value);
-    el.dispatchEvent(new Event('input', {bubbles:true}));
-    el.dispatchEvent(new Event('change', {bubbles:true}));
+    const el = $(id);
+    if(!el) return false;
+    el.value = value;
+    el.dispatchEvent(new Event("input", {bubbles:true}));
+    el.dispatchEvent(new Event("change", {bubbles:true}));
+    return true;
   }
+
   function setText(id, value, cls){
-    const el=$(id); if(!el) return;
-    el.textContent = value == null ? '' : String(value);
+    const el = $(id);
+    if(!el) return false;
+    el.textContent = value;
     if(cls) el.className = cls;
+    return true;
   }
-  function writeBox(id, title, value){
-    const el=$(id); if(!el) return;
-    let v=value;
-    if(typeof v !== 'string'){
-      try{ v=JSON.stringify(v,null,2); }catch(e){ v=String(v); }
+
+  function getRightDoc(){
+    const f = $("rightFrame");
+    try { return f && f.contentDocument ? f.contentDocument : null; }
+    catch(e){ return null; }
+  }
+
+  function patchRightPublisherByText(doc, publisher){
+    if(!doc || !doc.body) return {ok:false, method:"NO_RIGHT_DOC"};
+
+    // 1순위: id 슬롯이 있으면 직접 입력
+    const idTargets = ["guidePub", "guidePublisher", "publisher", "pub"];
+    let idHit = false;
+    for(const id of idTargets){
+      const el = doc.getElementById(id);
+      if(el){
+        el.textContent = publisher;
+        idHit = true;
+      }
     }
-    el.textContent='['+title+']\n'+(v||'대기');
-  }
-  function splitList(v){ return txt(v).split(/[,，\/|]/).map(s=>s.trim()).filter(Boolean); }
-  function norm(v){ return txt(v).toLowerCase().replace(/\s+/g,''); }
-  function parseYearRange(v){
-    const nums=txt(v).match(/\d{4}/g);
-    if(!nums || !nums.length) return [2023,2026];
-    if(nums.length===1) return [Number(nums[0]),Number(nums[0])];
-    return [Number(nums[0]),Number(nums[1])];
-  }
-  function parsePriceMax(v){
-    const s=txt(v).replace(/,/g,'');
-    const n=s.match(/\d+(?:\.\d+)?/);
-    if(!n) return 300;
-    const val=Number(n[0]);
-    if(/만원/.test(s)) return val;
-    if(/억/.test(s)) return val*10000;
-    if(val>10000) return Math.round(val/10000);
-    return val;
-  }
 
-  function buildContext(){
-    return {
-      raw: txt($('customerRaw') && $('customerRaw').value),
-      research: txt($('researchField') && $('researchField').value),
-      interest: txt($('interestField') && $('interestField').value),
-      org: txt($('org') && $('org').value),
-      dept: txt($('dept') && $('dept').value),
-      name: txt($('name') && $('name').value),
-      duty: txt($('duty') && $('duty').value),
-      pub1: txt($('pub1') && $('pub1').value),
-      pub2: txt($('pub2') && $('pub2').value),
-      exclude: splitList($('exclude') && $('exclude').value),
-      yearRange: txt($('yearRange') && $('yearRange').value),
-      priceRange: txt($('priceRange') && $('priceRange').value),
-      memo: txt($('publisherMemo') && $('publisherMemo').value)
-    };
-  }
-
-  function pool(ctx){
-    const base = [
-      {title:'AI Infrastructure Market Outlook', titleKo:'AI 인프라 시장 전망', publisher:'Gartner', year:2026, priceMan:260, supplyMan:234, pages:120, link:'https://www.gartner.com/en/information-technology', reason:'AI 서버와 가속기 투자 판단에 직접 연결됨', toc:['I. AI 인프라 시장 개요','1.1 AI 서버 시장 정의와 조사 범위','1.2 주요 수요처와 적용 분야','II. 발행사 관점의 시장 동향','2.1 성장 요인','2.2 주요 리스크','III. 경쟁 구도와 공급망','3.1 주요 기업','3.2 지역별 흐름','IV. 고객 업무 연결 포인트','4.1 기관 검토 포인트','4.2 담당 업무 관련성','V. 구매 검토 메모']},
-      {title:'Semiconductor Equipment Growth Report', titleKo:'반도체 장비 성장 보고서', publisher:'IDC', year:2025, priceMan:220, supplyMan:198, pages:140, link:'https://www.idc.com/', reason:'장비 공급망 관점의 시장 규모 확인에 적합함', toc:['I. 반도체 장비 시장 개요','1.1 공정별 장비 수요','1.2 장비 투자 흐름','II. 성장 요인','2.1 AI 반도체 영향','2.2 패키징 장비','III. 공급망 분석','3.1 주요 공급사','3.2 지역별 투자','IV. 실무 검토 포인트','4.1 장비 도입 기준','4.2 담당 업무 연결성','V. 구매 검토 메모']},
-      {title:'Clean Energy Technology Outlook', titleKo:'청정에너지 기술 전망', publisher:'Omdia', year:2026, priceMan:250, supplyMan:225, pages:160, link:'https://omdia.tech.informa.com/', reason:'에너지 전환 관련 기술 시장 흐름을 확인하기 좋음', toc:['I. 청정에너지 시장 개요','1.1 기술 분류','1.2 정책과 수요','II. 주요 기술 동향','2.1 저장장치','2.2 전력망','III. 시장 전망','3.1 수요 전망','3.2 지역별 흐름','IV. 기관 적용 포인트','4.1 도입 가능성','4.2 검토 기준','V. 구매 검토 메모']},
-      {title:'Defense Electronics Market Forecast', titleKo:'방산 전자 시장 예측', publisher:'GlobalData', year:2025, priceMan:240, supplyMan:216, pages:135, link:'https://www.globaldata.com/', reason:'방산 전자부품·센서·통신 장비 수요 확인에 적합함', toc:['I. 방산 전자 시장 개요','1.1 센서와 통신','1.2 전자전 장비','II. 수요 전망','2.1 국방 투자','2.2 장비 현대화','III. 공급망 위험','3.1 주요 공급사','3.2 지역별 리스크','IV. 기관 검토 포인트','4.1 적용 가능성','4.2 구매 판단 기준','V. 구매 검토 메모']},
-      {title:'Cybersecurity for Critical Infrastructure', titleKo:'중요 인프라 보안 보고서', publisher:'Forrester', year:2025, priceMan:270, supplyMan:243, pages:150, link:'https://www.forrester.com/', reason:'기관 보안 운영 안정성 검토 자료로 활용 가능함', toc:['I. 중요 인프라 보안 개요','1.1 위협 유형','1.2 기관 보안 요구','II. 솔루션 시장','2.1 운영 보안','2.2 네트워크 보안','III. 운영 안정성','3.1 위험 관리','3.2 대응 체계','IV. 담당업무 연결 포인트','4.1 실무 적용성','4.2 구매 판단 기준','V. 구매 검토 메모']},
-      {title:'AI Server Supply Chain Analysis', titleKo:'AI 서버 공급망 분석', publisher:'MarketsandMarkets', year:2024, priceMan:280, supplyMan:252, pages:180, link:'https://www.marketsandmarkets.com/', reason:'AI 서버 부품·공급망 검토에 직접 활용 가능함', toc:['I. AI 서버 공급망','1.1 칩셋','1.2 전력·냉각','II. 서버 수요 전망','2.1 데이터센터','2.2 GPU 수요','III. 공급사 분석','3.1 주요 업체','3.2 지역별 흐름','IV. 가격 흐름','4.1 조달 기준','4.2 리스크','V. 구매 검토 메모']},
-      {title:'Industrial Network Equipment Forecast', titleKo:'산업용 네트워크 장비 전망', publisher:'Frost & Sullivan', year:2026, priceMan:230, supplyMan:207, pages:125, link:'https://www.frost.com/', reason:'네트워크 장비 도입과 시장 흐름을 함께 볼 수 있음', toc:['I. 산업용 네트워크 시장','1.1 장비 유형','1.2 수요처','II. 성장 동인','2.1 자동화 수요','2.2 보안 요구','III. 경쟁 구도','3.1 주요 기업','3.2 지역별 시장','IV. 기관 적용성','4.1 도입 기준','4.2 운영 포인트','V. 구매 검토 메모']}
+    // 2순위: 기존 안내서 안의 발행사명 후보만 교체
+    let html = doc.body.innerHTML;
+    const before = html;
+    const known = [
+      "MarketsandMarkets",
+      "MarketsandMarkets↘",
+      "Gartner",
+      "IDC",
+      "Frost & Sullivan",
+      "GlobalData",
+      "Omdia",
+      "Forrester",
+      "Euromonitor",
+      "IBISWorld"
     ];
 
-    const userText = [ctx.raw, ctx.research, ctx.interest, ctx.duty].join(' ').toLowerCase();
-    if(/탄소|carbon|ccus/.test(userText)){
-      base[0] = {title:'Carbon Capture and Utilization Market Outlook', titleKo:'탄소 포집·활용 시장 전망', publisher:'Gartner', year:2026, priceMan:260, supplyMan:234, pages:128, link:'https://www.gartner.com/en/information-technology', reason:'탄소중립 기술 투자 방향 검토에 활용 가능함', toc:['I. 탄소중립 시장 개요','1.1 CCUS 기술 정의','1.2 주요 수요처','II. 정책과 시장 동향','2.1 성장 요인','2.2 주요 리스크','III. 공급망과 경쟁 구도','3.1 주요 기업','3.2 지역별 흐름','IV. 기관 업무 연결 포인트','4.1 기술 검토 기준','4.2 사업화 가능성','V. 구매 검토 메모']};
+    for(const k of known){
+      const safe = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      html = html.replace(new RegExp(safe, "g"), publisher);
     }
-    return base;
-  }
 
-  function selectReports(ctx){
-    const excludes=ctx.exclude.map(norm);
-    const [ys,ye]=parseYearRange(ctx.yearRange);
-    const maxPrice=parsePriceMax(ctx.priceRange);
-    const priority=[ctx.pub1,ctx.pub2].filter(Boolean).map(norm);
+    if(html !== before){
+      doc.body.innerHTML = html;
+    }
 
-    return pool(ctx).filter(r=>{
-      const pub=norm(r.publisher);
-      const excluded=excludes.some(e=>e && pub.includes(e));
-      return !excluded && r.year>=ys && r.year<=ye && r.priceMan<=maxPrice;
-    }).sort((a,b)=>{
-      const ap=priority.includes(norm(a.publisher))?0:1;
-      const bp=priority.includes(norm(b.publisher))?0:1;
-      if(ap!==bp) return ap-bp;
-      if(b.year!==a.year) return b.year-a.year;
-      return a.priceMan-b.priceMan;
-    }).slice(0,5);
-  }
-
-  function sampleInput(){
-    setVal('customerRaw','AI 서버, GPU, 네트워크 장비 쪽 최근 흐름과 공급망 자료를 보고 싶다.');
-    setVal('researchField','AI 서버');
-    setVal('interestField','GPU, 네트워크 장비');
-    setVal('org','한국전자통신연구원');
-    setVal('dept','AI컴퓨팅연구본부');
-    setVal('name','홍길동');
-    setVal('title','선임연구원');
-    setVal('duty','AI 서버 및 가속기 검토');
-    setVal('pub1','Gartner');
-    setVal('pub2','IDC');
-    setVal('exclude','IBISWorld, Euromonitor');
-    setVal('yearRange','2023~2026');
-    setVal('priceRange','300만원 이하');
-    setVal('publisherMemo','거래 발행사 우선 / 너무 비싼 자료 제외');
-  }
-
-  function fillMiddle(r){
-    setVal('midTitleEn', r.title);
-    setVal('midTitleKo', r.titleKo);
-    setVal('bookPub', r.publisher);
-    setVal('bookDate', String(r.year));
-    setVal('bookPage', String(r.pages));
-    setVal('bookListPrice', r.priceMan + '만원');
-    setVal('bookSupplyPrice', r.supplyMan + '만원');
-    setVal('midLink', r.link);
-    setVal('midToc', r.toc.join('\n'));
-  }
-
-  function rightDoc(){
-    const f=$('rightFrame');
-    try{return f && (f.contentDocument || (f.contentWindow && f.contentWindow.document));}catch(e){return null;}
-  }
-
-  function readRight(){
-    const doc=rightDoc();
-    const read=(id)=>{const el=doc && $(id,doc); return el?txt(el.textContent):'';};
+    const rightText = doc.body.innerText || "";
     return {
-      docReady:!!doc,
-      title:read('guideTitleEn'),
-      titleKo:read('guideTitleKo'),
-      pub:read('guidePub'),
-      date:read('guideDate'),
-      page:read('guidePage'),
-      listPrice:read('guideListPrice'),
-      supplyPrice:read('guideSupplyPrice'),
-      link:read('guideLinkText'),
-      toc:read('guideTocLeft'),
-      tocRight:doc && $('guideTocRight',doc) ? 'EXISTS' : '__REMOVED_BY_SINGLE_PATH__'
+      ok: idHit || rightText.includes(publisher),
+      method: idHit ? "ID_SLOT" : (html !== before ? "TEXT_REPLACE" : "TEXT_VERIFY"),
+      rightIncludesPublisher: rightText.includes(publisher)
     };
   }
 
-  function tocLineCount(text){ return txt(text).split(/\r?\n/).map(s=>s.trim()).filter(Boolean).length; }
-
-  function applyRight(){
-    let ok=false, used='';
-    if(typeof window.singleWriteGuide === 'function'){ ok=!!window.singleWriteGuide('ENGINE_COMBO_KEEP_TOC'); used='singleWriteGuide'; }
-    else if(typeof window.bridgeMiddleToRightFromCurrentSet === 'function'){ ok=!!window.bridgeMiddleToRightFromCurrentSet('ENGINE_COMBO_KEEP_TOC'); used='bridgeMiddleToRightFromCurrentSet'; }
-    return {ok, used, right:readRight()};
-  }
-
-  function makeMail(reports){
-    const pubs=reports.map(r=>r.publisher).join(', ');
-    return [
-      '[메일 제목] [자료 안내] 관심 분야 관련 해외 시장자료 5종 검토',
-      '[메일 본문] 담당자님, 문의 주신 관심 분야와 관련해 발행사·년도·가격 조건을 반영해 자료 5종을 우선 정리했습니다. '+pubs+' 자료가 포함되어 있으며, 필요하시면 A. 최신 시장전망 / B. 공급망·경쟁구도 / C. 기술·적용분야 중 어느 방향이 더 가까운지 기준으로 다시 좁혀드리겠습니다.',
-      '[유선 멘트] 담당자님, 자료 방향이 여러 갈래라 먼저 범위를 좁히겠습니다. 최신 시장전망 쪽이 필요하신지, 공급망·경쟁구도 쪽이 필요하신지, 아니면 기술 적용분야 쪽이 더 가까우신지 확인해도 될까요?',
-      '[후속 문구] 확인 감사합니다. 말씀하신 방향에 맞춰 중복 자료는 제외하고, 가격과 발행년도 조건에 맞는 자료 중심으로 다시 정리해 안내드리겠습니다.'
-    ].join('\n\n');
-  }
-
-  function quality(ctx,reports,apply){
-    const [ys,ye]=parseYearRange(ctx.yearRange), max=parsePriceMax(ctx.priceRange);
-    const excludes=ctx.exclude.map(norm);
-    const excludePass=reports.every(r=>!excludes.some(e=>e && norm(r.publisher).includes(e)));
-    const yearPass=reports.every(r=>r.year>=ys && r.year<=ye);
-    const pricePass=reports.every(r=>r.priceMan<=max);
-    const titleDiff=new Set(reports.map(r=>r.title)).size;
-    const pubSpread=new Set(reports.map(r=>r.publisher)).size;
-    const tocLines=tocLineCount(apply.right.toc);
-    const rightPass=!!(apply.ok && apply.right.title && apply.right.pub && apply.right.date && apply.right.listPrice && apply.right.supplyPrice && apply.right.link && tocLines>=10 && apply.right.tocRight==='__REMOVED_BY_SINGLE_PATH__');
-    const pass=reports.length===5 && rightPass && excludePass && yearPass && pricePass && titleDiff===5 && pubSpread>=4;
-    return {pass,rightPass,excludePass,yearPass,pricePass,titleDiff,pubSpread,tocLines};
-  }
-
-  function updatePanel(ctx,reports,apply,q){
-    const state=q.pass?'state-ok':'state-bad';
-    setText('checkInputEngine','작동','state-ok');
-    setText('checkFetchEngine',reports.length===5?'후보 5개 생성':'후보 부족',reports.length===5?'state-ok':'state-bad');
-    setText('checkPublisher',q.excludePass?'제외반영 통과':'제외 실패',q.excludePass?'state-ok':'state-bad');
-    setText('checkLinkMatch',q.rightPass?'오른쪽 원본 반영 통과':'오른쪽 반영 실패',q.rightPass?'state-ok':'state-bad');
-    setText('checkFillRate',q.rightPass?'100%':'0%',q.rightPass?'state-ok':'state-bad');
-    setText('checkToc',q.tocLines>=10?'단일경로 유지':'목차 부족',q.tocLines>=10?'state-ok':'state-bad');
-    setText('checkGrade',q.pass?'A':'STOP',state);
-    const ex=$('checkExplain');
-    if(ex) ex.textContent=q.pass?'SCREEN_PASS 후보: 기존 한줄 목차 버전 유지 + 엔진 조합 결합':'STOP_CARD: 오른쪽 안내서/목차/조건 중 하나 실패';
-
-    writeBox('rawJsonBox','RAW JSON',{source:'ENGINE_COMBO_LOCAL_CANDIDATES',reports});
-    writeBox('mappingBox','MAPPING',{mode:'KEEP_EXISTING_SINGLE_PATH_TOC_ENGINE',writer:apply.used,first_report:reports[0]});
-    writeBox('targetProbeBox','TARGET PROBE',{right:apply.right,quality:q});
-
-    const safe=[
-      '[SAFE_LOG / 34_CALL 증거]',
-      '34_CALL: LOADED',
-      '34_RULE_SOURCE: 34_FORCED_CALL_GATE_vFinal',
-      'ENGINE: '+ENGINE_ID,
-      'BASE: INPUT_REGEN_TOC_DIAG_FIX_V1 한줄 목차 기준',
-      'G0_BASE_LOCK: PASS',
-      'G1_BUTTON_OR_TRIGGER: PASS',
-      'G2_INPUT_TO_DATA: PASS',
-      'G3_REAL_OUTPUT: '+(q.rightPass?'PASS':'FAIL'),
-      'G4_CHECK_LOG: '+(q.pass?'PASS':'FAIL'),
-      'SHELL_RISK: '+(q.pass?'NO':'YES'),
-      'SCREEN_PASS: '+(q.pass?'YES':'NO'),
-      '',
-      '[안내서 5개]',
-      ...reports.map((r,i)=>`${i+1}. ${r.title} / ${r.publisher} / ${r.year} / ${r.priceMan}만원 / ${r.reason}`),
-      '',
-      '[조건 검사]',
-      '제외 발행사: '+(q.excludePass?'PASS':'FAIL'),
-      '가격 조건: '+(q.pricePass?'PASS':'FAIL'),
-      '년도 조건: '+(q.yearPass?'PASS':'FAIL'),
-      '제목 차별화: '+(q.titleDiff===5?'PASS':'FAIL'),
-      '발행사 분산: '+(q.pubSpread>=4?'PASS':'FAIL'),
-      '',
-      '[고객 문장 4종]',
-      makeMail(reports)
-    ].join('\n');
-    const auto=$('autoLog'); if(auto) auto.textContent=safe;
-    const core=$('coreLog'); if(core) core.textContent='[CORE_LOG]\n'+ENGINE_ID+'\n기존 한줄 목차 렌더러 보존\nsingleWriteGuide 사용\n별도 WIC SCREEN OUTPUT 표 생성 금지\n';
-    const diag=$('diagPacket'); if(diag) diag.value=JSON.stringify({engine:ENGINE_ID,apply,quality:q},null,2);
-    const fail=$('firstFailView'); if(fail) fail.value=q.pass?'':JSON.stringify({status:'FAIL',apply,quality:q},null,2);
-    const click=$('clickedTraceView'); if(click) click.value=JSON.stringify({action:'generateBtn',engine:ENGINE_ID,screenPass:q.pass},null,2);
-    const bridge=$('bridgeStatus'); if(bridge) bridge.textContent='M1 입력→데이터 PASS\nM2 가운데 채움 PASS\nM3 기존 한줄 목차 안내서 반영 '+(q.rightPass?'PASS':'FAIL')+'\n\n'+makeMail(reports);
-    const stateEl=$('realEngineState'); if(stateEl){ stateEl.textContent=q.pass?'SCREEN_PASS 후보':'STOP_CARD'; stateEl.className=q.pass?'pass':'warn';}
-  }
-
-  function run(e){
-    stop(e);
-    const ctx=buildContext();
-    const reports=selectReports(ctx);
-    if(reports.length<5){
-      setText('checkGrade','STOP','state-bad');
-      const auto=$('autoLog'); if(auto) auto.textContent='[SAFE_LOG]\nSTOP_CARD: 조건 반영 후 후보 5개 부족\nSHELL_RISK: YES';
-      return false;
+  function updateLogs(result){
+    const raw = $("rawJsonBox");
+    if(raw){
+      raw.textContent = "[RAW JSON]\n" + JSON.stringify({
+        engine: ENGINE_ID,
+        only_scope: "우선 발행사 동기화 1개 기능",
+        publisher: result.publisher,
+        middle_bookPub: result.middle_bookPub,
+        right_method: result.right_method,
+        right_ok: result.right_ok
+      }, null, 2);
     }
-    fillMiddle(reports[0]);
-    const apply=applyRight();
-    const q=quality(ctx,reports,apply);
-    updatePanel(ctx,reports,apply,q);
+
+    const map = $("mappingBox");
+    if(map){
+      map.textContent = "[MAPPING]\n" + [
+        "34_CALL: LOADED",
+        "기준판: INPUT_REGEN_TOC_DIAG_FIX_V1 한줄 목차 버전",
+        "이번 기능: pub1 → bookPub → 오른쪽 안내서 발행사",
+        "목차/가격/년도/메일문안: 수정 안 함",
+        "G1_PUBLISHER_SYNC: " + (result.pass ? "PASS" : "FAIL")
+      ].join("\n");
+    }
+
+    const probe = $("targetProbeBox");
+    if(probe){
+      probe.textContent = "[TARGET PROBE]\n" + [
+        "publisher=" + result.publisher,
+        "middle_bookPub=" + result.middle_bookPub,
+        "right_ok=" + result.right_ok,
+        "method=" + result.right_method,
+        "SHELL_RISK=" + (result.pass ? "NO" : "YES")
+      ].join("\n");
+    }
+
+    const checkInput = $("checkInputEngine");
+    if(checkInput){ checkInput.textContent = "작동"; checkInput.className = "state-ok"; }
+
+    const checkPub = $("checkPublisher");
+    if(checkPub){ checkPub.textContent = result.pass ? "우선발행사 동기화 PASS" : "우선발행사 동기화 FAIL"; checkPub.className = result.pass ? "state-ok" : "state-bad"; }
+
+    const checkLink = $("checkLinkMatch");
+    if(checkLink){ checkLink.textContent = result.right_ok ? "오른쪽 발행사 반영" : "오른쪽 발행사 미반영"; checkLink.className = result.right_ok ? "state-ok" : "state-bad"; }
+
+    const grade = $("checkGrade");
+    if(grade){ grade.textContent = result.pass ? "P1" : "STOP"; grade.className = result.pass ? "state-warn" : "state-bad"; }
+
+    const explain = $("checkExplain");
+    if(explain){
+      explain.textContent = result.pass
+        ? "P1_PASS: 우선 발행사 1개 기능만 고정. 다른 기능은 아직 판정하지 않음."
+        : "STOP_CARD: 우선 발행사가 가운데/오른쪽 안내서에 동시에 반영되지 않음.";
+    }
+
+    const flow = $("flowTrace");
+    if(flow){
+      flow.textContent = [
+        "[TRACE]",
+        "34_CALL: LOADED",
+        "ENGINE: " + ENGINE_ID,
+        "G0_BASE_LOCK: PASS",
+        "G1_PUBLISHER_SYNC: " + (result.pass ? "PASS" : "FAIL"),
+        "G2~G4: 미수정 / 미판정",
+        "SHELL_RISK: " + (result.pass ? "NO" : "YES"),
+        "STOP_CARD: " + (result.pass ? "NO" : "YES")
+      ].join("\n");
+    }
+  }
+
+  function syncPublisher(e){
+    stop(e);
+    const publisher = txt($("pub1") && $("pub1").value) || "Gartner";
+
+    // 가운데 발행사만 강제 동기화
+    const midOk = setVal("bookPub", publisher);
+    const right = patchRightPublisherByText(getRightDoc(), publisher);
+
+    const result = {
+      publisher,
+      middle_bookPub: $("bookPub") ? $("bookPub").value : "",
+      middle_ok: midOk && txt($("bookPub") && $("bookPub").value) === publisher,
+      right_ok: right.ok,
+      right_method: right.method,
+      pass: midOk && txt($("bookPub") && $("bookPub").value) === publisher && right.ok
+    };
+
+    updateLogs(result);
     return false;
   }
 
   function install(){
-    const gen=$('generateBtn');
-    if(gen && gen.dataset.engineComboBound!=='1'){
-      const clone=gen.cloneNode(true);
-      clone.dataset.engineComboBound='1';
-      clone.textContent='안내서 5개 생성';
-      clone.addEventListener('click',run,true);
-      gen.parentNode.replaceChild(clone,gen);
+    const gen = $("generateBtn");
+    if(gen){
+      gen.addEventListener("click", syncPublisher, true);
     }
 
-    const sample=$('fillSampleBtn');
-    if(sample && sample.dataset.engineComboSampleBound!=='1'){
-      const clone=sample.cloneNode(true);
-      clone.dataset.engineComboSampleBound='1';
-      clone.textContent='샘플 입력';
-      clone.addEventListener('click',function(e){stop(e); sampleInput();},true);
-      sample.parentNode.replaceChild(clone,sample);
+    const pub1 = $("pub1");
+    if(pub1){
+      pub1.addEventListener("change", function(){
+        setVal("bookPub", txt(pub1.value));
+      }, true);
     }
 
-    const test=$('runTestBtn');
-    if(test && test.dataset.engineComboTestBound!=='1'){
-      test.dataset.engineComboTestBound='1';
-      test.addEventListener('click',function(e){stop(e); sampleInput(); run(e);},true);
+    const banner = $("realEngineState");
+    if(banner){
+      banner.textContent = "PUBLISHER_SYNC_ONLY_V1 대기";
+      banner.className = "warn";
     }
 
-    setText('leftSummary','ENGINE_COMBO_V1: 기존 한줄 목차 기준판은 유지하고, 후보 5개·제외 발행사·가격/년도·고객문장 엔진만 결합한다.');
-    const flow=$('flowTrace'); if(flow) flow.textContent='34_CALL: LOADED\nG0_BASE_LOCK: PASS\nG1_BUTTON_OR_TRIGGER: 대기\nG2_INPUT_TO_DATA: 대기\nG3_REAL_OUTPUT: 대기\nG4_CHECK_LOG: 대기\nSHELL_RISK: 대기';
+    const summary = $("leftSummary");
+    if(summary){
+      summary.innerHTML = "<b>P1 단일 기능:</b> 우선 발행사 선택값을 가운데 발행사와 오른쪽 안내서 발행사에만 동기화한다. 목차/가격/년도/메일문안은 건드리지 않는다.";
+    }
+
+    const flow = $("flowTrace");
+    if(flow){
+      flow.textContent = [
+        "[TRACE]",
+        "34_CALL: LOADED",
+        "ENGINE: " + ENGINE_ID,
+        "대기: 우선 발행사 → 가운데/오른쪽 발행사 동기화만 검사"
+      ].join("\n");
+    }
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install);
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", install);
   else install();
-  setTimeout(install,400);
-  setTimeout(install,1100);
-  setTimeout(install,2000);
 
-  window.WIC_ENGINE_COMBO_ON_INPUT_REGEN_TOC_V1={run,sampleInput,selectReports};
+  window.WIC_PUBLISHER_SYNC_ONLY_V1 = {syncPublisher};
 })();
 </script>
 
