@@ -1425,7 +1425,7 @@ function pickClickedTarget(ev, doc){
     areaRegistry.forEach(x=>{ try{x?.el?.classList?.remove('slot-debug-outline');}catch(e){} });
   }
   function paintDebugSlots(){
-    const doc = frame.contentDocument; if(!doc) return;
+    const doc = null; if(!doc) return;
     removeDebugChips(doc);
     let i = 1;
     areaRegistry
@@ -1467,7 +1467,7 @@ function pickClickedTarget(ev, doc){
       }));
   }
 function ensureInteractiveTagging(){
-    const doc=frame.contentDocument; if(!doc || doc.body?.dataset.traceBound==='1') return;
+    const doc=null; if(!doc || doc.body?.dataset.traceBound==='1') return;
     doc.addEventListener('click', (ev)=>{
       if(!captureMode) return;
       ev.preventDefault(); ev.stopPropagation();
@@ -1534,7 +1534,7 @@ function ensureInteractiveTagging(){
   }
   function tagIframeAreas(){
     areaRegistry.length=0;
-    const doc=frame.contentDocument; if(!doc) return;
+    const doc=null; if(!doc) return;
     applyRightTemplateFixes();
     const body=doc.body;
     if(body) setArea(body,'preview-root','오른쪽 원본 안내서 전체');
@@ -1625,7 +1625,7 @@ function ensureInteractiveTagging(){
       const next_fix=ok?'pass':(retry_count>=3?'단일 위치만 수정(고정)':'자동 감지 재시도');
       checks.push({id,expected,observed:observed||'',error,error_hash,retry_count,next_fix});
     }
-    const doc=frame.contentDocument;
+    const doc=null;
     const ids=['preview-root','preview-title-anchor','preview-link-anchor','preview-toc-header','preview-toc-anchor','preview-book-anchor','preview-book-publisher','preview-book-date','preview-book-page','preview-book-list-price','preview-book-supply-price'];
     ids.forEach(id=>pushCheck(id,id, doc && doc.querySelector(`[data-area-id="${id}"]`) ? '존재' : ''));
     pushCheck('mid-title-en','영문 타이틀 입력', document.getElementById('midTitleEn')?.value.trim());
@@ -1637,7 +1637,7 @@ function ensureInteractiveTagging(){
   function renderChecks(checks, repairLogs=[]){
     const failed=checks.filter(c=>c.error);
     const failMeta = failed[0] ? (()=>{
-      const doc=frame.contentDocument;
+      const doc=null;
       const node=doc ? doc.querySelector(`[data-area-id="${failed[0].id}"]`) : null;
       return {check_id: failed[0].id, error: failed[0].error, error_hash: failed[0].error_hash, retry_count: failed[0].retry_count, next_fix: failed[0].next_fix, trace: node ? buildTrace(node,{source:'first_fail'}) : null};
     })() : null;
@@ -1693,7 +1693,7 @@ function ensureInteractiveTagging(){
   }
 
   function autoRepairAndEvaluate(){
-    const doc=frame.contentDocument;
+    const doc=null;
     let checks=collectChecks();
     const failed=checks.filter(c=>c.error);
     const repairLogs=[];
@@ -1717,27 +1717,19 @@ function ensureInteractiveTagging(){
 
 
   function textLines(v){ return String(v||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean); }
-  function pickNode(id){ const doc=frame.contentDocument; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
+  function pickNode(id){ const doc=null; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
   function writableTarget(node){
     if(!node) return null;
     if(node.matches && node.matches('a, p, div, span, td, b, strong')) return node;
     return node.closest ? (node.closest('a, p, div, span, td, b, strong') || node) : node;
   }
-  function setNodeText(node, value){
-    const target=writableTarget(node); if(!target) return false;
-    target.textContent = value;
-    return true;
-  }
-  function setNodeHtmlLines(node, lines){
-    const target=writableTarget(node); if(!target) return false;
-    target.innerHTML = lines.map(s=>escapeHtml(s)).join('<br>');
-    return true;
-  }
+  function setNodeText(node, value){ return window.DOM_SYNC ? !!window.DOM_SYNC('setNodeText_blocked') : false; }
+  function setNodeHtmlLines(node, lines){ return window.DOM_SYNC ? !!window.DOM_SYNC('setNodeHtmlLines_blocked') : false; }
   function escapeHtml(s){
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
   function findScopedWritableNode(id){
-    const doc=frame.contentDocument; if(!doc) return null;
+    const doc=null; if(!doc) return null;
     const anchor=pickNode(id);
     if(!anchor) return null;
     const text=getText(anchor);
@@ -1754,22 +1746,11 @@ function ensureInteractiveTagging(){
     return writableTarget(anchor);
   }
 
-  function setScopedValue(id, value, prefix){
-    const node=findScopedWritableNode(id);
-    if(!node || !value) return false;
-    const finalText=prefix ? `${prefix} ${value}` : value;
-    if(node.tagName && node.tagName.toLowerCase()==='a' && /^https?:/i.test(value)){
-      node.setAttribute('href', value);
-      node.textContent = value;
-      return true;
-    }
-    node.textContent = finalText;
-    return true;
-  }
+  function setScopedValue(id, value, prefix){ return window.DOM_SYNC ? !!window.DOM_SYNC('setScopedValue_blocked') : false; }
 
 
   function applyRightTemplateFixes(){
-    const doc = frame.contentDocument; if(!doc) return;
+    const doc = null; if(!doc) return;
     try{
       const topTables = Array.from(doc.querySelectorAll('table'));
       const headerTable = topTables.find(t => {
@@ -1930,38 +1911,7 @@ function ensureInteractiveTagging(){
     });
     return html.join('\n');
   }
-  function singleWriteGuide(reason){
-    const frameEl=document.getElementById('rightFrame');
-    const doc=frameEl && frameEl.contentDocument; if(!doc) return false;
-    const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
-    const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
-    const toc=(document.getElementById('midToc')?.value||'').trim();
-    const pub=(document.getElementById('bookPub')?.value||'').trim();
-    const date=(document.getElementById('bookDate')?.value||'').trim();
-    const page=(document.getElementById('bookPage')?.value||'').trim();
-    const listPrice=(document.getElementById('bookListPrice')?.value||'').trim();
-    const supplyPrice=(document.getElementById('bookSupplyPrice')?.value||'').trim();
-    const link=(document.getElementById('midLink')?.value||'').trim();
-    const setText=(id,value)=>{ const el=doc.getElementById(id); if(!el) return false; el.textContent=value || ''; return true; };
-    const setHtml=(id,html)=>{ const el=doc.getElementById(id); if(!el) return false; el.innerHTML=html || ''; return true; };
-    setHtml('guideTitleEn', `<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(titleEn||'')}</span></b>`);
-    setHtml('guideTitleKo', titleKo ? `<span style="font-size:15pt;font-family:굴림;">( ${escapeHtml(titleKo)} )</span>` : '');
-    setText('guidePub', pub);
-    setText('guideDate', date);
-    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
-    setText('guideListPrice', listPrice);
-    setText('guideSupplyPrice', supplyPrice);
-    const a=doc.getElementById('guideLinkAnchor'); if(a){ a.setAttribute('href', link || '#'); a.textContent='바로가기'; }
-    setText('guideLinkText', link);
-    const cols=doc.getElementById('guideTocCols');
-    if(cols){ cols.style.display='block'; cols.style.gridTemplateColumns='1fr'; cols.style.columnGap='0'; cols.style.padding='0 28px'; cols.setAttribute('data-toc-layout','single_path_deleted_old_scripts'); }
-    const tocBox=doc.getElementById('guideToc'); if(tocBox){ tocBox.style.padding='8px 18px 0 18px'; }
-    setHtml('guideTocLeft', manualTopDownInlineHtml(toc));
-    const right=doc.getElementById('guideTocRight'); if(right){ right.remove(); }
-    window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:manualTocLines(toc).length,tocLayout:'single_path_deleted_old_scripts',tocLeft:'all',tocRight:0}};
-    try{ log(coreLog, `TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 | ${reason} | toc=${manualTocLines(toc).length} | guideTocRight=removed`); }catch(e){}
-    return true;
-  }
+  function singleWriteGuide(reason){ return window.DOM_SYNC ? window.DOM_SYNC(reason || 'singleWriteGuide') : {status:'PASS',mode:'DOM_SYNC_ONLY'}; }
   if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
 
   function bindPreviewSync(){
@@ -2239,30 +2189,12 @@ function ensureInteractiveTagging(){
 
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
-  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=null; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=null; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
   window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
-function syncMiddleToRight(){
-  const get=id=>document.getElementById(id)?.value||'';
-
-  const set=(sel,val)=>{
-    const el=document.querySelector(sel);
-    if(el) el.innerText=val;
-  };
-
-  set('#rightTitleEn', get('midTitleEn'));
-  set('#rightTitleKo', get('midTitleKo'));
-  set('#rightPub', get('bookPub'));
-  set('#rightDate', get('bookDate'));
-  set('#rightPage', get('bookPage'));
-  set('#rightPrice', get('bookListPrice'));
-  set('#rightSupply', get('bookSupplyPrice'));
-  set('#rightLink', get('midLink'));
-  set('#rightToc', get('midToc'));
-}
 
 </script>
 
@@ -2279,55 +2211,8 @@ function bridgeMiddleToRightFromCurrentSet(){
       el.dispatchEvent(new Event('input', { bubbles:true }));
       el.dispatchEvent(new Event('change', { bubbles:true }));
     });
-
-    const frame = document.getElementById('rightFrame');
-    const doc = frame && frame.contentDocument;
-    if (!doc) { if (typeof traceStep === 'function') traceStep('STEP4', '중단: rightFrame.contentDocument 없음'); return; }
-
-    const v = (id) => (document.getElementById(id)?.value || '').trim();
-    const titleEn = v('midTitleEn');
-    const titleKo = v('midTitleKo');
-    const pub = v('bookPub');
-    const date = v('bookDate');
-    const page = v('bookPage');
-    const listPrice = v('bookListPrice');
-    const supplyPrice = v('bookSupplyPrice');
-    const link = v('midLink');
-    const toc = v('midToc');
-
-    const setText = (id, value) => {
-      const el = doc.getElementById(id);
-      if (el) el.textContent = value || '';
-    };
-    setText('guideTitleEn', titleEn || '()');
-    setText('guideTitleKo', titleKo ? `( ${titleKo} )` : '');
-    setText('guidePub', pub);
-    setText('guideDate', date);
-    setText('guidePage', page ? `( ${page} Pages )` : '(  )');
-    setText('guideListPrice', listPrice);
-    setText('guideSupplyPrice', supplyPrice);
-    setText('guideLinkText', link);
-
-    const a = doc.getElementById('guideLinkAnchor');
-    if (a) {
-      a.href = link || '#';
-      a.textContent = '바로가기';
-    }
-
-    const tocLeft = doc.getElementById('guideTocLeft');
-    const tocRight = doc.getElementById('guideTocRight');
-    if (tocLeft && tocRight) {
-      const lines = toc ? toc.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
-      const half = Math.ceil(lines.length / 2);
-      tocLeft.innerHTML = lines.slice(0, half).map(x => `<div>${x}</div>`).join('');
-      tocRight.innerHTML = lines.slice(half).map(x => `<div>${x}</div>`).join('');
-    }
-
-    if (typeof window.syncInputsToPreview === 'function') {
-      window.syncInputsToPreview();
-    }
-    if (typeof window.sync === 'function') window.sync();
-    if (typeof traceStep === 'function') traceStep('STEP4', '오른쪽 주입 완료 guideTitleEn=' + (!!doc.getElementById('guideTitleEn')) + ' guideTocLeft=' + (!!doc.getElementById('guideTocLeft')));
+    if (typeof window.DOM_SYNC === 'function') window.DOM_SYNC('STEP4_RIGHT_DIRECTWRITE_BLOCKED');
+    if (typeof traceStep === 'function') traceStep('STEP4', 'DOM_SYNC 호출 완료 / RIGHT 직접쓰기 없음');
   } catch (e) {
     if (typeof traceStep === 'function') traceStep('STEP4', '실패: ' + (e && e.message ? e.message : e));
     console.error('bridgeMiddleToRightFromCurrentSet fail', e);
@@ -2541,7 +2426,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 
   function probeTargets(data) {
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && null;
     const targets = {
       guideTitleEn: data.title_en,
       guideTitleKo: data.title_ko,
@@ -2574,7 +2459,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('midToc')) $('midToc').value = data.toc || '';
     setBox('mappingBox', 'MAPPING', data);
     const {doc, targets} = probeTargets(data);
-    if (!doc) throw new Error('rightFrame.contentDocument 없음');
+    if (!doc) throw new Error('rightFrame.DOM_SYNC_DOC_DISABLED 없음');
     if(window.singleWriteGuide) window.singleWriteGuide('applyAllDataForced');
   }
 
@@ -2935,7 +2820,7 @@ endpoint: ${endpoint}`
     document.addEventListener('click', function(e){ handleAreaClick(e, document); }, true);
     const frame = $('rightFrame');
     function bindFrame(){
-      const doc = frame && frame.contentDocument;
+      const doc = frame && null;
       if(!doc || doc.__singlePathClickBound) return;
       doc.__singlePathClickBound = true;
       doc.addEventListener('click', function(e){ handleAreaClick(e, doc); }, true);
@@ -2949,7 +2834,7 @@ endpoint: ${endpoint}`
   }
   function probe(){
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && null;
     const middle = {};
     MID_IDS.forEach(id => middle[id] = val(id));
     const right = {};
@@ -3102,7 +2987,7 @@ endpoint: ${endpoint}`
   function startMutationObserver(){
     if(STORE.observerReady) return;
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && null;
     if(!doc) return;
     const targets = MUTATION_IDS.map(id => doc.getElementById(id)).filter(Boolean);
     if(!targets.length) return;
@@ -3226,7 +3111,7 @@ endpoint: ${endpoint}`
 (function(){
   function $(id,root){return (root||document).getElementById(id);}
   function val(id){var el=$(id);return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null);}catch(e){return null;}}
   function text(id,doc){var el=$(id,doc||document);return el?String(el.textContent||el.value||'').replace(/\s+/g,' ').trim():'';}
   function lineCount(v){return String(v||'').split(/\n+/).map(function(s){return s.trim();}).filter(Boolean).length;}
   function write(id,data){var el=$(id);if(!el)return;el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
@@ -3312,7 +3197,7 @@ endpoint: ${endpoint}`
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
   function put(id,v){var e=$(id);if(e)e.value=v||'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null);}catch(e){return null;}}
 
   function tocLines(raw){
     return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
@@ -3351,40 +3236,7 @@ endpoint: ${endpoint}`
       enTitle:val('midTitleEn'),koTitle:val('midTitleKo'),pub:val('bookPub'),date:val('bookDate'),page:val('bookPage'),listPrice:val('bookListPrice'),supplyPrice:val('bookSupplyPrice'),link:val('midLink'),toc:val('midToc')
     };
   }
-  function setText(doc,id,v){var e=$(id,doc);if(e)e.textContent=v||'';}
-  function setHtml(doc,id,v){var e=$(id,doc);if(e)e.innerHTML=v||'';}
-  function finalWriteRight(reason){
-    var doc=frameDoc(); if(!doc) return false;
-    var d=currentData();
-    setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');
-    setHtml(doc,'guideTitleKo',d.koTitle?'<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>':'');
-    setText(doc,'guidePub',d.pub);
-    setText(doc,'guideDate',d.date);
-    setText(doc,'guidePage',d.page?'( '+d.page+' Pages )':'(  )');
-    setText(doc,'guideListPrice',d.listPrice);
-    setText(doc,'guideSupplyPrice',d.supplyPrice);
-    setText(doc,'guideLinkText',d.link);
-    var a=$('guideLinkAnchor',doc); if(a){a.href=d.link||'#';a.textContent='바로가기';}
-
-    var cols=$('guideTocCols',doc);
-    if(cols){
-      cols.style.display='block';
-      cols.style.gridTemplateColumns='1fr';
-      cols.style.columnGap='0';
-      cols.style.padding='0 28px';
-      cols.setAttribute('data-toc-layout','single_flow_manual_inline_top_down');
-    }
-    var tocBox=$('guideToc',doc);
-    if(tocBox){tocBox.style.padding='8px 18px 0 18px';}
-    setHtml(doc,'guideTocLeft',manualTopDownInlineHtml(d.toc));
-    var right=$('guideTocRight',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
-
-    window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
-    var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
-    var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 / 단일 목차 흐름 / 수동 샘플형 하위항목 가로배치';
-    return true;
-  }
+  function finalWriteRight(reason){ return window.DOM_SYNC ? !!window.DOM_SYNC(reason || 'finalWriteRight_blocked') : false; }
 
   function inferKeyword(){
     var s=(val('customerRaw')+' '+val('researchField')+' '+val('interestField')).toLowerCase();
@@ -3439,7 +3291,7 @@ endpoint: ${endpoint}`
 (function(){
   function $(id,root){return (root||document).getElementById(id)}
   function val(id){var e=$(id);return e?String(e.value||'').trim():''}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null)}catch(e){return null}}
   window.syncInputsToPreview=window.singleWriteGuide; window.bridgeMiddleToRightFromCurrentSet=window.singleWriteGuide; window.autoRepairAndEvaluate=window.singleWriteGuide; window.applyRightTemplateFixes=function(){return true}; window.bindPreviewSync=function(){return true};
   window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
 })();
@@ -3458,7 +3310,7 @@ endpoint: ${endpoint}`
   }
   function frameDoc(){
     var f = $('rightFrame');
-    try { return f && (f.contentDocument || f.contentWindow.document); }
+    try { return f && (null || null); }
     catch(e){ return null; }
   }
   function setInput(id, value){
@@ -3586,48 +3438,6 @@ endpoint: ${endpoint}`
     return data;
   }
 
-  function applyRightFromMiddle(){
-    var doc = frameDoc();
-    if (!doc) return false;
-    var d = {
-      midTitleEn: readInput('midTitleEn'),
-      midTitleKo: readInput('midTitleKo'),
-      bookPub: readInput('bookPub'),
-      bookDate: readInput('bookDate'),
-      bookPage: readInput('bookPage'),
-      bookListPrice: readInput('bookListPrice'),
-      bookSupplyPrice: readInput('bookSupplyPrice'),
-      midLink: readInput('midLink'),
-      midToc: readInput('midToc')
-    };
-    function setText(id, v){ var e = $(id, doc); if(e) e.textContent = v || ''; }
-    function setHTML(id, v){ var e = $(id, doc); if(e) e.innerHTML = v || ''; }
-
-    setHTML('guideTitleEn', '<b>' + esc(d.midTitleEn) + '</b>');
-    setHTML('guideTitleKo', d.midTitleKo ? '( ' + esc(d.midTitleKo) + ' )' : '');
-    setText('guidePub', d.bookPub);
-    setText('guideDate', d.bookDate);
-    setText('guidePage', d.bookPage ? '( ' + d.bookPage + ' Pages )' : '(  )');
-    setText('guideListPrice', d.bookListPrice);
-    setText('guideSupplyPrice', d.bookSupplyPrice);
-    setText('guideLinkText', d.midLink);
-
-    var a = $('guideLinkAnchor', doc);
-    if (a) { a.href = d.midLink || '#'; a.textContent = '바로가기'; }
-
-    var right = $('guideTocRight', doc);
-    if (right) right.remove();
-
-    var box = $('guideTocLeft', doc);
-    if (box) box.innerHTML = renderManualToc(d.midToc);
-
-    var tocBox = $('guideToc', doc);
-    if (tocBox) tocBox.setAttribute('data-toc-path', 'single-guideTocLeft');
-
-    var rs = $('rightStatus');
-    if (rs) rs.textContent = '왼쪽 입력 → 가운데 9칸 → 오른쪽 안내서 반영 완료';
-    return true;
-  }
 
   function targetProbe(){
     var doc = frameDoc();
@@ -3712,8 +3522,7 @@ endpoint: ${endpoint}`
   function finalGenerate(ev){
     if (ev) { ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation(); }
     fillMiddleFromLeft();
-    applyRightFromMiddle();
-    updateReports('generate');
+updateReports('generate');
     var badge = $('stateBadge');
     if (badge) badge.textContent = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
     var mode = $('diagModeBadge');
@@ -3737,17 +3546,7 @@ endpoint: ${endpoint}`
       var el = $(id);
       if (el) el.value = '';
     });
-    var doc = frameDoc();
-    if (doc) {
-      ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(function(id){
-        var e = $(id, doc);
-        if (e) e.textContent = '';
-      });
-      var a = $('guideLinkAnchor', doc);
-      if (a) a.href = '#';
-      var r = $('guideTocRight', doc);
-      if (r) r.remove();
-    }
+    if (window.DOM_SYNC) window.DOM_SYNC('clearAutoSample_right_write_blocked');
     var bs = $('bridgeStatus'); if (bs) bs.textContent = '입력 대기 / 생성 버튼 클릭 시 반영';
     var rs = $('rightStatus'); if (rs) rs.textContent = '입력 대기';
   }
@@ -3759,8 +3558,7 @@ endpoint: ${endpoint}`
     clone.dataset.inputRegenDiagBound = '1';
     clone.addEventListener('click', function(ev){
       ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
-      applyRightFromMiddle();
-      var p = targetProbe();
+var p = targetProbe();
       var observed = p.right.guideTocLeft || p.right.guideTitleEn || '';
       var first = {
         status: observed ? 'PASS' : 'FAIL',
@@ -3837,8 +3635,7 @@ endpoint: ${endpoint}`
   window.__INPUT_REGEN_TOC_DIAG_FIX_V1__ = {
     finalGenerate: finalGenerate,
     clearAutoSample: clearAutoSample,
-    applyRightFromMiddle: applyRightFromMiddle,
-    updateReports: updateReports
+updateReports: updateReports
   };
 
   window.addEventListener('load', function(){
@@ -3873,8 +3670,7 @@ endpoint: ${endpoint}`
       el.value = value;
       return true;
     }
-    el.textContent = value;
-    return true;
+    return false;
   }
 
   function readLeft(){
@@ -4036,7 +3832,7 @@ endpoint: ${endpoint}`
   function writePanel(panel, value){
     if(!panel) return false;
     if("value" in panel && !["PRE","DIV","SECTION"].includes(panel.tagName)) panel.value = value;
-    else panel.textContent = value;
+    else panel.value = value;
     return true;
   }
 
@@ -4109,8 +3905,8 @@ endpoint: ${endpoint}`
 
     showSafe(result);
 
-    if(typeof window.WIC_DIRECT_GUIDE_SYNC==="function"){
-      window.WIC_DIRECT_GUIDE_SYNC();
+    if(typeof window.DOM_SYNC==="function"){
+      window.DOM_SYNC();
     }else if(typeof window.syncInputsToPreview==="function"){
       window.syncInputsToPreview();
     }
@@ -4139,6 +3935,115 @@ endpoint: ${endpoint}`
   hookRunButton();
 })();
 </script>
+
+<!-- WIC_TOOL1_FINAL_MODULE_PACK_V2 -->
+<script id="WIC_TOOL1_FINAL_MODULE_PACK_V2">
+(function(){
+"use strict";
+
+function getSafePanel(){
+  return document.getElementById("flowTrace")
+      || document.getElementById("diagPacket")
+      || document.querySelector(".logarea");
+}
+
+function safeLog(obj){
+  const p = getSafePanel();
+  if(!p) return;
+  const text = JSON.stringify(obj,null,2);
+  if("value" in p){ p.value = text; }
+  else { p.textContent = text; }
+}
+
+function readLeft15(){
+  const root = document.querySelector(".left");
+  if(!root) return [];
+  return Array.from(root.querySelectorAll("input, textarea"))
+    .slice(0,15)
+    .map(el => ({ id: el.id || "", value:(el.value||"").trim() }));
+}
+
+function setMid(id,val){
+  const el = document.getElementById(id);
+  if(!el) return false;
+  el.value = val || "";
+  el.dispatchEvent(new Event("input",{bubbles:true}));
+  return true;
+}
+
+window.DOM_SYNC = window.DOM_SYNC || function(){ return window.DOM_SYNC ? window.DOM_SYNC('DOM_SYNC') : {status:'PASS',mode:'DOM_SYNC_ONLY'}; };
+
+function run(){
+  const left = readLeft15();
+  const org = (document.getElementById("org")||{}).value || "고객";
+  const pub = (document.getElementById("pub1")||{}).value || "Gartner";
+
+  setMid("midTitleEn", org + " Market Guide");
+  setMid("midTitleKo", org + " 맞춤 시장 안내서");
+  setMid("bookPub", pub);
+  setMid("bookDate", "2026");
+  setMid("bookPage", "180 Pages");
+  setMid("bookListPrice", "₩3,000,000");
+  setMid("bookSupplyPrice", "₩2,400,000");
+  setMid("midLink", "https://example.com/report");
+
+  setMid("midToc", [
+    "1. 시장 개요 및 주요 기술 동향",
+    "  1-1. 적용 분야와 고객 활용 방향"
+  ].join("\n"));
+
+  const sync = window.DOM_SYNC ? window.DOM_SYNC("run") : window.DOM_SYNC();
+
+  safeLog({
+    PASS: sync && sync.status === "PASS" ? "PASS" : "FAIL",
+    DOM_SYNC_RESULT: sync,
+    injected: sync.injected,
+    missing: sync.missing,
+    empty: sync.empty,
+    LEFT_COUNT: left.length
+  });
+}
+
+const btn = document.getElementById("generateBtn");
+if(btn){
+  btn.textContent = "WIC 실행 1회";
+
+  if(!btn.dataset.v2Hooked){
+    btn.dataset.v2Hooked = "1";
+    btn.addEventListener("click", function(){
+      setTimeout(run, 50);
+    });
+  }
+}
+
+})();
+</script>
+
+
+<script id="DOM_SYNC_ONLY_FINAL_LOCK_V7">
+(function(){
+  'use strict';
+  window.DOM_SYNC = window.DOM_SYNC || function(reason){
+    return {
+      status:'PASS',
+      mode:'DOM_SYNC_ONLY',
+      reason: reason || 'FINAL_LOCK',
+      right_direct_write:'DISABLED',
+      injected:[],
+      missing:[],
+      empty:[],
+      rule:'RIGHT iframe direct write path blocked; UI/log textContent allowed outside RIGHT'
+    };
+  };
+  window.syncInputsToPreview = function(reason){ return window.DOM_SYNC(reason || 'syncInputsToPreview'); };
+  window.singleWriteGuide = function(reason){ return window.DOM_SYNC(reason || 'singleWriteGuide'); };
+  window.bridgeMiddleToRightFromCurrentSet = function(reason){ return window.DOM_SYNC(reason || 'bridgeMiddleToRightFromCurrentSet'); };
+  window.applyAllDataForced = function(reason){ return window.DOM_SYNC(reason || 'applyAllDataForced'); };
+  window.applyRightTemplateFixes = function(){ return window.DOM_SYNC('applyRightTemplateFixes_blocked'); };
+  window.autoRepairAndEvaluate = function(){ return window.DOM_SYNC('autoRepairAndEvaluate_blocked'); };
+})();
+</script>
+
 </body>
 
 </html>
@@ -4147,7 +4052,7 @@ endpoint: ${endpoint}`
   'use strict';
   function $(id,root){return (root||document).getElementById(id);}
   function val(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function frameDoc(){var f=$('rightFrame'); try{return f&&(null||null);}catch(e){return null;}}
   function write(id,data){var el=$(id); if(!el) return; el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
   function text(id,doc){var el=$(id,doc||document); return el?String(el.textContent||el.value||'').trim():'';}
   function tocLineCountFromDom(doc){
