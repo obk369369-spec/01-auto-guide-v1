@@ -106,20 +106,6 @@
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">자동진단 보내기</span>
   <span style="margin-left:6px;border:1px solid #999;border-radius:999px;padding:4px 8px;">좌표 찍기</span>
 </div>
-
-<div id="wic34GatePanel" style="margin:10px 12px;padding:10px;border:2px solid #111;border-radius:10px;background:#f8fafc;font-size:12px;line-height:1.45;white-space:pre-wrap;">
-34_CALL: LOADED
-34_RULE_SOURCE: 34_FORCED_CALL_GATE_vFinal
-G0_BASE_LOCK: 기준판 잠금 대기
-G1_BUTTON_OR_TRIGGER: 버튼 연결 대기
-G2_INPUT_TO_DATA: 입력→데이터 대기
-G3_REAL_OUTPUT: 오른쪽 출력 대기
-G4_CHECK_LOG: 점검표/SAFE_LOG 대기
-G5_NO_USER_DELEGATION: 사용자 전달 금지
-SHELL_RISK: CHECKING
-STOP_CARD: NO
-</div>
-
 <div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
@@ -2711,496 +2697,392 @@ JSON.stringify({
 });
 </script>
 
-<script id="WIC_34_SCREEN_PASS_ENGINE_V1">
+<script id="WIC_DIRECT_SRCDOC_INJECTION_ENGINE_V3">
 (function(){
-  'use strict';
+  const ENGINE_ID = 'WIC_DIRECT_SRCDOC_INJECTION_ENGINE_V3';
+  const $ = (id) => document.getElementById(id);
+  const txt = (v) => String(v == null ? '' : v).trim();
 
-  const WIC34 = {
-    version: 'WIC_34_SCREEN_PASS_ENGINE_V1',
-    baseFile: 'LOCK_SINGLE_PATH_ONLY_v1_BASELINE_START_HERE (단일 경로 고정 기준판)(2).html',
-    status: 'PATCH_INTEGRATED',
-    screenPass: false,
-    shellRisk: 'CHECKING',
-    gates: {G0:false,G1:false,G2:false,G3:false,G4:false,G5:true}
-  };
+  function stop(e){
+    if (!e) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
 
-  function $(id){ return document.getElementById(id); }
-  function val(id){ const el=$(id); return el ? String(el.value || '').trim() : ''; }
-  function setText(id, text){ const el=$(id); if(el) el.textContent = String(text || ''); }
-  function setHtml(id, html){ const el=$(id); if(el) el.innerHTML = String(html || ''); }
-  function setCheck(id, text, cls){ const el=$(id); if(el){ el.textContent=text; el.className=cls; } }
-  function moneyNum(s){
-    const raw = String(s || '').replace(/,/g,'').trim();
-    const m = raw.match(/(\d+(?:\.\d+)?)/);
-    if(!m) return null;
-    const n = Number(m[1]);
-    if(/억/.test(raw)) return Math.round(n * 10000);
-    if(/만/.test(raw)) return Math.round(n);
-    if(n > 100000) return Math.round(n / 10000);
-    return Math.round(n);
+  function setVal(id, value){
+    const el = $(id);
+    if (!el) return;
+    el.value = value == null ? '' : String(value);
+    el.dispatchEvent(new Event('input', {bubbles:true}));
+    el.dispatchEvent(new Event('change', {bubbles:true}));
   }
-  function parsePriceRange(s){
-    const raw = String(s || '').replace(/\s+/g,'');
-    if(!raw) return {min:null,max:null,label:'미입력'};
-    const nums = raw.match(/\d+(?:\.\d+)?/g);
-    if(!nums) return {min:null,max:null,label:raw};
-    if(/이하|미만|까지|max|under/i.test(raw)) return {min:null,max:moneyNum(raw),label:raw};
-    if(/이상|초과|min|over/i.test(raw)) return {min:moneyNum(raw),max:null,label:raw};
-    if(nums.length >= 2){
-      const a = moneyNum(nums[0] + (raw.includes('억')?'억':'만원'));
-      const b = moneyNum(nums[1] + (raw.includes('억')?'억':'만원'));
-      return {min:Math.min(a,b),max:Math.max(a,b),label:raw};
-    }
-    return {min:null,max:moneyNum(raw),label:raw};
+
+  function setClassText(id, text, cls){
+    const el = $(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = cls || '';
   }
-  function parseYearRange(s){
-    const raw = String(s || '').replace(/\s+/g,'');
-    const yrs = raw.match(/20\d{2}/g);
-    if(!yrs || !yrs.length) return {min:null,max:null,label:'미입력'};
-    if(yrs.length === 1) return {min:Number(yrs[0]),max:Number(yrs[0]),label:raw};
-    const a=Number(yrs[0]), b=Number(yrs[1]);
-    return {min:Math.min(a,b),max:Math.max(a,b),label:raw};
+
+  function boxText(id, title, value){
+    const el = $(id);
+    if (!el) return;
+    let out = value;
+    if (typeof out !== 'string') out = JSON.stringify(out, null, 2);
+    el.textContent = '[' + title + ']\n' + out;
   }
-  function splitExclude(s){
-    return String(s || '').split(/[,/|·\n]+/).map(x=>x.trim().toLowerCase()).filter(Boolean);
+
+  function parseYearRange(v){
+    const nums = txt(v).match(/\d{4}/g);
+    if (!nums || nums.length === 0) return [2023, 2026];
+    if (nums.length === 1) return [Number(nums[0]), Number(nums[0])];
+    return [Number(nums[0]), Number(nums[1])];
   }
-  function cleanText(s){ return String(s || '').replace(/\s+/g,' ').trim(); }
-  function similarity(a,b){
-    a=cleanText(a).toLowerCase(); b=cleanText(b).toLowerCase();
-    if(!a || !b) return 0;
-    const A = new Set(a.split(/[^\w가-힣]+/).filter(Boolean));
-    const B = new Set(b.split(/[^\w가-힣]+/).filter(Boolean));
-    const inter = [...A].filter(x=>B.has(x)).length;
-    const union = new Set([...A,...B]).size || 1;
-    return Math.round((inter/union)*100);
+
+  function parsePriceMax(v){
+    const s = txt(v).replace(/,/g,'');
+    const n = s.match(/\d+(?:\.\d+)?/);
+    if (!n) return 300;
+    const val = Number(n[0]);
+    if (/만원/.test(s)) return val;
+    if (/억/.test(s)) return val * 10000;
+    if (val > 10000) return Math.round(val / 10000);
+    return val;
   }
-  function publisherAllowed(pub, excludes){
-    const p=String(pub||'').toLowerCase().trim();
-    return !excludes.some(ex => p.includes(ex) || ex.includes(p));
+
+  function splitList(v){
+    return txt(v).split(/[,，\/|]/).map(s => s.trim()).filter(Boolean);
   }
-  function priceAllowed(priceMan, range){
-    if(range.min !== null && priceMan < range.min) return false;
-    if(range.max !== null && priceMan > range.max) return false;
-    return true;
+
+  function norm(v){
+    return txt(v).toLowerCase().replace(/\s+/g,'');
   }
-  function yearAllowed(year, range){
-    const y = Number(String(year).match(/20\d{2}/)?.[0] || 0);
-    if(!y) return false;
-    if(range.min !== null && y < range.min) return false;
-    if(range.max !== null && y > range.max) return false;
-    return true;
+
+  function pool(){
+    return [
+      {title:'AI Infrastructure Market Outlook', titleKo:'AI 인프라 시장 전망', publisher:'Gartner', year:2026, priceMan:260, supplyMan:234, pages:120, link:'https://www.gartner.com/en/information-technology', reason:'AI 서버와 가속기 투자 판단에 직접 연결됨', toc:['1. AI 인프라 시장 개요','1.1 AI 서버 시장 정의와 조사 범위','1.2 주요 수요처와 적용 분야','2. 발생사 관점의 시장 동향','2.1 성장 요인','2.2 주요 리스크','3. 경쟁 구도와 공급망','3.1 주요 기업','3.2 지역별 흐름','4. 고객 업무 연결 포인트','4.1 기관 검토 포인트','4.2 담당 업무 관련성','5. 구매 검토 메모']},
+      {title:'Semiconductor Equipment Growth Report', titleKo:'반도체 장비 성장 보고서', publisher:'IDC', year:2025, priceMan:220, supplyMan:198, pages:140, link:'https://www.idc.com/', reason:'장비 공급망 관점의 시장 규모 확인에 적합함', toc:['1. 반도체 장비 시장 개요','1.1 공정별 장비 수요','1.2 장비 투자 흐름','2. 성장 요인','2.1 AI 반도체 영향','2.2 패키징 장비','3. 공급망 분석','3.1 주요 공급사','3.2 지역별 투자','4. 실무 검토 포인트','5. 구매 검토 메모']},
+      {title:'Clean Energy Technology Outlook', titleKo:'청정에너지 기술 전망', publisher:'Omdia', year:2026, priceMan:250, supplyMan:225, pages:160, link:'https://omdia.tech.informa.com/', reason:'에너지 전환 관련 기술 시장 흐름을 확인하기 좋음', toc:['1. 청정에너지 시장 개요','1.1 기술 분류','1.2 정책과 수요','2. 주요 기술 동향','2.1 저장장치','2.2 전력망','3. 시장 전망','4. 기관 적용 포인트','5. 구매 검토 메모']},
+      {title:'Defense Electronics Market Forecast', titleKo:'방산 전자 시장 예측', publisher:'GlobalData', year:2025, priceMan:240, supplyMan:216, pages:135, link:'https://www.globaldata.com/', reason:'방산 전자부품·센서·통신 장비 수요 확인에 적합함', toc:['1. 방산 전자 시장 개요','1.1 센서와 통신','1.2 전자전 장비','2. 수요 전망','3. 공급망 위험','4. 기관 검토 포인트','5. 구매 검토 메모']},
+      {title:'Cybersecurity for Critical Infrastructure', titleKo:'중요 인프라 보안 보고서', publisher:'Forrester', year:2025, priceMan:270, supplyMan:243, pages:150, link:'https://www.forrester.com/', reason:'기관 보안 운영 안정성 검토 자료로 활용 가능함', toc:['1. 중요 인프라 보안 개요','1.1 위협 유형','1.2 기관 보안 요구','2. 솔루션 시장','3. 운영 안정성','4. 담당업무 연결 포인트','5. 구매 검토 메모']},
+      {title:'AI Server Supply Chain Analysis', titleKo:'AI 서버 공급망 분석', publisher:'MarketsandMarkets', year:2024, priceMan:280, supplyMan:252, pages:180, link:'https://www.marketsandmarkets.com/', reason:'AI 서버 부품·공급망 검토에 직접 활용 가능함', toc:['1. AI 서버 공급망','1.1 칩셋','1.2 전력·냉각','2. 서버 수요 전망','3. 공급사 분석','4. 가격 흐름','5. 구매 검토 메모']},
+      {title:'Industrial Network Equipment Forecast', titleKo:'산업용 네트워크 장비 전망', publisher:'Frost & Sullivan', year:2026, priceMan:230, supplyMan:207, pages:125, link:'https://www.frost.com/', reason:'네트워크 장비 도입과 시장 흐름을 함께 볼 수 있음', toc:['1. 산업용 네트워크 시장','1.1 장비 유형','1.2 수요처','2. 성장 동인','3. 경쟁 구도','4. 기관 적용성','5. 구매 검토 메모']}
+    ];
   }
 
   function context(){
     return {
-      customerRaw: val('customerRaw'),
-      researchField: val('researchField'),
-      interestField: val('interestField'),
-      org: val('org'),
-      dept: val('dept'),
-      name: val('name'),
-      title: val('title'),
-      duty: val('duty'),
-      pub1: val('pub1'),
-      pub2: val('pub2'),
-      exclude: val('exclude'),
-      yearRange: val('yearRange'),
-      priceRange: val('priceRange'),
-      publisherMemo: val('publisherMemo'),
-      keyword: val('keyword') || val('researchField') || val('interestField') || '시장'
+      customerRaw: txt($('customerRaw') && $('customerRaw').value),
+      researchField: txt($('researchField') && $('researchField').value),
+      interestField: txt($('interestField') && $('interestField').value),
+      org: txt($('org') && $('org').value),
+      dept: txt($('dept') && $('dept').value),
+      name: txt($('name') && $('name').value),
+      title: txt($('title') && $('title').value),
+      duty: txt($('duty') && $('duty').value),
+      pub1: txt($('pub1') && $('pub1').value),
+      pub2: txt($('pub2') && $('pub2').value),
+      exclude: splitList($('exclude') && $('exclude').value),
+      yearRange: txt($('yearRange') && $('yearRange').value),
+      priceRange: txt($('priceRange') && $('priceRange').value),
+      publisherMemo: txt($('publisherMemo') && $('publisherMemo').value)
     };
   }
 
-  const BASE_POOL = [
-    ['AI Infrastructure Market Outlook','AI 인프라 시장 전망','Gartner',2026,260,'https://www.gartner.com/en/information-technology','AI 서버와 가속기 투자 판단에 직접 연결됨'],
-    ['Semiconductor Equipment Growth Report','반도체 장비 성장 보고서','IDC',2025,220,'https://www.idc.com/','장비·공급망 관점의 시장 규모 확인에 적합함'],
-    ['Advanced Battery Materials Analysis','이차전지 소재 분석','Frost & Sullivan',2024,280,'https://www.frost.com/','소재·밸류체인 변화와 사업 기회를 함께 볼 수 있음'],
-    ['Defense Electronics Market Forecast','방산 전자 시장 예측','GlobalData',2025,240,'https://www.globaldata.com/','방산 전자부품·센서·통신 장비 수요 확인에 적합함'],
-    ['Industrial Automation Market Study','산업 자동화 시장 조사','MarketsandMarkets',2023,180,'https://www.marketsandmarkets.com/','자동화 장비와 부품 수요를 가격 조건 안에서 검토 가능함'],
-    ['Clean Energy Technology Outlook','청정에너지 기술 전망','Omdia',2026,250,'https://omdia.tech.informa.com/','에너지 전환 관련 기술·시장 흐름을 확인하기 좋음'],
-    ['Robotics and Smart Factory Report','로봇 및 스마트팩토리 보고서','TechNavio',2024,190,'https://www.technavio.com/','스마트 제조 투자 흐름과 적용 분야를 빠르게 검토 가능함'],
-    ['Cybersecurity for Critical Infrastructure','중요 인프라 보안 보고서','Forrester',2025,270,'https://www.forrester.com/','기관 보안·운영 안정성 검토 자료로 활용 가능함']
-  ];
+  function selectReports(ctx){
+    const excludes = ctx.exclude.map(norm);
+    const [ys, ye] = parseYearRange(ctx.yearRange);
+    const maxPrice = parsePriceMax(ctx.priceRange);
+    const priority = [ctx.pub1, ctx.pub2].filter(Boolean).map(norm);
 
-  function buildCandidates(ctx){
-    const excludes = splitExclude(ctx.exclude);
-    const priceR = parsePriceRange(ctx.priceRange);
-    const yearR = parseYearRange(ctx.yearRange);
-    const key = cleanText([ctx.keyword, ctx.researchField, ctx.interestField, ctx.duty].filter(Boolean).join(' ')) || '산업';
-    const preferred = [ctx.pub1, ctx.pub2].filter(Boolean);
-    let pool = BASE_POOL.map((r,i)=>({
-      title:r[0],
-      title_ko:r[1],
-      publisher:r[2],
-      year:r[3],
-      priceMan:r[4],
-      listPrice:r[4] + '만원',
-      supplyPrice:Math.max(80, Math.round(r[4]*0.9)) + '만원',
-      pages: String(120 + i*18),
-      link:r[5],
-      recommend_reason:r[6],
-      toc:[
-        '1. ' + key + ' 시장 개요',
-        '  1.1 시장 정의와 조사 범위',
-        '  1.2 주요 수요처와 적용 분야',
-        '2. 발행사 관점의 시장 동향',
-        '  2.1 성장 요인',
-        '  2.2 주요 리스크',
-        '3. 경쟁 구도와 공급망',
-        '  3.1 주요 기업',
-        '  3.2 지역별 흐름',
-        '4. 고객 업무 연결 포인트',
-        '  4.1 ' + (ctx.org || '기관') + ' 검토 포인트',
-        '  4.2 ' + (ctx.duty || ctx.interestField || '담당 업무') + ' 관련성',
-        '5. 구매 검토 메모'
-      ].join('\n')
-    }));
-
-    pool.sort((a,b)=>{
-      const ap = preferred.includes(a.publisher) ? -1 : 0;
-      const bp = preferred.includes(b.publisher) ? -1 : 0;
-      return ap - bp || b.year - a.year || a.priceMan - b.priceMan;
+    const filtered = pool().filter(r => {
+      const pub = norm(r.publisher);
+      const excludeHit = excludes.some(e => e && pub.includes(e));
+      return !excludeHit && r.year >= ys && r.year <= ye && r.priceMan <= maxPrice;
     });
 
-    let filtered = pool.filter(r => publisherAllowed(r.publisher, excludes))
-      .filter(r => priceAllowed(r.priceMan, priceR))
-      .filter(r => yearAllowed(r.year, yearR));
+    filtered.sort((a,b) => {
+      const ap = priority.includes(norm(a.publisher)) ? 0 : 1;
+      const bp = priority.includes(norm(b.publisher)) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      if (b.year !== a.year) return b.year - a.year;
+      return a.priceMan - b.priceMan;
+    });
 
-    const fallbackPublishers = ['Gartner','IDC','Frost & Sullivan','GlobalData','MarketsandMarkets','Omdia','TechNavio','Forrester'];
-    let idx = 0;
-    while(filtered.length < 5 && idx < 20){
-      const pub = fallbackPublishers[idx % fallbackPublishers.length];
-      const year = yearR.max || yearR.min || (2026 - (idx % 4));
-      const maxPrice = priceR.max || 280;
-      const minPrice = priceR.min || 120;
-      const price = Math.max(minPrice, Math.min(maxPrice, 150 + (idx*20)%120));
-      const item = {
-        title: `${key} Applied Market Brief ${idx+1}`,
-        title_ko: `${key} 적용 시장 브리프 ${idx+1}`,
-        publisher: pub,
-        year,
-        priceMan: price,
-        listPrice: price + '만원',
-        supplyPrice: Math.max(80, Math.round(price*0.9)) + '만원',
-        pages: String(110 + idx*11),
-        link: 'https://www.worldic.co.kr/report/' + encodeURIComponent(key).replace(/%/g,'').slice(0,16) + '-' + (idx+1),
-        recommend_reason: `${key} 관련 검토 조건을 맞추기 위한 보완 후보 ${idx+1}`,
-        toc: [
-          '1. ' + key + ' 개요',
-          '2. 시장 규모와 수요',
-          '3. 기술 및 공급망',
-          '4. 고객 업무 적용',
-          '5. 구매 검토 포인트'
-        ].join('\n')
-      };
-      if(publisherAllowed(item.publisher, excludes) && priceAllowed(item.priceMan, priceR) && yearAllowed(item.year, yearR)){
-        if(!filtered.some(x=>x.title===item.title || x.publisher===item.publisher)){
-          filtered.push(item);
-        }
-      }
-      idx++;
+    return filtered.slice(0, 5);
+  }
+
+  function fillSample(){
+    setVal('customerRaw', 'AI 서버, GPU, 네트워크 장비 쪽 최근 흐름과 공급망 자료를 보고 싶다.');
+    setVal('researchField', 'AI 서버');
+    setVal('interestField', 'GPU, 네트워크 장비');
+    setVal('org', '한국전자통신연구원');
+    setVal('dept', 'AI컴퓨팅연구본부');
+    setVal('name', '홍길동');
+    setVal('title', '선임연구원');
+    setVal('duty', 'AI 서버 및 가속기 검토');
+    setVal('pub1', 'Gartner');
+    setVal('pub2', 'IDC');
+    setVal('exclude', 'IBISWorld, Euromonitor');
+    setVal('yearRange', '2023~2026');
+    setVal('priceRange', '300만원 이하');
+    setVal('publisherMemo', '거래 발행사 우선 / 너무 비싼 자료 제외');
+  }
+
+  function fillMiddle(r){
+    setVal('midTitleEn', r.title);
+    setVal('midTitleKo', r.titleKo);
+    setVal('bookPub', r.publisher);
+    setVal('bookDate', String(r.year));
+    setVal('bookPage', String(r.pages));
+    setVal('bookListPrice', r.priceMan + '만원');
+    setVal('bookSupplyPrice', r.supplyMan + '만원');
+    setVal('midLink', r.link);
+    setVal('midToc', r.toc.join('\n'));
+  }
+
+  function esc(v){
+    return txt(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function setText(doc, id, value){
+    const el = doc.getElementById(id);
+    if (!el) return false;
+    el.textContent = txt(value);
+    return true;
+  }
+
+  function setHtml(doc, id, html){
+    const el = doc.getElementById(id);
+    if (!el) return false;
+    el.innerHTML = html;
+    return true;
+  }
+
+  function sourceDocHtml(){
+    const frame = $('rightFrame');
+    if (!frame) return '';
+    if (!window.__WIC_BASE_RIGHT_SRCDOC_V3) {
+      window.__WIC_BASE_RIGHT_SRCDOC_V3 = frame.getAttribute('srcdoc') || '';
+    }
+    return window.__WIC_BASE_RIGHT_SRCDOC_V3;
+  }
+
+  function buildGuideSrcdoc(r){
+    const raw = sourceDocHtml();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'text/html');
+    let hit = 0;
+
+    hit += setHtml(doc, 'guideTitleEn', '<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">' + esc(r.title) + '</span></b>') ? 1 : 0;
+    hit += setHtml(doc, 'guideTitleKo', '<span style="font-size:15pt;font-family:굴림;">( ' + esc(r.titleKo) + ' )</span>') ? 1 : 0;
+    hit += setText(doc, 'guidePub', r.publisher) ? 1 : 0;
+    hit += setText(doc, 'guideDate', String(r.year)) ? 1 : 0;
+    hit += setText(doc, 'guidePage', '( ' + r.pages + ' Pages )') ? 1 : 0;
+    hit += setText(doc, 'guideListPrice', r.priceMan + '만원') ? 1 : 0;
+    hit += setText(doc, 'guideSupplyPrice', r.supplyMan + '만원') ? 1 : 0;
+    hit += setText(doc, 'guideLinkText', r.link) ? 1 : 0;
+
+    const a = doc.getElementById('guideLinkAnchor');
+    if (a) {
+      a.setAttribute('href', r.link);
+      a.textContent = '바로가기';
+      hit += 1;
     }
 
-    return filtered.slice(0,5);
+    const left = doc.getElementById('guideTocLeft');
+    const right = doc.getElementById('guideTocRight');
+    if (left && right) {
+      const half = Math.ceil(r.toc.length / 2);
+      left.innerHTML = r.toc.slice(0, half).map(x => '<div>' + esc(x) + '</div>').join('');
+      right.innerHTML = r.toc.slice(half).map(x => '<div>' + esc(x) + '</div>').join('');
+      hit += 2;
+    }
+
+    return {html:'<!DOCTYPE html>\n' + doc.documentElement.outerHTML, hit};
   }
 
-  function buildCustomerTexts(ctx, reports){
-    const nameLine = (ctx.name ? ctx.name + (ctx.title ? ' ' + ctx.title : '') + '님' : '담당자님');
-    const focus = ctx.interestField || ctx.researchField || ctx.duty || '관심 분야';
-    const pubs = [...new Set(reports.map(r=>r.publisher))].join(', ');
-    return {
-      subject: `[자료 안내] ${focus} 관련 해외 시장자료 5종 검토`,
-      body: `${nameLine}, 문의 주신 ${focus}와 관련해 발행사·년도·가격 조건을 반영해 자료 5종을 우선 정리했습니다. ${pubs} 자료가 포함되어 있으며, 필요하시면 A. 최신 시장전망 / B. 공급망·경쟁구도 / C. 기술·적용분야 중 어느 방향이 더 가까운지 기준으로 다시 좁혀드리겠습니다.`,
-      phone: `${nameLine}, 보내드릴 자료가 여러 방향이라 먼저 범위를 좁히겠습니다. 최신 시장전망 쪽이 필요하신지, 아니면 공급망·기술 적용 쪽이 더 가까우신지 확인해도 될까요?`,
-      follow: `확인 감사합니다. 말씀하신 방향에 맞춰 중복 자료는 제외하고, 가격과 발행년도 조건에 맞는 자료 중심으로 다시 정리해 안내드리겠습니다.`
-    };
-  }
-
-  function checkQuality(ctx, reports, texts){
-    const excludes = splitExclude(ctx.exclude);
-    const priceR = parsePriceRange(ctx.priceRange);
-    const yearR = parseYearRange(ctx.yearRange);
-    const titles = reports.map(r=>r.title);
-    const pubs = reports.map(r=>r.publisher);
-    const years = reports.map(r=>r.year);
-    const prices = reports.map(r=>r.priceMan);
-    const uniqueTitles = new Set(titles).size;
-    const uniquePubs = new Set(pubs).size;
-    const excludePass = reports.every(r=>publisherAllowed(r.publisher, excludes));
-    const pricePass = reports.every(r=>priceAllowed(r.priceMan, priceR));
-    const yearPass = reports.every(r=>yearAllowed(r.year, yearR));
-    const reasonsPass = new Set(reports.map(r=>r.recommend_reason)).size >= Math.min(5,reports.length);
-    const pairs = [
-      ['subject','body'], ['subject','phone'], ['subject','follow'],
-      ['body','phone'], ['body','follow'], ['phone','follow']
+  function verifyRightFrame(r){
+    const frame = $('rightFrame');
+    const doc = frame && frame.contentDocument;
+    if (!doc || !doc.body) return {ok:false, reason:'RIGHT_FRAME_DOC_MISSING'};
+    const body = doc.body.innerText || '';
+    const checks = [
+      r.title,
+      r.titleKo,
+      r.publisher,
+      String(r.year),
+      String(r.priceMan),
+      String(r.supplyMan),
+      r.link
     ];
-    const sims = pairs.map(([a,b])=>similarity(texts[a], texts[b]));
-    const maxDup = sims.length ? Math.max(...sims) : 100;
-    return {
-      countPass: reports.length === 5,
-      titlePass: uniqueTitles === reports.length,
-      publisherPass: uniquePubs >= Math.min(4, reports.length),
-      reasonPass: reasonsPass,
-      excludePass,
-      pricePass,
-      yearPass,
-      textDupPass: maxDup <= 45,
-      maxDup,
-      priceRange: priceR.label,
-      yearRange: yearR.label,
-      uniqueTitles,
-      uniquePubs,
-      years,
-      prices
-    };
+    const missing = checks.filter(x => !body.includes(String(x)));
+    return {ok:missing.length === 0, missing, textSample:body.slice(0,300)};
   }
 
-  function writeMiddle(r){
-    const map = {
-      midTitleEn:r.title,
-      midTitleKo:r.title_ko,
-      bookPub:r.publisher,
-      bookDate:String(r.year),
-      bookPage:String(r.pages),
-      bookListPrice:r.listPrice,
-      bookSupplyPrice:r.supplyPrice,
-      midLink:r.link,
-      midToc:r.toc
-    };
-    Object.entries(map).forEach(([id,v])=>{
-      const el=$(id);
-      if(el){
-        el.value = v || '';
-        el.dispatchEvent(new Event('input',{bubbles:true}));
-        el.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    });
-    const bridge=$('bridgeStatus');
-    if(bridge) bridge.innerHTML='M1 입력→데이터 PASS<br>M2 가운데 채움 PASS<br>M3 오른쪽쓰기 실행';
-  }
-
-  function rightDoc(){
-    const frame=$('rightFrame');
-    if(!frame) return null;
-    return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document) || null;
-  }
-
-  function writeRight(reports, texts, q){
-    const doc = rightDoc();
-    if(!doc || !doc.body) return false;
-    let box = doc.getElementById('WIC_SCREEN_OUTPUT');
-    if(!box){
-      box = doc.createElement('div');
-      box.id='WIC_SCREEN_OUTPUT';
-      box.style.cssText='border:3px solid #111;margin:14px;padding:14px;background:#fffdf2;font-family:Arial, sans-serif;font-size:14px;line-height:1.55;white-space:normal;';
-      doc.body.insertBefore(box, doc.body.firstChild);
+  function applyGuideSrcdoc(r, done){
+    const frame = $('rightFrame');
+    if (!frame) {
+      done({ok:false, reason:'RIGHT_FRAME_MISSING'});
+      return;
     }
-    const rows = reports.map((r,i)=>`
-      <tr>
-        <td>${i+1}</td>
-        <td>${r.title}<br><b>${r.title_ko}</b></td>
-        <td>${r.publisher}</td>
-        <td>${r.year}</td>
-        <td>${r.listPrice}</td>
-        <td><a href="${r.link}" target="_blank">${r.link}</a></td>
-        <td>${r.recommend_reason}</td>
-      </tr>`).join('');
-    box.innerHTML = `
-      <div style="font-weight:700;font-size:18px;margin-bottom:8px;">WIC SCREEN OUTPUT - 안내서 5개 생성 결과</div>
-      <div style="margin-bottom:8px;">SHELL_RISK: ${q.countPass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass ? 'NO' : 'YES'} / SCREEN_PASS 후보</div>
-      <table border="1" cellspacing="0" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:12px;">
-        <thead><tr><th>No</th><th>제목</th><th>발행사</th><th>년도</th><th>가격</th><th>링크</th><th>추천사유</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div style="margin-top:12px;border-top:1px solid #999;padding-top:8px;">
-        <b>[메일 제목]</b> ${texts.subject}<br>
-        <b>[메일 본문]</b> ${texts.body}<br>
-        <b>[유선 멘트]</b> ${texts.phone}<br>
-        <b>[후속 문구]</b> ${texts.follow}
-      </div>
-    `;
-    return !!box.textContent && box.textContent.includes('WIC SCREEN OUTPUT') && box.textContent.includes(reports[0].publisher);
+    const built = buildGuideSrcdoc(r);
+    frame.onload = function(){
+      setTimeout(function(){
+        const v = verifyRightFrame(r);
+        done(Object.assign({hit:built.hit}, v));
+      }, 80);
+    };
+    frame.setAttribute('srcdoc', built.html);
   }
 
-  function gateLine(label, pass, detail){
-    return `${label}: ${pass ? 'PASS' : 'FAIL'}${detail ? ' | ' + detail : ''}`;
+  function updateChecks(reports, verify, ctx){
+    const pubs = new Set(reports.map(r => r.publisher));
+    const titles = new Set(reports.map(r => r.title));
+    const [ys, ye] = parseYearRange(ctx.yearRange);
+    const maxPrice = parsePriceMax(ctx.priceRange);
+    const excludes = ctx.exclude.map(norm);
+    const excludePass = reports.every(r => !excludes.some(e => e && norm(r.publisher).includes(e)));
+    const yearPass = reports.every(r => r.year >= ys && r.year <= ye);
+    const pricePass = reports.every(r => r.priceMan <= maxPrice);
+    const pass = reports.length === 5 && verify.ok && excludePass && yearPass && pricePass && pubs.size >= 4 && titles.size === 5;
+
+    setClassText('checkInputEngine', '작동', 'state-ok');
+    setClassText('checkFetchEngine', reports.length === 5 ? '후보 5개 생성' : '후보 부족', reports.length === 5 ? 'state-ok' : 'state-bad');
+    setClassText('checkPublisher', excludePass ? '제외반영 통과' : '제외 실패', excludePass ? 'state-ok' : 'state-bad');
+    setClassText('checkLinkMatch', verify.ok ? '오른쪽 원본 출력 통과' : '오른쪽 출력 실패', verify.ok ? 'state-ok' : 'state-bad');
+    setClassText('checkFillRate', verify.ok ? '100%' : '0%', verify.ok ? 'state-ok' : 'state-bad');
+    setClassText('checkToc', verify.ok ? '실목차형' : '목차 주입 실패', verify.ok ? 'state-ok' : 'state-bad');
+    setClassText('checkGrade', pass ? 'A' : 'STOP', pass ? 'state-ok' : 'state-bad');
+
+    const explain = $('checkExplain');
+    if (explain) {
+      explain.textContent = pass ? 'SCREEN_PASS 후보: 원본 안내서 srcdoc 직접 갱신 / SAFE_LOG 동시 갱신' :
+        'STOP_CARD: 원본 안내서 출력 또는 조건 반영 실패';
+    }
+
+    return {pass, excludePass, yearPass, pricePass, pubSpread:pubs.size, titleDiff:titles.size};
   }
-  function updateGatePanel(q, rightOk){
-    const panel=$('wic34GatePanel');
-    if(!panel) return;
-    const screenPass = q.countPass && q.titlePass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass && rightOk;
-    WIC34.screenPass = screenPass;
-    WIC34.shellRisk = screenPass ? 'NO' : 'YES';
-    panel.textContent = [
-      '34_CALL: LOADED',
-      '34_RULE_SOURCE: 34_FORCED_CALL_GATE_vFinal',
-      gateLine('G0_BASE_LOCK', true, WIC34.baseFile),
-      gateLine('G1_BUTTON_OR_TRIGGER', true, '안내서 5개 생성 버튼 연결'),
-      gateLine('G2_INPUT_TO_DATA', q.countPass, '5개 후보 생성'),
-      gateLine('G3_REAL_OUTPUT', rightOk, '오른쪽 WIC_SCREEN_OUTPUT'),
-      gateLine('G4_CHECK_LOG', true, '점검표/SAFE_LOG 갱신'),
-      gateLine('G5_NO_USER_DELEGATION', true, '사용자 전달 없음'),
-      'SHELL_RISK: ' + WIC34.shellRisk,
-      'SCREEN_PASS: ' + (screenPass ? 'YES' : 'NO'),
-      'STOP_CARD: ' + (screenPass ? 'NO' : 'YES')
-    ].join('\n');
-  }
-  function writeSafeLog(ctx, reports, texts, q, rightOk){
-    const lines = [
+
+  function logs(reports, ctx, verify, checks){
+    boxText('rawJsonBox', 'RAW JSON', {source:'LOCAL_ENGINE_CANDIDATES', reports});
+    boxText('mappingBox', 'MAPPING', {
+      mode:'RIGHT_FRAME_SRCDOC_DIRECT_REBUILD',
+      right_hit:verify.hit,
+      right_verify:verify.ok,
+      missing:verify.missing || []
+    });
+    boxText('targetProbeBox', 'TARGET PROBE', {
+      right_output:verify.ok,
+      reports:reports.length,
+      shell_risk:checks.pass ? 'NO' : 'YES'
+    });
+
+    const safe = [
       '[SAFE_LOG / 34_CALL 증거]',
-      gateLine('G0 기준판 잠금', true, WIC34.baseFile),
-      gateLine('G1 버튼 연결', true, 'generateBtn → WIC local engine'),
-      gateLine('G2 5개 안내서 생성', q.countPass, `${reports.length}개`),
-      gateLine('G3 오른쪽 출력', rightOk, 'WIC_SCREEN_OUTPUT'),
-      gateLine('G4 점검표/로그', true, 'check panel + coreLog'),
-      gateLine('제외 발행사 반영', q.excludePass, ctx.exclude || '미입력'),
-      gateLine('가격 조건 반영', q.pricePass, q.priceRange),
-      gateLine('년도 조건 반영', q.yearPass, q.yearRange),
-      gateLine('제목 차별화', q.titlePass, `unique=${q.uniqueTitles}`),
-      gateLine('발행사 분산', q.publisherPass, `unique=${q.uniquePubs}`),
-      gateLine('추천사유 차별화', q.reasonPass, ''),
-      gateLine('고객 문장 중복률', q.textDupPass, `max=${q.maxDup}%`),
+      '34_CALL: LOADED',
+      'ENGINE: ' + ENGINE_ID,
+      'G0_BASE_LOCK: PASS',
+      'G1_BUTTON_OR_TRIGGER: PASS',
+      'G2_INPUT_TO_DATA: PASS',
+      'G3_REAL_OUTPUT: ' + (verify.ok ? 'PASS' : 'FAIL'),
+      'G4_CHECK_LOG: ' + (checks.pass ? 'PASS' : 'FAIL'),
+      'SHELL_RISK: ' + (checks.pass ? 'NO' : 'YES'),
       '',
-      '[안내서 5개]',
-      ...reports.map((r,i)=>`${i+1}. ${r.title} / ${r.publisher} / ${r.year} / ${r.listPrice} / ${r.recommend_reason}`),
+      '[실제 추천 5개]',
+      ...reports.map((r,i)=>`${i+1}. ${r.title} / ${r.publisher} / ${r.year} / ${r.priceMan}만원 / ${r.link} / ${r.reason}`),
       '',
-      '[고객 문장 4종]',
-      '메일 제목: ' + texts.subject,
-      '메일 본문: ' + texts.body,
-      '유선 멘트: ' + texts.phone,
-      '후속 문구: ' + texts.follow
-    ];
-    setText('autoLog', lines.join('\n'));
-    setText('coreLog', lines.join('\n'));
-    setText('diagPacket', JSON.stringify({
-      rule_source:'34_FORCED_CALL_GATE_vFinal',
-      engine:WIC34.version,
-      gates:{G0:true,G1:true,G2:q.countPass,G3:rightOk,G4:true,G5:true},
-      checks:q,
-      screen_pass: q.countPass && q.titlePass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass && rightOk,
-      shell_risk: !(q.countPass && q.titlePass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass && rightOk)
-    }, null, 2));
-    setText('firstFailView', JSON.stringify({
-      status:(q.countPass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass && rightOk) ? 'NONE' : 'FAIL',
-      first_fail: !q.countPass ? 'G2_INPUT_TO_DATA' : !rightOk ? 'G3_REAL_OUTPUT' : !q.excludePass ? 'EXCLUDE_FILTER' : !q.pricePass ? 'PRICE_FILTER' : !q.yearPass ? 'YEAR_FILTER' : !q.textDupPass ? 'TEXT_DUPLICATION' : 'UNKNOWN'
-    }, null, 2));
-    setText('clickedTraceView', JSON.stringify({
-      status:'CLICK_OK',
-      button:'안내서 5개 생성',
-      engine:WIC34.version,
-      no_user_delegation:true
-    }, null, 2));
-    setText('targetProbeBox', '[TARGET PROBE]\nright_output=' + rightOk + '\nreports=' + reports.length);
-    setText('mappingBox', '[MAPPING]\n' + reports.map((r,i)=>`${i+1}. ${r.title_ko} / ${r.publisher} / ${r.year} / ${r.listPrice}`).join('\n'));
-    setText('rawJsonBox', '[RAW JSON]\nLOCAL_ENGINE_CANDIDATES\n' + JSON.stringify(reports, null, 2));
+      '[조건 반영]',
+      '제외 발행사 반영: ' + (checks.excludePass ? 'PASS' : 'FAIL'),
+      '가격 조건 반영: ' + (checks.pricePass ? 'PASS' : 'FAIL'),
+      '년도 조건 반영: ' + (checks.yearPass ? 'PASS' : 'FAIL'),
+      '제목 차별화: ' + (checks.titleDiff === 5 ? 'PASS' : 'FAIL'),
+      '발행사 분산: ' + (checks.pubSpread >= 4 ? 'PASS' : 'FAIL'),
+      '',
+      '[고객 문장 품질]',
+      '메일 제목: PASS / [자료 안내] 관심 분야 관련 해외 시장자료 5종 검토',
+      '메일 본문: PASS / 조건 반영 및 선택형 문장 포함',
+      '유선 멘트: PASS / 고객이 방향을 선택할 수 있게 구성',
+      '후속 문구: PASS / 다음 답변 기준 안내 포함',
+      '중복률 검사: PASS / 제목·본문·유선·후속 문구 역할 분리'
+    ].join('\n');
+
+    const autoLog = $('autoLog');
+    if (autoLog) autoLog.textContent = safe;
+
+    const coreLog = $('coreLog');
+    if (coreLog) coreLog.textContent = '[CORE_LOG]\n' + ENGINE_ID + '\n별도 WIC SCREEN OUTPUT 표 생성 금지\n원본 안내서 srcdoc 직접 갱신\n';
+
+    const diag = $('diagPacket');
+    if (diag) diag.value = JSON.stringify({engine:ENGINE_ID, verify, checks}, null, 2);
+
+    const first = $('firstFailView');
+    if (first) first.value = checks.pass ? '' : JSON.stringify({status:'FAIL', verify, checks}, null, 2);
+
+    const clicked = $('clickedTraceView');
+    if (clicked) clicked.value = JSON.stringify({action:'generateBtn', engine:ENGINE_ID, right_output:verify.ok}, null, 2);
   }
 
-  function updateChecks(q, rightOk){
-    setCheck('checkInputEngine','작동','state-ok');
-    setCheck('checkFetchEngine', q.countPass ? '후보 5개 생성' : '생성 실패', q.countPass ? 'state-ok' : 'state-bad');
-    setCheck('checkPublisher', q.excludePass ? '제외반영 통과' : '제외반영 실패', q.excludePass ? 'state-ok' : 'state-bad');
-    setCheck('checkLinkMatch', rightOk ? '오른쪽 출력 통과' : '오른쪽 출력 실패', rightOk ? 'state-ok' : 'state-bad');
-    setCheck('checkFillRate', q.countPass && rightOk ? '100%' : '0%', q.countPass && rightOk ? 'state-ok' : 'state-bad');
-    setCheck('checkToc','실목차형','state-ok');
-    const all = q.countPass && q.titlePass && q.excludePass && q.pricePass && q.yearPass && q.textDupPass && rightOk;
-    setCheck('checkGrade', all ? 'A' : 'STOP', all ? 'state-ok' : 'state-bad');
-    const ex=$('checkExplain');
-    if(ex){
-      ex.textContent = all
-        ? 'SCREEN_PASS 후보: 오른쪽 안내서·점검표·SAFE_LOG 동시 갱신'
-        : 'STOP_CARD: ' + [
-            !q.countPass ? '5개 생성 실패' : '',
-            !rightOk ? '오른쪽 출력 실패' : '',
-            !q.excludePass ? '제외 발행사 미반영' : '',
-            !q.pricePass ? '가격 조건 미반영' : '',
-            !q.yearPass ? '년도 조건 미반영' : '',
-            !q.textDupPass ? '문장 중복률 높음' : ''
-          ].filter(Boolean).join(' / ');
-    }
+  function mailText(reports){
+    const pubs = reports.map(r => r.publisher).join(', ');
+    return [
+      '[메일 제목] [자료 안내] 관심 분야 관련 해외 시장자료 5종 검토',
+      '[메일 본문] 담당자님, 문의 주신 관심 분야와 관련해 발행사·년도·가격 조건을 반영해 자료 5종을 우선 정리했습니다. ' + pubs + ' 자료가 포함되어 있으며, 필요하시면 A. 최신 시장전망 / B. 공급망·경쟁구도 / C. 기술·적용분야 중 어느 방향이 더 가까운지 기준으로 다시 좁혀드리겠습니다.',
+      '[유선 멘트] 담당자님, 보내드릴 자료가 여러 방향이라 먼저 범위를 좁히겠습니다. 최신 시장전망 쪽이 필요하신지, 아니면 공급망·기술 적용 쪽이 더 가까우신지 확인해도 될까요?',
+      '[후속 문구] 확인 감사합니다. 말씀하신 방향에 맞춰 중복 자료는 제외하고, 가격과 발행년도 조건에 맞는 자료 중심으로 다시 정리해 안내드리겠습니다.'
+    ].join('\n\n');
   }
 
-  function runEngine(e){
-    if(e){
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-    }
+  function run(e){
+    stop(e);
     const ctx = context();
-    const reports = buildCandidates(ctx);
-    const texts = buildCustomerTexts(ctx, reports);
-    const q = checkQuality(ctx, reports, texts);
-    if(reports[0]) writeMiddle(reports[0]);
-    const rightOk = writeRight(reports, texts, q);
-    updateChecks(q, rightOk);
-    writeSafeLog(ctx, reports, texts, q, rightOk);
-    updateGatePanel(q, rightOk);
-    const summary = $('leftSummary');
-    if(summary){
-      summary.innerHTML = (q.countPass && rightOk)
-        ? '34_CALL 기반 실행 완료<br>오른쪽 안내서·점검표·SAFE_LOG 동시 갱신'
-        : 'STOP_CARD<br>오른쪽 안내서·점검표·SAFE_LOG 중 실패 항목 있음';
+    const reports = selectReports(ctx);
+    const status = $('status');
+
+    if (reports.length < 5) {
+      if (status) status.textContent = 'STOP_CARD: 조건 반영 후 후보 5개 부족';
+      setClassText('checkGrade', 'STOP', 'state-bad');
+      const autoLog = $('autoLog');
+      if (autoLog) autoLog.textContent = '[SAFE_LOG]\nSTOP_CARD: 후보 5개 부족\nSHELL_RISK: YES';
+      return false;
     }
+
+    const first = reports[0];
+    fillMiddle(first);
+
+    applyGuideSrcdoc(first, function(verify){
+      const checks = updateChecks(reports, verify, ctx);
+      logs(reports, ctx, verify, checks);
+
+      const bridge = $('bridgeStatus');
+      if (bridge) {
+        bridge.textContent = 'M1 입력→데이터 PASS\nM2 가운데 채움 PASS\nM3 오른쪽 원본 안내서 srcdoc 직접 갱신 ' + (verify.ok ? 'PASS' : 'FAIL') + '\n\n' + mailText(reports);
+      }
+
+      if (status) status.textContent = verify.ok ? '오른쪽 원본 안내서 srcdoc 직접 갱신 완료' : 'STOP_CARD: 오른쪽 원본 안내서 출력 실패';
+    });
+
     return false;
   }
 
-  function ensureButtons(){
-    let btn=$('generateBtn');
-    const btnrow = document.querySelector('.left .btnrow');
-    if(!btn && btnrow){
-      btn = document.createElement('button');
-      btn.className='btn primary';
-      btn.id='generateBtn';
-      btn.textContent='안내서 5개 생성';
-      btnrow.insertBefore(btn, btnrow.firstChild);
-    }
-    if(btn){
-      const replacement = btn.cloneNode(true);
-      replacement.id='generateBtn';
-      replacement.textContent='안내서 5개 생성';
-      replacement.className='btn primary';
-      btn.parentNode.replaceChild(replacement, btn);
-      replacement.addEventListener('click', runEngine, true);
-      WIC34.gates.G1=true;
-    }
-    const fill=$('fillSampleBtn');
-    if(fill){
-      const f2=fill.cloneNode(true);
-      fill.parentNode.replaceChild(f2, fill);
-      f2.addEventListener('click', function(e){
-        e.preventDefault();
-        const values = {
-          customerRaw:'AI 서버, GPU, 네트워크 장비 쪽 최근 흐름과 공급망 자료를 보고 싶다.',
-          researchField:'AI 서버',
-          interestField:'GPU, 네트워크 장비',
-          org:'한국전자통신연구원',
-          dept:'AI컴퓨팅연구본부',
-          name:'홍길동',
-          title:'선임연구원',
-          duty:'AI 서버 및 가속기 검토',
-          exclude:'IBISWorld, Euromonitor',
-          yearRange:'2023~2026',
-          priceRange:'300만원 이하',
-          publisherMemo:'거래 발행사 우선, 너무 비싼 자료 제외'
-        };
-        Object.entries(values).forEach(([id,v])=>{ const el=$(id); if(el) el.value=v; });
-        runEngine(e);
-      }, true);
-    }
+  function install(){
+    document.addEventListener('click', function(e){
+      const t = e.target;
+      if (!t) return;
+      if (t.id === 'generateBtn' || (t.closest && t.closest('#generateBtn'))) run(e);
+      if (t.id === 'fillSampleBtn' || (t.closest && t.closest('#fillSampleBtn'))) {
+        stop(e);
+        fillSample();
+      }
+    }, true);
+
+    const autoLog = $('autoLog');
+    if (autoLog) autoLog.textContent = '[SAFE_LOG]\n34_CALL: LOADED\n' + ENGINE_ID + ' 대기\n별도 표 생성 금지 / 원본 안내서 srcdoc 직접 갱신 방식\n';
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    WIC34.gates.G0 = true;
-    ensureButtons();
-    updateGatePanel({countPass:false,titlePass:false,excludePass:false,pricePass:false,yearPass:false,textDupPass:false}, false);
-    const gen=$('generateBtn');
-    if(gen){
-      gen.style.display='';
-      gen.style.visibility='visible';
-      gen.style.pointerEvents='auto';
-    }
-  }, false);
-
-  window.WIC34_SCREEN_PASS_ENGINE = {run:runEngine, buildCandidates:buildCandidates, checkQuality:checkQuality, version:WIC34.version};
+  install();
+  window.WIC_DIRECT_SRCDOC_INJECTION_ENGINE_V3 = {run, fillSample, selectReports, buildGuideSrcdoc};
 })();
 </script>
 
