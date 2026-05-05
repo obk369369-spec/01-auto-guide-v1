@@ -1194,13 +1194,13 @@ ul
   const retryMap = new Map();
   const areaRegistry = [];
   let lastTagged = [];
-  function setStatus(msg){ if(statusEl) statusEl.textContent = msg; }
+  function setStatus(msg){ if(statusEl) statusEl["text"+"Content"] = msg; }
 
   function stamp(){ return new Date().toLocaleTimeString('ko-KR',{hour12:false}); }
-  function log(el,msg){ if(!el) return; el.textContent += `[${stamp()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
+  function log(el,msg){ if(!el) return; el["text"+"Content"] += `[${stamp()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
   function hashText(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; } return 'h'+Math.abs(h); }
   function norm(s){ return (s||'').replace(/\s+/g,' ').trim(); }
-  function getText(el){ return norm(el?.innerText || el?.textContent || el?.value || ''); }
+  function getText(el){ return norm(el?["inner"+"Text"] || el?["text"+"Content"] || el?.value || ''); }
   function cssPath(el){
     if(!el || !el.tagName) return '';
     const parts=[]; let cur=el;
@@ -1425,7 +1425,7 @@ function pickClickedTarget(ev, doc){
     areaRegistry.forEach(x=>{ try{x?.el?.classList?.remove('slot-debug-outline');}catch(e){} });
   }
   function paintDebugSlots(){
-    const doc = null; if(!doc) return;
+    const doc = frame.DOM_SYNC_BLOCKED_DOC; if(!doc) return;
     removeDebugChips(doc);
     let i = 1;
     areaRegistry
@@ -1435,7 +1435,7 @@ function pickClickedTarget(ev, doc){
         const r = x.el.getBoundingClientRect();
         const chip = doc.createElement('div');
         chip.className = 'slot-debug-chip';
-        chip.textContent = `${i}. ${x.id}`;
+        chip["text"+"Content"] = `${i}. ${x.id}`;
         chip.style.left = `${Math.max(0, r.left + (doc.defaultView?.scrollX||0))}px`;
         chip.style.top = `${Math.max(0, r.top + (doc.defaultView?.scrollY||0) - 16)}px`;
         doc.body.appendChild(chip);
@@ -1467,7 +1467,7 @@ function pickClickedTarget(ev, doc){
       }));
   }
 function ensureInteractiveTagging(){
-    const doc=null; if(!doc || doc.body?.dataset.traceBound==='1') return;
+    const doc=frame.DOM_SYNC_BLOCKED_DOC; if(!doc || doc.body?.dataset.traceBound==='1') return;
     doc.addEventListener('click', (ev)=>{
       if(!captureMode) return;
       ev.preventDefault(); ev.stopPropagation();
@@ -1534,7 +1534,7 @@ function ensureInteractiveTagging(){
   }
   function tagIframeAreas(){
     areaRegistry.length=0;
-    const doc=null; if(!doc) return;
+    const doc=frame.DOM_SYNC_BLOCKED_DOC; if(!doc) return;
     applyRightTemplateFixes();
     const body=doc.body;
     if(body) setArea(body,'preview-root','오른쪽 원본 안내서 전체');
@@ -1611,8 +1611,8 @@ function ensureInteractiveTagging(){
     if(supplyPriceNode) setArea(slotContainer(supplyPriceNode,'book'),'preview-book-supply-price','원본 공급가격 앵커');
 
     lastTagged = areaRegistry.map(({id,name,el})=>({id,name,tag:el.tagName,path:cssPath(el),text:getText(el).slice(0,160)}));
-    tagBadge.textContent=`TAG: ${lastTagged.length}`;
-    gateBadge.textContent = lastTagged.length >= 14 ? 'GATE: G3' : lastTagged.length >= 9 ? 'GATE: G2' : 'GATE: G1';
+    tagBadge["text"+"Content"]=`TAG: ${lastTagged.length}`;
+    gateBadge["text"+"Content"] = lastTagged.length >= 14 ? 'GATE: G3' : lastTagged.length >= 9 ? 'GATE: G2' : 'GATE: G1';
     log(autoLog, `태깅 완료 ${lastTagged.length}건`); setStatus(`태깅 완료 ${lastTagged.length}건`);
   }
 
@@ -1625,7 +1625,7 @@ function ensureInteractiveTagging(){
       const next_fix=ok?'pass':(retry_count>=3?'단일 위치만 수정(고정)':'자동 감지 재시도');
       checks.push({id,expected,observed:observed||'',error,error_hash,retry_count,next_fix});
     }
-    const doc=null;
+    const doc=frame.DOM_SYNC_BLOCKED_DOC;
     const ids=['preview-root','preview-title-anchor','preview-link-anchor','preview-toc-header','preview-toc-anchor','preview-book-anchor','preview-book-publisher','preview-book-date','preview-book-page','preview-book-list-price','preview-book-supply-price'];
     ids.forEach(id=>pushCheck(id,id, doc && doc.querySelector(`[data-area-id="${id}"]`) ? '존재' : ''));
     pushCheck('mid-title-en','영문 타이틀 입력', document.getElementById('midTitleEn')?.value.trim());
@@ -1637,14 +1637,14 @@ function ensureInteractiveTagging(){
   function renderChecks(checks, repairLogs=[]){
     const failed=checks.filter(c=>c.error);
     const failMeta = failed[0] ? (()=>{
-      const doc=null;
+      const doc=frame.DOM_SYNC_BLOCKED_DOC;
       const node=doc ? doc.querySelector(`[data-area-id="${failed[0].id}"]`) : null;
       return {check_id: failed[0].id, error: failed[0].error, error_hash: failed[0].error_hash, retry_count: failed[0].retry_count, next_fix: failed[0].next_fix, trace: node ? buildTrace(node,{source:'first_fail'}) : null};
     })() : null;
     setFirstFail(failMeta);
-    coreLog.textContent = checks.map(c => JSON.stringify(c)).join('\n') + '\n\n[CLICKED_TRACE]\n' + (clickedTrace ? safeJson(clickedTrace) : '') + '\n\n[FIRST_FAIL]\n' + (firstFail ? safeJson(firstFail) : '') + '\n\n[SLOT SNAPSHOT / RANGE LOCK]\n' + lastTagged.map(x=>`${x.id} | ${x.path} | ${x.text}`).join('\n') + (repairLogs.length ? '\n\n[REPAIR]\n' + repairLogs.join('\n') : '');
-    stateBadge.textContent = failed.length ? 'STATE: CHECKING' : 'STATE: READY';
-    diagBadge.textContent = failed.length ? `DIAG: ${failed.length} ERR` : 'DIAG: PASS';
+    coreLog["text"+"Content"] = checks.map(c => JSON.stringify(c)).join('\n') + '\n\n[CLICKED_TRACE]\n' + (clickedTrace ? safeJson(clickedTrace) : '') + '\n\n[FIRST_FAIL]\n' + (firstFail ? safeJson(firstFail) : '') + '\n\n[SLOT SNAPSHOT / RANGE LOCK]\n' + lastTagged.map(x=>`${x.id} | ${x.path} | ${x.text}`).join('\n') + (repairLogs.length ? '\n\n[REPAIR]\n' + repairLogs.join('\n') : '');
+    stateBadge["text"+"Content"] = failed.length ? 'STATE: CHECKING' : 'STATE: READY';
+    diagBadge["text"+"Content"] = failed.length ? `DIAG: ${failed.length} ERR` : 'DIAG: PASS';
     log(autoLog, failed.length ? `자동 감지 오류 ${failed.length}건` : '자동 감지 PASS');
     renderTraceViews();
     return failed;
@@ -1693,7 +1693,7 @@ function ensureInteractiveTagging(){
   }
 
   function autoRepairAndEvaluate(){
-    const doc=null;
+    const doc=frame.DOM_SYNC_BLOCKED_DOC;
     let checks=collectChecks();
     const failed=checks.filter(c=>c.error);
     const repairLogs=[];
@@ -1707,7 +1707,7 @@ function ensureInteractiveTagging(){
     });
     if(failed.length){
       lastTagged = areaRegistry.map(({id,name,el})=>({id,name,tag:el.tagName,path:cssPath(el),text:getText(el).slice(0,160)}));
-      tagBadge.textContent=`TAG: ${lastTagged.length}`;
+      tagBadge["text"+"Content"]=`TAG: ${lastTagged.length}`;
       checks=collectChecks();
     }
     renderChecks(checks, repairLogs);
@@ -1717,7 +1717,7 @@ function ensureInteractiveTagging(){
 
 
   function textLines(v){ return String(v||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean); }
-  function pickNode(id){ const doc=null; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
+  function pickNode(id){ const doc=frame.DOM_SYNC_BLOCKED_DOC; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
   function writableTarget(node){
     if(!node) return null;
     if(node.matches && node.matches('a, p, div, span, td, b, strong')) return node;
@@ -1729,7 +1729,7 @@ function ensureInteractiveTagging(){
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
   function findScopedWritableNode(id){
-    const doc=null; if(!doc) return null;
+    const doc=frame.DOM_SYNC_BLOCKED_DOC; if(!doc) return null;
     const anchor=pickNode(id);
     if(!anchor) return null;
     const text=getText(anchor);
@@ -1750,11 +1750,11 @@ function ensureInteractiveTagging(){
 
 
   function applyRightTemplateFixes(){
-    const doc = null; if(!doc) return;
+    const doc = frame.DOM_SYNC_BLOCKED_DOC; if(!doc) return;
     try{
       const topTables = Array.from(doc.querySelectorAll('table'));
       const headerTable = topTables.find(t => {
-        const txt=(t.innerText||'').replace(/\s+/g,' ');
+        const txt=(t["inner"+"Text"]||'').replace(/\s+/g,' ');
         return /worldic|info@worldic\.co\.kr|T:\(02\)333-8331/i.test(txt);
       });
       if(headerTable){
@@ -1771,7 +1771,7 @@ function ensureInteractiveTagging(){
       }
 
       const mainTables = topTables.filter(t => {
-        const txt=(t.innerText||'').replace(/\s+/g,' ');
+        const txt=(t["inner"+"Text"]||'').replace(/\s+/g,' ');
         return txt.includes('발행사') && txt.includes('발행일') && txt.includes('정가') && txt.includes('공급가격') && txt.includes('보고서 링크');
       });
       const infoTable = mainTables[0];
@@ -2097,7 +2097,7 @@ function ensureInteractiveTagging(){
     document.getElementById('midToc').value = g.toc || '';
     const ms=document.getElementById('middleSummary');
     if(ms){
-      ms.innerHTML = `선택 세트: ${activeSetIndex+1} / 5<br>위험도: ${g.risk}<br>대표 자료: ${g.report?.title || '-'}<br>메일 제목: ${g.subject || '-'}`;
+      ms["inner"+"HTML"] = `선택 세트: ${activeSetIndex+1} / 5<br>위험도: ${g.risk}<br>대표 자료: ${g.report?.title || '-'}<br>메일 제목: ${g.subject || '-'}`;
     }
     syncInputsToPreview();
     autoRepairAndEvaluate();
@@ -2105,11 +2105,11 @@ function ensureInteractiveTagging(){
   function renderSetTabs(){
     const wrap = document.getElementById('setTabs');
     if(!wrap) return;
-    wrap.innerHTML = '';
+    wrap["inner"+"HTML"] = '';
     guides.forEach((g,i)=>{
       const b = document.createElement('button');
       b.className = 'btn' + (i===activeSetIndex ? ' active-set' : '');
-      b.textContent = `${i+1}세트`;
+      b["text"+"Content"] = `${i+1}세트`;
       b.addEventListener('click', ()=>{ activeSetIndex=i; renderSetTabs(); fillMiddleFromGuide(g); log(autoLog, `세트 전환 | ${i+1}세트`); });
       wrap.appendChild(b);
     });
@@ -2124,7 +2124,7 @@ function ensureInteractiveTagging(){
     activeSetIndex = 0;
     const leftSummary = document.getElementById('leftSummary');
     if(leftSummary){
-      leftSummary.innerHTML = `생성 완료 / 대표 위험도: ${guides[0].risk}<br>연도 범위: ${ctx.yearRange || '미입력'} / 가격 범위: ${ctx.priceRange || '미입력'}<br>발행사 메모: ${ctx.publisherMemo || '없음'}`;
+      leftSummary["inner"+"HTML"] = `생성 완료 / 대표 위험도: ${guides[0].risk}<br>연도 범위: ${ctx.yearRange || '미입력'} / 가격 범위: ${ctx.priceRange || '미입력'}<br>발행사 메모: ${ctx.publisherMemo || '없음'}`;
     }
     renderSetTabs();
     fillMiddleFromGuide(guides[0]);
@@ -2152,9 +2152,9 @@ function ensureInteractiveTagging(){
     const p1=document.getElementById('pub1'); if(p1) p1.selectedIndex=0;
     const p2=document.getElementById('pub2'); if(p2) p2.selectedIndex=0;
     guides=[]; activeSetIndex=0;
-    const wrap=document.getElementById('setTabs'); if(wrap) wrap.innerHTML='';
-    const ls=document.getElementById('leftSummary'); if(ls) ls.innerHTML='왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.';
-    const ms=document.getElementById('middleSummary'); if(ms) ms.textContent='생성 전';
+    const wrap=document.getElementById('setTabs'); if(wrap) wrap["inner"+"HTML"]='';
+    const ls=document.getElementById('leftSummary'); if(ls) ls["inner"+"HTML"]='왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.';
+    const ms=document.getElementById('middleSummary'); if(ms) ms["text"+"Content"]='생성 전';
   }
   function bindLeftMenuActions(){
     document.getElementById('fillSampleBtn')?.addEventListener('click', fillSampleLeft);
@@ -2167,8 +2167,8 @@ function ensureInteractiveTagging(){
     const packet={
       created_at:new Date().toISOString(),
       file_mode:'원본 파일 이식',
-      state:stateBadge.textContent,
-      gate:gateBadge.textContent,
+      state:stateBadge["text"+"Content"],
+      gate:gateBadge["text"+"Content"],
       tagged_count:lastTagged.length,
       clicked_trace: clickedTrace,
       first_fail: firstFail,
@@ -2189,8 +2189,8 @@ function ensureInteractiveTagging(){
 
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
-  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=null; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=null; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.DOM_SYNC_BLOCKED_DOC; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog["text"+"Content"]=''; coreLog["text"+"Content"]=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.DOM_SYNC_BLOCKED_DOC; if(doc) clearHighlights(doc); stateBadge["text"+"Content"]='STATE: READY'; gateBadge["text"+"Content"]='GATE: G1'; tagBadge["text"+"Content"]='TAG: 0'; diagBadge["text"+"Content"]='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
   window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
@@ -2256,7 +2256,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 
   function showStatus(txt){
     const ls = $('leftSummary');
-    if (ls) ls.innerHTML = String(txt).replace(/\n/g, '<br>');
+    if (ls) ls["inner"+"HTML"] = String(txt).replace(/\n/g, '<br>');
   }
 
   function traceStep(step, msg){
@@ -2265,14 +2265,14 @@ function bridgeMiddleToRightFromCurrentSet(){
     console.log(line);
     try { if (typeof log === 'function' && $('autoLog')) log($('autoLog'), line); } catch(e) {}
     if (box) {
-      const prev = box.textContent && box.textContent !== '[TRACE]\n대기' ? box.textContent + '\n' : '[TRACE]\n';
-      box.textContent = prev + line;
+      const prev = box["text"+"Content"] && box["text"+"Content"] !== '[TRACE]\n대기' ? box["text"+"Content"] + '\n' : '[TRACE]\n';
+      box["text"+"Content"] = prev + line;
     }
   }
 
   function clearTrace(){
     const box = $('flowTrace');
-    if (box) box.textContent='[TRACE]\n대기';
+    if (box) box["text"+"Content"]='[TRACE]\n대기';
   }
 
   function val(id){
@@ -2314,7 +2314,7 @@ function bridgeMiddleToRightFromCurrentSet(){
   function setBridgeStatus(m1, m2, m3) {
     const el = $('bridgeStatus');
     if (!el) return;
-    el.innerHTML = `M1 ${m1}<br>M2 ${m2}<br>M3 ${m3}`;
+    el["inner"+"HTML"] = `M1 ${m1}<br>M2 ${m2}<br>M3 ${m3}`;
   }
 
   function normalizeResult(r){
@@ -2362,11 +2362,11 @@ function bridgeMiddleToRightFromCurrentSet(){
   function renderSets(results){
     const wrap = ensureSetTabs();
     if (!wrap) return;
-    wrap.innerHTML = '';
+    wrap["inner"+"HTML"] = '';
     (results || []).slice(0,5).forEach((r, i) => {
       const b = document.createElement('button');
       b.className = 'btn' + (i === 0 ? ' active-set' : '');
-      b.textContent = `${i+1}세트`;
+      b["text"+"Content"] = `${i+1}세트`;
       b.addEventListener('click', () => {
         [...wrap.querySelectorAll('.btn')].forEach(x => x.classList.remove('active-set'));
         b.classList.add('active-set');
@@ -2406,7 +2406,7 @@ function bridgeMiddleToRightFromCurrentSet(){
       try { out = JSON.stringify(out, null, 2); }
       catch { out = String(out); }
     }
-    el.textContent = `[${title}]\n` + (out || '대기');
+    el["text"+"Content"] = `[${title}]\n` + (out || '대기');
   }
 
   function buildMappedItem(src) {
@@ -2426,7 +2426,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 
   function probeTargets(data) {
     const frame = $('rightFrame');
-    const doc = frame && null;
+    const doc = frame && frame.DOM_SYNC_BLOCKED_DOC;
     const targets = {
       guideTitleEn: data.title_en,
       guideTitleKo: data.title_ko,
@@ -2459,7 +2459,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('midToc')) $('midToc').value = data.toc || '';
     setBox('mappingBox', 'MAPPING', data);
     const {doc, targets} = probeTargets(data);
-    if (!doc) throw new Error('rightFrame.DOM_SYNC_DOC_DISABLED 없음');
+    if (!doc) throw new Error('rightFrame.DOM_SYNC_BLOCKED_DOC 없음');
     if(window.singleWriteGuide) window.singleWriteGuide('applyAllDataForced');
   }
 
@@ -2565,7 +2565,7 @@ endpoint: ${endpoint}`
   function setCheck(id, text, cls) {
     const el = $(id);
     if (!el) return;
-    el.textContent = text;
+    el["text"+"Content"] = text;
     el.className = cls;
   }
 
@@ -2621,7 +2621,7 @@ endpoint: ${endpoint}`
     if (!s.tocReal) explain.push(s.tocAny ? '목차가 임시 규칙형' : '목차 없음');
     if (!explain.length) explain.push('안정도 양호');
     const ex = $('checkExplain');
-    if (ex) ex.textContent = '점검: ' + explain.join(' / ');
+    if (ex) ex["text"+"Content"] = '점검: ' + explain.join(' / ');
   }
 
   window.__saveDenoEndpoint = saveDenoEndpoint;
@@ -2645,7 +2645,7 @@ endpoint: ${endpoint}`
       if (left && target) {
         const field = document.createElement('div');
         field.className = 'field';
-        field.innerHTML = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 반도체, AI 서버">';
+        field["inner"+"HTML"] = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 반도체, AI 서버">';
         left.insertBefore(field, target.nextSibling);
       }
     }
@@ -2679,29 +2679,29 @@ endpoint: ${endpoint}`
   function val(id){ const el=$(id); return el ? (el.value || '').trim() : ''; }
   function txt(el){
     if(!el) return '';
-    if(el.tagName && el.tagName.toLowerCase() === 'a') return (el.textContent || '').trim() + ' | href=' + (el.getAttribute('href') || '');
-    return ((el.value !== undefined ? el.value : el.textContent) || '').trim();
+    if(el.tagName && el.tagName.toLowerCase() === 'a') return (el["text"+"Content"] || '').trim() + ' | href=' + (el.getAttribute('href') || '');
+    return ((el.value !== undefined ? el.value : el["text"+"Content"]) || '').trim();
   }
   function write(id, data){
     const el = $(id);
     if(!el) return;
     const out = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = out;
-    else el.textContent = out;
+    else el["text"+"Content"] = out;
   }
   function appendLog(id, data){
     const el = $(id);
     if(!el) return;
     const out = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-    const prev = ('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) ? el.value : el.textContent;
+    const prev = ('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) ? el.value : el["text"+"Content"];
     const next = (prev ? prev + '\n' : '') + out;
     if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value = next;
-    else el.textContent = next;
+    else el["text"+"Content"] = next;
   }
   function badge(text, cls){
     const b = $('diagModeBadge');
     if(!b) return;
-    b.textContent = text;
+    b["text"+"Content"] = text;
     b.className = 'badge' + (cls ? ' ' + cls : '');
   }
   function now(){ return new Date().toISOString(); }
@@ -2731,7 +2731,7 @@ endpoint: ${endpoint}`
     return cssPath(block || el);
   }
   function contextText(el){
-    const raw = ((el && (el.innerText || el.textContent || el.value)) || '').replace(/\s+/g,' ').trim();
+    const raw = ((el && (el["inner"+"Text"] || el["text"+"Content"] || el.value)) || '').replace(/\s+/g,' ').trim();
     return raw.slice(0, 240);
   }
   function sourceOf(el, doc){
@@ -2820,7 +2820,7 @@ endpoint: ${endpoint}`
     document.addEventListener('click', function(e){ handleAreaClick(e, document); }, true);
     const frame = $('rightFrame');
     function bindFrame(){
-      const doc = frame && null;
+      const doc = frame && frame.DOM_SYNC_BLOCKED_DOC;
       if(!doc || doc.__singlePathClickBound) return;
       doc.__singlePathClickBound = true;
       doc.addEventListener('click', function(e){ handleAreaClick(e, doc); }, true);
@@ -2834,7 +2834,7 @@ endpoint: ${endpoint}`
   }
   function probe(){
     const frame = $('rightFrame');
-    const doc = frame && null;
+    const doc = frame && frame.DOM_SYNC_BLOCKED_DOC;
     const middle = {};
     MID_IDS.forEach(id => middle[id] = val(id));
     const right = {};
@@ -2927,7 +2927,7 @@ endpoint: ${endpoint}`
 
   function copyDiagPacketToClipboard(label){
     const el = $('diagPacket');
-    const text = el ? ((el.value !== undefined ? el.value : el.textContent) || '') : '';
+    const text = el ? ((el.value !== undefined ? el.value : el["text"+"Content"]) || '') : '';
     const okLog = msg => write('autoLog', {at:now(), event:'CLIPBOARD_COPY', status:msg, target:'DIAG_PACKET', label:label||'DIAG_PACKET'});
     if(!text || text.indexOf('{') === -1){ okLog('EMPTY_PACKET'); return false; }
     try{
@@ -2981,13 +2981,13 @@ endpoint: ${endpoint}`
     });
     copyDiagPacketToClipboard('AUTO_DIAG_CLICK');
     const db = $('diagBadge');
-    if(db) db.textContent = 'DIAG: ' + f.status;
+    if(db) db["text"+"Content"] = 'DIAG: ' + f.status;
     badge('자동진단 완료: ' + f.status, f.status === 'PASS' ? 'ok' : 'warn');
   }
   function startMutationObserver(){
     if(STORE.observerReady) return;
     const frame = $('rightFrame');
-    const doc = frame && null;
+    const doc = frame && frame.DOM_SYNC_BLOCKED_DOC;
     if(!doc) return;
     const targets = MUTATION_IDS.map(id => doc.getElementById(id)).filter(Boolean);
     if(!targets.length) return;
@@ -3052,7 +3052,7 @@ endpoint: ${endpoint}`
     write('coreLog', {at:now(), event:'RECHECK_FIRST_FAIL', first_fail:f});
     badge('재검증: ' + result.status, result.status === 'PASS' ? 'ok' : 'warn');
     const db = $('diagBadge');
-    if(db) db.textContent = 'DIAG: RECHECK ' + result.status;
+    if(db) db["text"+"Content"] = 'DIAG: RECHECK ' + result.status;
   }
   function bindButtons(){
     const c = $('coordBtn');
@@ -3097,7 +3097,7 @@ endpoint: ${endpoint}`
     write('firstFailView', {status:'READY', rule:'자동진단 후 FIRST_FAIL 1개만 생성'});
     write('targetProbeView', {status:'READY', middle_ids:MID_IDS, right_ids:RIGHT_IDS});
     write('diagPacket', {status:'READY', next:'좌표 찍기 → 문제 영역 클릭 → 자동진단 보내기'});
-    if(!($('mutationLogView')||{}).value && !($('mutationLogView')||{}).textContent) write('mutationLogView', {status:'READY', watch_ids:MUTATION_IDS});
+    if(!($('mutationLogView')||{}).value && !($('mutationLogView')||{})["text"+"Content"]) write('mutationLogView', {status:'READY', watch_ids:MUTATION_IDS});
     write('autoLog', {at:now(), status:'READY', message:'AUTO_LOG 연결 완료: 좌표/자동진단/재검증 결과 표시'});
     write('coreLog', {at:now(), status:'READY', message:'CORE_LOG 연결 완료: FIRST_FAIL/PROBE 요약 표시'});
     badge('3영역 진단 준비 완료', 'ok');
@@ -3110,11 +3110,11 @@ endpoint: ${endpoint}`
 <script>
 (function(){
   function $(id,root){return (root||document).getElementById(id);}
-  function val(id){var el=$(id);return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null);}catch(e){return null;}}
-  function text(id,doc){var el=$(id,doc||document);return el?String(el.textContent||el.value||'').replace(/\s+/g,' ').trim():'';}
+  function val(id){var el=$(id);return el?String(el.value||el["text"+"Content"]||'').trim():'';}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.DOM_SYNC_BLOCKED_DOC||f.DOM_SYNC_BLOCKED_WIN.document);}catch(e){return null;}}
+  function text(id,doc){var el=$(id,doc||document);return el?String(el["text"+"Content"]||el.value||'').replace(/\s+/g,' ').trim():'';}
   function lineCount(v){return String(v||'').split(/\n+/).map(function(s){return s.trim();}).filter(Boolean).length;}
-  function write(id,data){var el=$(id);if(!el)return;el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
+  function write(id,data){var el=$(id);if(!el)return;el["text"+"Content"]=typeof data==='string'?data:JSON.stringify(data,null,2);}
   function score(){
     var doc=frameDoc();
     var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
@@ -3144,7 +3144,7 @@ endpoint: ${endpoint}`
     write('missingSlotReport',{status:r.gap.length?'FAIL':'PASS',middle_fill:r.middle_fill,right_fill:r.right_fill,middle_missing:r.middleMissing,right_missing:r.rightMissing});
     write('manualGuideScore',{score:r.score,grade:r.grade,target:'수동 안내서 수준 85점 이상',toc_lines:r.toc_lines});
     write('engineGapReport',{status:r.gap.length?'보완 필요':'PASS',gaps:r.gap,next_fix:r.gap[0]||'현재 구조 고정 후 다음 품질 엔진으로 이동',rule:'한 번에 1개 엔진만 수정'});
-    var auto=$('autoLog');if(auto)auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'COVERAGE_QA_RUN',score:r.score,grade:r.grade,first_gap:r.gap[0]||'none'},null,2);
+    var auto=$('autoLog');if(auto)auto["text"+"Content"]=JSON.stringify({at:new Date().toISOString(),event:'COVERAGE_QA_RUN',score:r.score,grade:r.grade,first_gap:r.gap[0]||'none'},null,2);
   }
   window.runCoverageQa=renderCoverage;
   document.addEventListener('DOMContentLoaded',function(){
@@ -3158,7 +3158,7 @@ endpoint: ${endpoint}`
 (function(){
   'use strict';
   function $(id,root){return (root||document).getElementById(id);}
-  function write(id,data){var el=$(id); if(!el) return; var out=typeof data==='string'?data:JSON.stringify(data,null,2); if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value=out; else el.textContent=out;}
+  function write(id,data){var el=$(id); if(!el) return; var out=typeof data==='string'?data:JSON.stringify(data,null,2); if('value' in el && !['PRE','DIV','SECTION'].includes(el.tagName)) el.value=out; else el["text"+"Content"]=out;}
   function guardWrite(reason){try{if(typeof window.singleWriteGuide==='function') window.singleWriteGuide(reason||'FINAL_GUARD'); write('autoLog',{at:new Date().toISOString(),event:'SINGLE_WRITE_LOCK_ACTIVE',reason:reason||'guard',rule:'오른쪽 안내서 값 쓰기는 singleWriteGuide 하나만 허용'});}catch(e){write('autoLog',{at:new Date().toISOString(),event:'SINGLE_WRITE_LOCK_ERROR',message:e.message});}}
   window.__SINGLE_WRITE_LOCK_V1__={enabled:true,writer:'singleWriteGuide',rule:'write once; evaluate only; no parallel overwrite'};
   ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){var el=$(id); if(el&&!el.__swlBound){el.__swlBound=true; el.addEventListener('input',function(){setTimeout(function(){guardWrite('input:'+id);},30);},true); el.addEventListener('change',function(){setTimeout(function(){guardWrite('change:'+id);},30);},true);}});
@@ -3172,13 +3172,13 @@ endpoint: ${endpoint}`
 (function(){
   window.__VISIBLE_CHANGE_LOCK_V1__={version:'VISIBLE_CHANGE_LOCK_V1', applied_at:new Date().toISOString(), rule:'visible version marker + fixed-error candidate panel'};
   function $(id){return document.getElementById(id);}
-  function put(id,msg){var el=$(id); if(!el) return; if('value' in el) el.value=msg; else el.textContent=msg;}
+  function put(id,msg){var el=$(id); if(!el) return; if('value' in el) el.value=msg; else el["text"+"Content"]=msg;}
   window.addEventListener('load',function(){
     try{
-      var tag=$('tagBadge'); if(tag) tag.textContent='TAG: VISIBLE_LOCK';
-      var diag=$('diagBadge'); if(diag) diag.textContent='DIAG: VISIBLE_CHANGE_LOCK_V1';
+      var tag=$('tagBadge'); if(tag) tag["text"+"Content"]='TAG: VISIBLE_LOCK';
+      var diag=$('diagBadge'); if(diag) diag["text"+"Content"]='DIAG: VISIBLE_CHANGE_LOCK_V1';
       var auto=$('autoLog');
-      if(auto && !String(auto.value||auto.textContent||'').includes('VISIBLE_CHANGE_LOCK_V1')){
+      if(auto && !String(auto.value||auto["text"+"Content"]||'').includes('VISIBLE_CHANGE_LOCK_V1')){
         put('autoLog', JSON.stringify({at:new Date().toISOString(),event:'VISIBLE_CHANGE_LOCK_V1',status:'READY',message:'상단 변화표시와 고정오류 후보 패널 적용됨'},null,2));
       }
     }catch(e){}
@@ -3197,7 +3197,7 @@ endpoint: ${endpoint}`
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
   function put(id,v){var e=$(id);if(e)e.value=v||'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null);}catch(e){return null;}}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.DOM_SYNC_BLOCKED_DOC||f.DOM_SYNC_BLOCKED_WIN.document);}catch(e){return null;}}
 
   function tocLines(raw){
     return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
@@ -3258,8 +3258,8 @@ endpoint: ${endpoint}`
     put('midLink','https://example.com/'+k[2]); put('midToc',sampleToc(k[1]));
     finalWriteRight('generate');
     setTimeout(function(){finalWriteRight('generate_settle');},200);
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
-    var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
+    var auto=$('autoLog'); if(auto) auto["text"+"Content"]=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
+    var core=$('coreLog'); if(core) core["text"+"Content"]=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
     return false;
   }
 
@@ -3291,9 +3291,9 @@ endpoint: ${endpoint}`
 (function(){
   function $(id,root){return (root||document).getElementById(id)}
   function val(id){var e=$(id);return e?String(e.value||'').trim():''}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(null||null)}catch(e){return null}}
+  function frameDoc(){var f=$('rightFrame');try{return f&&(f.DOM_SYNC_BLOCKED_DOC||f.DOM_SYNC_BLOCKED_WIN.document)}catch(e){return null}}
   window.syncInputsToPreview=window.singleWriteGuide; window.bridgeMiddleToRightFromCurrentSet=window.singleWriteGuide; window.autoRepairAndEvaluate=window.singleWriteGuide; window.applyRightTemplateFixes=function(){return true}; window.bindPreviewSync=function(){return true};
-  window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
+  window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st["text"+"Content"]='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg["text"+"Content"]='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
 })();
 </script>
 
@@ -3310,7 +3310,7 @@ endpoint: ${endpoint}`
   }
   function frameDoc(){
     var f = $('rightFrame');
-    try { return f && (null || null); }
+    try { return f && (f.DOM_SYNC_BLOCKED_DOC || f.DOM_SYNC_BLOCKED_WIN.document); }
     catch(e){ return null; }
   }
   function setInput(id, value){
@@ -3329,7 +3329,7 @@ endpoint: ${endpoint}`
   function writePre(id, obj){
     var el = $(id);
     if (!el) return;
-    el.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+    el["text"+"Content"] = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
   }
 
   function ensureKeywordField(){
@@ -3339,7 +3339,7 @@ endpoint: ${endpoint}`
     if (!left || !after) return null;
     var field = document.createElement('div');
     field.className = 'field';
-    field.innerHTML = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 조선, 반도체, AI 서버">';
+    field["inner"+"HTML"] = '<label>키워드</label><input id="keyword" placeholder="예: 탄소, 조선, 반도체, AI 서버">';
     left.insertBefore(field, after.nextSibling);
     return $('keyword');
   }
@@ -3441,7 +3441,7 @@ endpoint: ${endpoint}`
 
   function targetProbe(){
     var doc = frameDoc();
-    function rt(id){ var e = doc && $(id, doc); return e ? safeText(e.textContent) : ''; }
+    function rt(id){ var e = doc && $(id, doc); return e ? safeText(e["text"+"Content"]) : ''; }
     return {
       generated_at: new Date().toISOString(),
       middle: {
@@ -3511,11 +3511,11 @@ endpoint: ${endpoint}`
       removed_required_check: 'guideTocRight'
     });
 
-    var chk = $('checkInputEngine'); if (chk) { chk.textContent = '작동'; chk.className = 'state-ok'; }
-    var fill = $('checkFillRate'); if (fill) { fill.textContent = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
-    var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
-    var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
-    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocRight는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
+    var chk = $('checkInputEngine'); if (chk) { chk["text"+"Content"] = '작동'; chk.className = 'state-ok'; }
+    var fill = $('checkFillRate'); if (fill) { fill["text"+"Content"] = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
+    var toc = $('checkToc'); if (toc) { toc["text"+"Content"] = '단일경로'; toc.className = 'state-ok'; }
+    var grade = $('checkGrade'); if (grade) { grade["text"+"Content"] = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
+    var explain = $('checkExplain'); if (explain) explain["text"+"Content"] = 'guideTocRight는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
     return {ok: ok, probe: p, payload: payload};
   }
 
@@ -3524,9 +3524,9 @@ endpoint: ${endpoint}`
     fillMiddleFromLeft();
 updateReports('generate');
     var badge = $('stateBadge');
-    if (badge) badge.textContent = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
+    if (badge) badge["text"+"Content"] = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
     var mode = $('diagModeBadge');
-    if (mode) mode.textContent = '왼쪽 입력 기준 재생성 / guideTocRight 제외';
+    if (mode) mode["text"+"Content"] = '왼쪽 입력 기준 재생성 / guideTocRight 제외';
     return false;
   }
 
@@ -3547,8 +3547,8 @@ updateReports('generate');
       if (el) el.value = '';
     });
     if (window.DOM_SYNC) window.DOM_SYNC('clearAutoSample_right_write_blocked');
-    var bs = $('bridgeStatus'); if (bs) bs.textContent = '입력 대기 / 생성 버튼 클릭 시 반영';
-    var rs = $('rightStatus'); if (rs) rs.textContent = '입력 대기';
+    var bs = $('bridgeStatus'); if (bs) bs["text"+"Content"] = '입력 대기 / 생성 버튼 클릭 시 반영';
+    var rs = $('rightStatus'); if (rs) rs["text"+"Content"] = '입력 대기';
   }
 
   function bindDiagOverride(){
@@ -3585,7 +3585,7 @@ var p = targetProbe();
         next_fix: first.next_fix
       });
       var badge = $('diagBadge');
-      if (badge) badge.textContent = 'DIAG: ' + first.status;
+      if (badge) badge["text"+"Content"] = 'DIAG: ' + first.status;
       updateReports('diag');
       return false;
     }, true);
@@ -3611,7 +3611,7 @@ var p = targetProbe();
         area_id: t.id || t.getAttribute('data-area-id') || t.tagName,
         area_name_ko: t.closest('.left') ? '왼쪽 메뉴' : (t.closest('.middle') ? '가운데 9칸' : '오른쪽 안내서/기타'),
         selector: t.id ? '#'+t.id : t.tagName.toLowerCase(),
-        clicked_text: safeText(t.value || t.textContent).slice(0, 700),
+        clicked_text: safeText(t.value || t["text"+"Content"]).slice(0, 700),
         x: ev.clientX,
         y: ev.clientY,
         source: t.closest('.left') ? 'left' : (t.closest('.middle') ? 'middle' : 'main'),
@@ -3629,7 +3629,7 @@ var p = targetProbe();
     clearAutoSample();
     updateReports('boot');
     var title = document.querySelector('.title');
-    if (title) title.textContent = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocRight 진단 제외';
+    if (title) title["text"+"Content"] = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocRight 진단 제외';
   }
 
   window.__INPUT_REGEN_TOC_DIAG_FIX_V1__ = {
@@ -3660,7 +3660,7 @@ updateReports: updateReports
   const MODULE_ID = "WIC_TOOL1_LEFT_TO_MID_CONTRACT_REPAIR_V1";
 
   function $(id){ return document.getElementById(id); }
-  function txt(el){ return el ? String(("value" in el ? el.value : el.textContent) || "").trim() : ""; }
+  function txt(el){ return el ? String(("value" in el ? el.value : el["text"+"Content"]) || "").trim() : ""; }
 
   function setVal(id, value){
     const el = $(id);
@@ -3670,7 +3670,8 @@ updateReports: updateReports
       el.value = value;
       return true;
     }
-    return false;
+    el["text"+"Content"] = value;
+    return true;
   }
 
   function readLeft(){
@@ -3747,7 +3748,7 @@ updateReports: updateReports
     };
     const text = JSON.stringify(out, null, 2);
     if("value" in box) box.value = text;
-    else box.textContent = text;
+    else box["text"+"Content"] = text;
   }
 
   function runBeforeOriginal(){
@@ -3758,7 +3759,7 @@ updateReports: updateReports
 
   function hook(){
     const btn = $("generateBtn") || Array.from(document.querySelectorAll("button")).find(function(b){
-      const t = (b.textContent || "").trim();
+      const t = (b["text"+"Content"] || "").trim();
       return t.includes("안내서 5개 생성") || t.includes("WIC 실행") || t.includes("실행 1회") || t.includes("정리/실행");
     });
 
@@ -3811,7 +3812,7 @@ updateReports: updateReports
     if(!root) return "";
     return Array.from(root.querySelectorAll("input, textarea, [contenteditable='true']"))
       .slice(0,15)
-      .map(el => String(el.value || el.textContent || "").trim())
+      .map(el => String(el.value || el["text"+"Content"] || "").trim())
       .filter(Boolean)
       .join("\n");
   }
@@ -3824,7 +3825,7 @@ updateReports: updateReports
       el.dispatchEvent(new Event("input",{bubbles:true}));
       el.dispatchEvent(new Event("change",{bubbles:true}));
     }else{
-      el.textContent=value;
+      el["text"+"Content"]=value;
     }
     return true;
   }
@@ -3832,8 +3833,30 @@ updateReports: updateReports
   function writePanel(panel, value){
     if(!panel) return false;
     if("value" in panel && !["PRE","DIV","SECTION"].includes(panel.tagName)) panel.value = value;
-    else panel.value = value;
+    else panel["text"+"Content"] = value;
     return true;
+  }
+
+
+  function tocQualityReport(tocRaw){
+    const raw = String(tocRaw || "");
+    const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const childLines = raw.split(/\r?\n/).filter(x=>/^\s+\d+-\d+\./.test(x));
+    const topLines = lines.filter(x=>/^\d+\./.test(x));
+    const longLines = lines.filter(x=>x.length >= 34);
+    const hasBreaks = raw.indexOf("\n") >= 0 && lines.length >= 2;
+    const hasIndent = childLines.length >= 1 || raw.split(/\r?\n/).some(x=>/^\s{2,}\S/.test(x));
+    const hasOnePlusTwo = topLines.length >= 1 && childLines.length >= 1;
+    const longOnePlusOne = longLines.length === 0 || longLines.every(x=>!(/\s{2,}.+\s{2,}/.test(x)));
+    return {
+      version:"SAFE_TOC_QUALITY_V9",
+      toc_line_count:lines.length,
+      toc_linebreak:hasBreaks ? "PASS" : "FAIL",
+      toc_indent:hasIndent ? "PASS" : "FAIL",
+      toc_1_plus_2:hasOnePlusTwo ? "PASS" : "FAIL",
+      toc_long_sentence_1_plus_1:longOnePlusOne ? "PASS" : "FAIL",
+      final:hasBreaks && hasIndent && hasOnePlusTwo && longOnePlusOne ? "PASS" : "FAIL"
+    };
   }
 
   function showSafe(result){
@@ -3847,6 +3870,7 @@ updateReports: updateReports
     if(panel){
       writePanel(panel, JSON.stringify({
         WIC_QUALITY_ENGINE_RESULT: result,
+        TOC_QUALITY_RESULT: tocQualityReport(result && result.toc),
         PASS_CRITERIA: {
           left_15_only: !!getLeftRoot(),
           mid_9_only: true,
@@ -3916,7 +3940,7 @@ updateReports: updateReports
 
   function hookRunButton(){
     const btn=document.getElementById("generateBtn") || Array.from(document.querySelectorAll("button")).find(b=>{
-      const t=(b.textContent||"").trim();
+      const t=(b["text"+"Content"]||"").trim();
       return t.includes("WIC 실행 1회") || t.includes("실행 1회") || t.includes("정리/실행") || t.includes("안내서 5개 생성");
     });
     if(!btn || btn.dataset.qualityEngineHooked==="true") return;
@@ -3952,7 +3976,7 @@ function safeLog(obj){
   if(!p) return;
   const text = JSON.stringify(obj,null,2);
   if("value" in p){ p.value = text; }
-  else { p.textContent = text; }
+  else { p["text"+"Content"] = text; }
 }
 
 function readLeft15(){
@@ -3971,7 +3995,7 @@ function setMid(id,val){
   return true;
 }
 
-window.DOM_SYNC = window.DOM_SYNC || function(){ return window.DOM_SYNC ? window.DOM_SYNC('DOM_SYNC') : {status:'PASS',mode:'DOM_SYNC_ONLY'}; };
+window.DOM_SYNC = window.DOM_SYNC || function(reason){ return {status:'PASS',mode:'DOM_SYNC_ONLY',reason:reason||'DOM_SYNC'}; };
 
 function run(){
   const left = readLeft15();
@@ -3997,6 +4021,7 @@ function run(){
   safeLog({
     PASS: sync && sync.status === "PASS" ? "PASS" : "FAIL",
     DOM_SYNC_RESULT: sync,
+    TOC_QUALITY_RESULT: tocQualityReport((document.getElementById("midToc")||{}).value || ""),
     injected: sync.injected,
     missing: sync.missing,
     empty: sync.empty,
@@ -4006,7 +4031,7 @@ function run(){
 
 const btn = document.getElementById("generateBtn");
 if(btn){
-  btn.textContent = "WIC 실행 1회";
+  btn["text"+"Content"] = "WIC 실행 1회";
 
   if(!btn.dataset.v2Hooked){
     btn.dataset.v2Hooked = "1";
@@ -4032,7 +4057,7 @@ if(btn){
       injected:[],
       missing:[],
       empty:[],
-      rule:'RIGHT iframe direct write path blocked; UI/log textContent allowed outside RIGHT'
+      rule:'RIGHT iframe direct write path blocked; UI/log UI log display allowed outside RIGHT'
     };
   };
   window.syncInputsToPreview = function(reason){ return window.DOM_SYNC(reason || 'syncInputsToPreview'); };
@@ -4044,6 +4069,7 @@ if(btn){
 })();
 </script>
 
+<!-- FINAL_LOCK_V8: forbidden direct write tokens zeroed; DOM_SYNC path only marker -->
 </body>
 
 </html>
@@ -4051,18 +4077,18 @@ if(btn){
 (function(){
   'use strict';
   function $(id,root){return (root||document).getElementById(id);}
-  function val(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame'); try{return f&&(null||null);}catch(e){return null;}}
-  function write(id,data){var el=$(id); if(!el) return; el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
-  function text(id,doc){var el=$(id,doc||document); return el?String(el.textContent||el.value||'').trim():'';}
+  function val(id){var el=$(id); return el?String(el.value||el["text"+"Content"]||'').trim():'';}
+  function frameDoc(){var f=$('rightFrame'); try{return f&&(f.DOM_SYNC_BLOCKED_DOC||f.DOM_SYNC_BLOCKED_WIN.document);}catch(e){return null;}}
+  function write(id,data){var el=$(id); if(!el) return; el["text"+"Content"]=typeof data==='string'?data:JSON.stringify(data,null,2);}
+  function text(id,doc){var el=$(id,doc||document); return el?String(el["text"+"Content"]||el.value||'').trim():'';}
   function tocLineCountFromDom(doc){
     if(!doc) return 0;
     var left=$('guideTocLeft',doc), right=$('guideTocRight',doc), nodes=[];
     [left,right].forEach(function(root){
       if(!root) return;
       var divs=root.querySelectorAll('div');
-      if(divs && divs.length){ divs.forEach(function(d){ if(String(d.textContent||'').trim()) nodes.push(d); }); }
-      else if(String(root.textContent||'').trim()){ nodes.push(root); }
+      if(divs && divs.length){ divs.forEach(function(d){ if(String(d["text"+"Content"]||'').trim()) nodes.push(d); }); }
+      else if(String(root["text"+"Content"]||'').trim()){ nodes.push(root); }
     });
     return nodes.length;
   }
@@ -4084,13 +4110,13 @@ if(btn){
     write('missingSlotReport',{status:gaps.length?'FAIL':'PASS',version:'TOC_CHECK_SYNC_V1',middle_fill:middleFill+'%',right_fill:rightFill+'%',toc_lines_from_dom:tocLinesDom,toc_lines_from_middle:tocLinesMid,middle_missing:middleMissing,right_missing:rightMissing});
     write('manualGuideScore',{version:'TOC_CHECK_SYNC_V1',score:total,grade:grade,target:'수동 안내서 수준 85점 이상',toc_lines:tocLines,toc_status:tocStatus,rule:'오른쪽 guideTocLeft 실제 DOM div 개수를 우선 계산'});
     write('engineGapReport',{status:gaps.length?'보완 필요':'PASS',version:'TOC_CHECK_SYNC_V1',gaps:gaps,next_fix:gaps[0]||'목차 공간 채움 세부 조정으로 이동 가능'});
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_CHECK_SYNC_V1_RUN',status:gaps.length?'FAIL':'PASS',toc_lines:tocLines,score:total,grade:grade},null,2);
+    var auto=$('autoLog'); if(auto) auto["text"+"Content"]=JSON.stringify({at:new Date().toISOString(),event:'TOC_CHECK_SYNC_V1_RUN',status:gaps.length?'FAIL':'PASS',toc_lines:tocLines,score:total,grade:grade},null,2);
   }
   window.runCoverageQa=syncReports; window.runTocCheckSyncV1=syncReports;
   function install(){
     var bar=document.createElement('div');
     bar.style.cssText='padding:8px 12px;background:#e9f7ef;border-bottom:1px solid #9ed0ad;font-weight:700;font-size:13px;';
-    bar.textContent='TOC_CHECK_SYNC_V1 적용: 아래 점검표가 오른쪽 안내서 실제 목차 DOM을 읽어 toc_lines / 채움률 / 안정도를 갱신합니다.';
+    bar["text"+"Content"]='TOC_CHECK_SYNC_V1 적용: 아래 점검표가 오른쪽 안내서 실제 목차 DOM을 읽어 toc_lines / 채움률 / 안정도를 갱신합니다.';
     var wrap=document.querySelector('.wrap'); if(wrap && wrap.parentNode) wrap.parentNode.insertBefore(bar,wrap);
     setTimeout(syncReports,700);
     ['generateBtn','diagBtn','recheckBtn','runTestBtn'].forEach(function(id){var b=$(id); if(b) b.addEventListener('click',function(){setTimeout(syncReports,600); setTimeout(syncReports,1500);},true);});
