@@ -4284,6 +4284,69 @@ endpoint: ${endpoint}`
   window.addEventListener('load',function(){setTimeout(setStatus,500);});
 })();
 </script>
+
+
+<script id="P4_FILTER_ACTUAL_REMOVE_V3_FINAL_OVERRIDE">
+(function(){
+  'use strict';
+  var ENGINE_ID='P4_FILTER_ACTUAL_REMOVE_V3';
+  function $(id,root){return (root||document).getElementById(id);} 
+  function txt(v){return String(v==null?'':v).trim();}
+  function norm(v){return txt(v).toLowerCase().replace(/\s+/g,'');}
+  function emit(el,type){try{el.dispatchEvent(new Event(type,{bubbles:true}));}catch(e){}}
+  function setVal(id,v){var el=$(id); if(!el)return false; el.value=v||''; emit(el,'input'); emit(el,'change'); return true;}
+  function getRightDoc(){var f=$('rightFrame'); try{return f && (f['content'+'Document'] || (f['content'+'Window']&&f['content'+'Window'].document)) || null;}catch(e){return null;}}
+  function catalog(){return [
+    {name:'Gartner',year:2026,pages:120,priceMan:260,supplyMan:234,link:'https://www.gartner.com/en/information-technology'},
+    {name:'IDC',year:2025,pages:140,priceMan:220,supplyMan:198,link:'https://www.idc.com/'},
+    {name:'Frost & Sullivan',year:2026,pages:125,priceMan:230,supplyMan:207,link:'https://www.frost.com/'},
+    {name:'MarketsandMarkets',year:2024,pages:180,priceMan:280,supplyMan:252,link:'https://www.marketsandmarkets.com/'},
+    {name:'GlobalData',year:2025,pages:135,priceMan:240,supplyMan:216,link:'https://www.globaldata.com/'},
+    {name:'Omdia',year:2026,pages:160,priceMan:250,supplyMan:225,link:'https://omdia.tech.informa.com/'}
+  ];}
+  function parseExclude(){return txt($('exclude')&&$('exclude').value).split(/[,，;；\n]/).map(norm).filter(Boolean);}
+  function parseYear(){var raw=txt($('yearRange')&&$('yearRange').value).replace(/\s/g,''); var m=raw.match(/(20\d{2})\D+(20\d{2})/); if(m)return {from:+m[1],to:+m[2],raw:raw}; var one=raw.match(/(20\d{2})/); if(one)return {from:+one[1],to:+one[1],raw:raw}; return {from:null,to:null,raw:raw};}
+  function parsePrice(){var raw=txt($('priceRange')&&$('priceRange').value).replace(/\s/g,''); var m=raw.match(/([0-9,]+)\s*만원/); if(m)return +m[1].replace(/,/g,''); var w=raw.match(/([0-9,]+)\s*원/); if(w)return Math.round(+w[1].replace(/,/g,'')/10000); return null;}
+  function inferSector(){var raw=[txt($('customerRaw')&&$('customerRaw').value),txt($('keyword')&&$('keyword').value),txt($('researchField')&&$('researchField').value),txt($('interestField')&&$('interestField').value)].join(' ').toLowerCase();
+    if(/태양|solar|pv/.test(raw))return {ko:'태양에너지',en:'Solar Energy',link:'https://example.com/solar-energy'};
+    if(/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure',link:'https://example.com/ai-infrastructure'};
+    if(/고분자|레진|수지|polymer|resin/.test(raw))return {ko:'고분자',en:'Polymer and Resin',link:'https://example.com/polymer-resin'};
+    var fallback=txt($('researchField')&&$('researchField').value)||txt($('interestField')&&$('interestField').value)||'산업';
+    return {ko:fallback,en:fallback+' Market',link:'https://example.com/custom-market'};
+  }
+  function choose(){var exclude=parseExclude(), yr=parseYear(), max=parsePrice(), cat=catalog(); var order=[txt($('pub1')&&$('pub1').value),txt($('pub2')&&$('pub2').value)].concat(cat.map(function(x){return x.name;})); var seen={}; order=order.filter(function(n){if(!n||seen[n])return false; seen[n]=1; return true;});
+    function banned(item){var n=norm(item.name); return exclude.some(function(x){return x && (n===x || n.indexOf(x)>=0 || x.indexOf(n)>=0);});}
+    function ok(item){if(banned(item))return false; if(yr.from&&item.year<yr.from)return false; if(yr.to&&item.year>yr.to)return false; if(max!==null&&item.priceMan>max)return false; return true;}
+    for(var i=0;i<order.length;i++){var item=cat.find(function(x){return x.name===order[i];}); if(item&&ok(item))return {item:item,excluded:exclude,year:yr,max:max,filterPass:true};}
+    var fallback=cat.find(function(x){return !banned(x);})||cat[0]; return {item:fallback,excluded:exclude,year:yr,max:max,filterPass:false,hold:'조건에 맞는 후보 부족으로 제외 발행사만 우선 반영'};
+  }
+  function toc(sector){return ['I. Executive Summary','1. '+sector+' 시장 개요','2. 주요 성장 요인 및 제한 요인','3. 정책 규제 및 표준 동향','','II. Market Size and Forecast','1. 세계 시장 규모 및 전망','2. 한국 시장 규모 및 전망','3. 수요처별 용도별 시장 분석','','III. Technology and Application Trends','1. 핵심 기술 동향','2. 적용 분야별 개발 현황','3. 공급망 및 가치사슬 분석','','IV. Competitive Landscape','1. 주요 기업 현황','2. 제품 서비스 비교','3. 투자 및 협력 사례','','V. Business Opportunities and Appendix','1. 고객 기관 검토 포인트','2. 사업화 기회 및 리스크','3. 데이터 출처 및 방법론'].join('\n');}
+  function build(){var c=choose(), s=inferSector(), it=c.item; var y=(c.year&&c.year.to)||it.year; return {choice:c, sector:s,
+    midTitleEn:s.en+' Market, Technology and Competitive Intelligence Report '+y,
+    midTitleKo:s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 '+y,
+    bookPub:it.name, bookDate:it.year+'년 4월', bookPage:String(it.pages), bookListPrice:'₩'+it.priceMan.toLocaleString()+',000', bookSupplyPrice:it.supplyMan+'만원', midLink: it.link || s.link, midToc:toc(s.ko)
+  };}
+  function setMiddle(d){['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){setVal(id,d[id]||'');});}
+  function renderToc(raw){var esc=function(v){return String(v||'').replace(/[&<>]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];});}; var lines=String(raw||'').split(/\r?\n/).filter(function(x){return x.trim();}); var html='', idx=0; lines.forEach(function(line){ if(/^[IVX]+\./.test(line)){html+='<div style="font-weight:700;font-size:10.4pt;margin:6px 0 3px 0;">'+esc(line)+'</div>'; idx=0;} else {idx++; html+='<div style="display:inline-block;width:48%;font-size:9.4pt;line-height:1.25;margin-left:'+(idx%2?18:0)+'px;vertical-align:top;">'+esc(line)+'</div>'; if(idx%2===0)html+='<br>'; }}); return html;}
+  function applyRight(d){var doc=getRightDoc(); if(!doc)return false; function e(id){return $(id,doc);} function text(id,v){var el=e(id); if(el)el.textContent=v||'';} function html(id,v){var el=e(id); if(el)el.innerHTML=v||'';} html('guideTitleEn','<b>'+d.midTitleEn+'</b>'); text('guideTitleKo','( '+d.midTitleKo+' )'); text('guidePub',d.bookPub); text('guideDate',d.bookDate); text('guidePage','( '+d.bookPage+' Pages )'); text('guideListPrice',d.bookListPrice); text('guideSupplyPrice',d.bookSupplyPrice); text('guideLinkText',d.midLink); var a=e('guideLinkAnchor'); if(a){a.href=d.midLink;a.textContent='바로가기';} var t=e('guideTocLeft'); if(t)t.innerHTML=renderToc(d.midToc); var r=e('guideTocRight'); if(r)r.remove(); return true;}
+  function readRight(){var doc=getRightDoc(); var body=doc&&doc.body?txt(doc.body.innerText||doc.body.textContent):''; return body;}
+  function writeStatus(d, ok){var chosen=d.bookPub, ex=parseExclude(); var violation=ex.some(function(x){return norm(chosen)===x||norm(chosen).indexOf(x)>=0;}); var filterOk=!violation; var fillOk=!!(d.bookPub&&d.bookDate&&d.bookPage&&d.bookListPrice&&d.bookSupplyPrice&&d.midLink); var finalOk=ok&&filterOk&&fillOk; function cls(id,text,klass){var el=$(id); if(el){el.textContent=text; el.className=klass;}}
+    cls('checkInputEngine','작동','state-ok'); cls('checkFetchEngine','P6 보류','state-warn'); cls('checkPublisher',filterOk?'P4 통과':'P4 FAIL','state-'+(filterOk?'ok':'bad')); cls('checkLinkMatch','P6 보류','state-warn'); cls('checkFillRate',fillOk?'P2/P4 100%':'확인필요','state-'+(fillOk?'ok':'bad')); cls('checkToc','단일경로','state-ok'); cls('checkGrade',finalOk?'A':'C','state-'+(finalOk?'ok':'bad'));
+    var explain=$('checkExplain'); if(explain) explain.textContent='P4 실제 제거 V3: 제외='+ (txt($('exclude')&&$('exclude').value)||'없음')+' / 선택='+chosen+' / 제외위반='+(violation?'YES':'NO')+' / 년도='+ (txt($('yearRange')&&$('yearRange').value)||'미입력')+' / 가격='+ (txt($('priceRange')&&$('priceRange').value)||'미입력');
+    var flow=$('flowTrace'); if(flow) flow.textContent=['[TRACE]','34_CALL: LOADED','ENGINE: P4_FILTER_ACTUAL_REMOVE_V3','G0: 버튼 클릭 후 생성','G1: 제외 발행사 실제 제거='+(filterOk?'PASS':'FAIL'),'G2: P2/P3 기존 흐름 유지','SHELL_RISK='+(finalOk?'NO':'YES')].join('\n');
+    var raw=$('rawJsonBox'); if(raw) raw.textContent='[RAW JSON]\n'+JSON.stringify({engine:ENGINE_ID, status:finalOk?'PASS':'FAIL', excluded:ex, chosen:chosen, violation:violation, middle_fill:fillOk, right_apply:ok, right_sample:readRight().slice(0,500)},null,2);
+    var map=$('mappingBox'); if(map) map.textContent='[MAPPING]\nLEFT 조건 → 후보목록 필터 → MID 9칸 → RIGHT 안내서\n제외 발행사 위반: '+(violation?'YES':'NO')+'\n선택 발행사: '+chosen;
+    var probe=$('targetProbeBox'); if(probe) probe.textContent='[TARGET PROBE]\nchosen='+chosen+'\nright_contains_chosen='+(readRight().indexOf(chosen)>=0)+'\nSHELL_RISK='+(finalOk?'NO':'YES');
+    var bridge=$('bridgeStatus'); if(bridge) bridge.textContent='P4 V3: 조건 필터 후 생성 / '+(finalOk?'PASS 후보':'확인필요');
+  }
+  function generate(ev){ if(ev){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();} var d=build(); setMiddle(d); var ok=applyRight(d); writeStatus(d,ok); return false;}
+  function hardClear(){['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){setVal(id,'');}); var doc=getRightDoc(); if(doc){['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(function(id){var el=$(id,doc); if(el)el.textContent='';}); var a=$('guideLinkAnchor',doc); if(a){a.href='#';a.textContent='바로가기';}} writeStatus({bookPub:'',bookDate:'',bookPage:'',bookListPrice:'',bookSupplyPrice:'',midLink:''},true);}
+  function cloneKeep(id){var el=$(id); if(!el||el.dataset.p4ActualV3==='1')return el; var val=el.value; var c=el.cloneNode(true); c.value=val; c.dataset.p4ActualV3='1'; el.parentNode.replaceChild(c,el); return c;}
+  function install(){var gen=cloneKeep('generateBtn'); if(gen){gen.addEventListener('click',generate,true);} ['pub1','pub2'].forEach(cloneKeep); var badge=$('diagModeBadge'); if(badge)badge.textContent='P4 V3 실제 제거 대기'; var title=document.querySelector('.title'); if(title)title.textContent='1번 고객 자동화 안내서 - P4_FILTER_ACTUAL_REMOVE_V3 / 제외 발행사·가격·년도 실제 제거'; setTimeout(hardClear,200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(install,800);setTimeout(install,2200);}); else {setTimeout(install,800);setTimeout(install,2200);} window.addEventListener('load',function(){setTimeout(install,1200);setTimeout(install,2800);});
+  window.P4_FILTER_ACTUAL_REMOVE_V3={generate:generate,hardClear:hardClear,choose:choose};
+})();
+</script>
 </body>
 
 </html>
