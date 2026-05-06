@@ -99,7 +99,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_ONLY / 한줄목차 유지 / 발행사+도서정보 동기화</div>
+    <div class="title">1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_HOLD_SPLIT_V4 / 한줄목차 유지 / 도서정보 화면반영 + P4/P6 보류 분리</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -201,9 +201,9 @@
       <div class="checkpanel" id="engineCheckPanel">
         <h3>엔진 점검표</h3>
         <div class="checkrow"><span>입력 정리 엔진</span><span id="checkInputEngine" class="state-bad">미작동</span></div>
-        <div class="checkrow"><span>데이터 수집 엔진</span><span id="checkFetchEngine" class="state-bad">미작동</span></div>
-        <div class="checkrow"><span>발행사 검증</span><span id="checkPublisher" class="state-bad">미검증</span></div>
-        <div class="checkrow"><span>링크 제목 일치</span><span id="checkLinkMatch" class="state-bad">미검증</span></div>
+        <div class="checkrow"><span>데이터 수집 엔진</span><span id="checkFetchEngine" class="state-warn">P6 보류</span></div>
+        <div class="checkrow"><span>발행사 검증</span><span id="checkPublisher" class="state-warn">P4/P6 보류</span></div>
+        <div class="checkrow"><span>링크 제목 일치</span><span id="checkLinkMatch" class="state-warn">P6 보류</span></div>
         <div class="checkrow"><span>도서정보 채움률</span><span id="checkFillRate" class="state-bad">0%</span></div>
         <div class="checkrow"><span>목차 안정도</span><span id="checkToc" class="state-bad">미확인</span></div>
         <div class="checkrow"><span>최종 안정 등급</span><span id="checkGrade" class="state-bad">C</span></div>
@@ -2722,16 +2722,16 @@ endpoint: ${endpoint}`
   function updateChecklist(r) {
     const s = scoreGuide(r || {});
     setCheck('checkInputEngine', s.inputOk ? '작동' : '미작동', s.inputOk ? 'state-ok' : 'state-bad');
-    setCheck('checkFetchEngine', s.fetchOk ? '실데이터 수신' : '수신 실패', s.fetchOk ? 'state-ok' : 'state-bad');
-    setCheck('checkPublisher', s.publisherOk ? '통과' : '보류', s.publisherOk ? 'state-ok' : 'state-warn');
-    setCheck('checkLinkMatch', s.linkMatch ? '통과' : '보류', s.linkMatch ? 'state-ok' : 'state-warn');
+    setCheck('checkFetchEngine', s.fetchOk ? '실데이터 수신' : 'P6 보류', s.fetchOk ? 'state-ok' : 'state-warn');
+    setCheck('checkPublisher', s.publisherOk ? '통과' : 'P4/P6 보류', s.publisherOk ? 'state-ok' : 'state-warn');
+    setCheck('checkLinkMatch', s.linkMatch ? '통과' : 'P6 보류', s.linkMatch ? 'state-ok' : 'state-warn');
     setCheck('checkFillRate', s.fillRate + '%', s.fillRate >= 85 ? 'state-ok' : s.fillRate >= 60 ? 'state-warn' : 'state-bad');
     setCheck('checkToc', s.tocReal ? '실목차형' : s.tocAny ? '임시목차' : '없음', s.tocReal ? 'state-ok' : s.tocAny ? 'state-warn' : 'state-bad');
     setCheck('checkGrade', s.grade, s.grade === 'S' || s.grade === 'A' ? 'state-ok' : s.grade === 'B' ? 'state-warn' : 'state-bad');
     const explain = [];
-    if (!s.fetchOk) explain.push('실데이터 수집 실패');
-    if (!s.publisherOk) explain.push('발행사 통과 안 됨');
-    if (!s.linkMatch) explain.push('링크/제목 검증 약함');
+    if (!s.fetchOk) explain.push('P6 보류: 실데이터 수집은 P2 판정에서 제외');
+    if (!s.publisherOk) explain.push('P4/P6 보류: 발행사 검증은 별도 단계');
+    if (!s.linkMatch) explain.push('P6 보류: 링크 제목 일치는 별도 검증');
     if (s.fillRate < 85) explain.push('도서정보 누락 있음');
     if (!s.tocReal) explain.push(s.tocAny ? '목차가 임시 규칙형' : '목차 없음');
     if (!explain.length) explain.push('안정도 양호');
@@ -3382,7 +3382,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_ONLY / 한줄목차 유지 / 발행사+도서정보 동기화';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_HOLD_SPLIT_V4 / 한줄목차 유지 / 도서정보 화면반영 + P4/P6 보류 분리';
     return true;
   }
 
@@ -4138,12 +4138,13 @@ endpoint: ${endpoint}`
     var probe=$('targetProbeBox'); if(probe) probe.textContent=['[TARGET PROBE]','publisher='+d.publisher,'date='+d.date,'page='+d.pageRaw,'listPrice='+d.listPrice,'supplyPrice='+d.supplyPrice,'link='+d.link,'middle_ok='+middleOk,'dom_sync_called='+domSyncOk,'right_ok='+right.ok,'hits='+JSON.stringify(right.hits||{}),'SHELL_RISK='+(pass?'NO':'YES')].join('\n');
     var bridge=$('bridgeStatus'); if(bridge) bridge.innerHTML='M1 왼쪽→가운데 완료<br>M2 DOM_SYNC 호출 '+(domSyncOk?'완료':'실패')+'<br>M3 오른쪽 안내서 확인 '+(right.ok?'완료':'실패');
     setClassText('checkInputEngine','작동','state-ok');
-    setClassText('checkPublisher','P1 발행사 동기화 유지','state-ok');
-    setClassText('checkLinkMatch',right.ok?'P2 오른쪽 반영':'P2 오른쪽 반영 실패',right.ok?'state-ok':'state-bad');
+    setClassText('checkFetchEngine','P6 보류: 온라인/실데이터 수집 제외','state-warn');
+    setClassText('checkPublisher','P4/P6 보류: 발행사 검증 별도','state-warn');
+    setClassText('checkLinkMatch','P6 보류: 링크 제목 일치 별도','state-warn');
     setClassText('checkFillRate',pass?'P2 부분 100%':'P2 부족',pass?'state-ok':'state-bad');
-    setClassText('checkGrade',pass?'P2-HOLD':'STOP',pass?'state-warn':'state-bad');
-    var explain=$('checkExplain'); if(explain) explain.textContent=pass?'P2_HOLD: 가운데와 오른쪽 안내서 반영은 코드상 확인. 실제 브라우저 화면 클릭 검증 전 최종 PASS 금지.':'STOP_CARD: P2 도서정보가 MID→DOM_SYNC→RIGHT 흐름으로 동시에 확인되지 않음.';
-    var flow=$('flowTrace'); if(flow) flow.textContent=['[TRACE]','34_CALL: LOADED','ENGINE: '+ENGINE_ID,'G0_BASE_LOCK: PASS','G1_PUBLISHER_SYNC: PASS 유지 후보','G2_BOOKINFO_SYNC: '+(pass?'HOLD_SCREEN_CHECK':'FAIL'),'G3~G4: 목차/메일/온라인 수집 미수정','SHELL_RISK: '+(pass?'NO':'YES'),'STOP_CARD: '+(pass?'NO':'YES'),'FINAL_PASS: NO_BROWSER_SCREEN_CHECK_REQUIRED'].join('\n');
+    setClassText('checkGrade',pass?'P2 화면반영 후보 / HOLD 분리':'STOP',pass?'state-warn':'state-bad');
+    var explain=$('checkExplain'); if(explain) explain.textContent=pass?'P2_HOLD_SPLIT_V4: 발행일·페이지·정가·공급가격·링크의 가운데→오른쪽 반영만 P2 판정 대상으로 둔다. 데이터 수집/발행사 검증/링크 제목 일치는 P4/P6 보류로 분리한다.':'STOP_CARD: P2 도서정보가 MID→DOM_SYNC→RIGHT 흐름으로 동시에 확인되지 않음.';
+    var flow=$('flowTrace'); if(flow) flow.textContent=['[TRACE]','34_CALL: LOADED','ENGINE: P2_HOLD_SPLIT_V4 / '+ENGINE_ID,'G0_BASE_LOCK: PASS','G1_PUBLISHER_SYNC: PASS 유지 후보','G2_BOOKINFO_SYNC: '+(pass?'SCREEN_REFLECTED_HOLD_SPLIT':'FAIL'),'G3~G4: 목차/메일/온라인 수집 미수정 / P4_P6_HOLD 분리','SHELL_RISK: '+(pass?'NO':'YES'),'STOP_CARD: '+(pass?'NO':'YES'),'FINAL_PASS: NO_BROWSER_SCREEN_CHECK_REQUIRED'].join('\n');
     var t=$('targetProbeView'); if(t) t.value=JSON.stringify(packet,null,2);
     var dp=$('diagPacket'); if(dp) dp.value=JSON.stringify(packet,null,2);
     window.__WIC_P2_DOMSYNC_LAST_PACKET__=packet;
