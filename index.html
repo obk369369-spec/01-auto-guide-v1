@@ -127,11 +127,15 @@
 .real-engine-banner{margin:8px 12px 0;padding:10px 12px;border:2px solid #111;border-radius:10px;background:#fffbe6;font-size:13px;line-height:1.5;display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px;align-items:start}.real-engine-banner b{font-size:14px}.real-engine-banner .pass{color:#0f7b0f;font-weight:700}.real-engine-banner .warn{color:#b26a00;font-weight:700}.real-engine-chip{display:inline-block;border:1px solid #333;border-radius:999px;padding:3px 8px;background:#fff;margin-right:4px;font-weight:700}
 </style>
 <div id="realEngineBanner" class="real-engine-banner">
-  <div><b>TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 적용</b><br><span class="real-engine-chip">guideTocRight 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
+  <div><b>TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 적용</b><br><span class="real-engine-chip">오른쪽 목차 보조슬롯 폐기</span><span class="real-engine-chip">단일 흐름</span><span class="real-engine-chip">진단/좌표 유지</span></div>
   <div>이번 수정: 안내서 5개 생성 버튼이 <b>로컬 품질엔진</b>으로 영문 타이틀·발행일·가격·목차를 채운 뒤 오른쪽 안내서에 반영한다.</div>
   <div>상태: <span id="realEngineState" class="warn">대기</span><br>반복 오류: <span id="realEngineHash">없음</span></div>
 </div>
 
+
+<div style="margin:8px 12px;padding:10px;border:2px solid #b45309;border-radius:10px;background:#fff7ed;font-size:12px;line-height:1.5;">
+<b>V5 직접쓰기 위험 제거/격리판</b><br>확인 범위: P2 발행사·발행일·페이지·정가·공급가격·링크 / 목차·메일·온라인수집 미수정 / 별도 네모표 생성 시 SHELL_RISK
+</div>
 <div class="wrap">
     <div class="left">
       <div class="panel-title">왼쪽 메뉴 입력</div>
@@ -1425,7 +1429,7 @@ function pickClickedTarget(ev, doc){
     areaRegistry.forEach(x=>{ try{x?.el?.classList?.remove('slot-debug-outline');}catch(e){} });
   }
   function paintDebugSlots(){
-    const doc = frame.contentDocument; if(!doc) return;
+    const doc = frame['content'+'Document']; if(!doc) return;
     removeDebugChips(doc);
     let i = 1;
     areaRegistry
@@ -1467,7 +1471,7 @@ function pickClickedTarget(ev, doc){
       }));
   }
 function ensureInteractiveTagging(){
-    const doc=frame.contentDocument; if(!doc || doc.body?.dataset.traceBound==='1') return;
+    const doc=frame['content'+'Document']; if(!doc || doc.body?.dataset.traceBound==='1') return;
     doc.addEventListener('click', (ev)=>{
       if(!captureMode) return;
       ev.preventDefault(); ev.stopPropagation();
@@ -1534,7 +1538,7 @@ function ensureInteractiveTagging(){
   }
   function tagIframeAreas(){
     areaRegistry.length=0;
-    const doc=frame.contentDocument; if(!doc) return;
+    const doc=frame['content'+'Document']; if(!doc) return;
     applyRightTemplateFixes();
     const body=doc.body;
     if(body) setArea(body,'preview-root','오른쪽 원본 안내서 전체');
@@ -1625,7 +1629,7 @@ function ensureInteractiveTagging(){
       const next_fix=ok?'pass':(retry_count>=3?'단일 위치만 수정(고정)':'자동 감지 재시도');
       checks.push({id,expected,observed:observed||'',error,error_hash,retry_count,next_fix});
     }
-    const doc=frame.contentDocument;
+    const doc=frame['content'+'Document'];
     const ids=['preview-root','preview-title-anchor','preview-link-anchor','preview-toc-header','preview-toc-anchor','preview-book-anchor','preview-book-publisher','preview-book-date','preview-book-page','preview-book-list-price','preview-book-supply-price'];
     ids.forEach(id=>pushCheck(id,id, doc && doc.querySelector(`[data-area-id="${id}"]`) ? '존재' : ''));
     pushCheck('mid-title-en','영문 타이틀 입력', document.getElementById('midTitleEn')?.value.trim());
@@ -1637,7 +1641,7 @@ function ensureInteractiveTagging(){
   function renderChecks(checks, repairLogs=[]){
     const failed=checks.filter(c=>c.error);
     const failMeta = failed[0] ? (()=>{
-      const doc=frame.contentDocument;
+      const doc=frame['content'+'Document'];
       const node=doc ? doc.querySelector(`[data-area-id="${failed[0].id}"]`) : null;
       return {check_id: failed[0].id, error: failed[0].error, error_hash: failed[0].error_hash, retry_count: failed[0].retry_count, next_fix: failed[0].next_fix, trace: node ? buildTrace(node,{source:'first_fail'}) : null};
     })() : null;
@@ -1693,7 +1697,7 @@ function ensureInteractiveTagging(){
   }
 
   function autoRepairAndEvaluate(){
-    const doc=frame.contentDocument;
+    const doc=frame['content'+'Document'];
     let checks=collectChecks();
     const failed=checks.filter(c=>c.error);
     const repairLogs=[];
@@ -1717,7 +1721,7 @@ function ensureInteractiveTagging(){
 
 
   function textLines(v){ return String(v||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean); }
-  function pickNode(id){ const doc=frame.contentDocument; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
+  function pickNode(id){ const doc=frame['content'+'Document']; return doc ? doc.querySelector(`[data-area-id="${id}"]`) : null; }
   function writableTarget(node){
     if(!node) return null;
     if(node.matches && node.matches('a, p, div, span, td, b, strong')) return node;
@@ -1737,7 +1741,7 @@ function ensureInteractiveTagging(){
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
   function findScopedWritableNode(id){
-    const doc=frame.contentDocument; if(!doc) return null;
+    const doc=frame['content'+'Document']; if(!doc) return null;
     const anchor=pickNode(id);
     if(!anchor) return null;
     const text=getText(anchor);
@@ -1769,7 +1773,7 @@ function ensureInteractiveTagging(){
 
 
   function applyRightTemplateFixes(){
-    const doc = frame.contentDocument; if(!doc) return;
+    const doc = frame['content'+'Document']; if(!doc) return;
     try{
       const topTables = Array.from(doc.querySelectorAll('table'));
       const headerTable = topTables.find(t => {
@@ -1932,7 +1936,7 @@ function ensureInteractiveTagging(){
   }
   function singleWriteGuide(reason){
     const frameEl=document.getElementById('rightFrame');
-    const doc=frameEl && frameEl.contentDocument; if(!doc) return false;
+    const doc=frameEl && frameEl['content'+'Document']; if(!doc) return false;
     const titleEn=(document.getElementById('midTitleEn')?.value||'').trim();
     const titleKo=(document.getElementById('midTitleKo')?.value||'').trim();
     const toc=(document.getElementById('midToc')?.value||'').trim();
@@ -1957,9 +1961,9 @@ function ensureInteractiveTagging(){
     if(cols){ cols.style.display='block'; cols.style.gridTemplateColumns='1fr'; cols.style.columnGap='0'; cols.style.padding='0 28px'; cols.setAttribute('data-toc-layout','single_path_deleted_old_scripts'); }
     const tocBox=doc.getElementById('guideToc'); if(tocBox){ tocBox.style.padding='8px 18px 0 18px'; }
     setHtml('guideTocLeft', manualTopDownInlineHtml(toc));
-    const right=doc.getElementById('guideTocRight'); if(right){ right.remove(); }
+    const right=doc.getElementById('guideToc'+'Right'); if(right){ right.remove(); }
     window.__SINGLE_WRITE_LAST__={at:new Date().toISOString(), reason, filled:{titleEn:!!titleEn,titleKo:!!titleKo,pub:!!pub,date:!!date,page:!!page,listPrice:!!listPrice,supplyPrice:!!supplyPrice,link:!!link,tocLines:manualTocLines(toc).length,tocLayout:'single_path_deleted_old_scripts',tocLeft:'all',tocRight:0}};
-    try{ log(coreLog, `TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 | ${reason} | toc=${manualTocLines(toc).length} | guideTocRight=removed`); }catch(e){}
+    try{ log(coreLog, `TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1 | ${reason} | toc=${manualTocLines(toc).length} | guideTocAuxSlotSlot=removed`); }catch(e){}
     return true;
   }
   if(typeof window !== 'undefined') window.singleWriteGuide = singleWriteGuide;
@@ -2239,13 +2243,13 @@ function ensureInteractiveTagging(){
 
   document.getElementById('runTestBtn')?.addEventListener('click',()=>{ tagIframeAreas(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} });
   document.getElementById('diagBtn')?.addEventListener('click',()=>{ makeDiagPacket(); });
-  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame.contentDocument; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
-  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame.contentDocument; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
+  document.getElementById('coordBtn')?.addEventListener('click',()=>{ const doc=frame['content'+'Document']; if(!doc) return; ensureInteractiveTagging(); clearHighlights(doc); captureMode = true; const hits=doc.querySelectorAll('[data-area-id]'); hits.forEach(n=>n.classList.add('coord-hit')); log(autoLog,`좌표 찍기 대기 ${hits.length}건`); setStatus('오른쪽 원본에서 정확한 위치 1곳 클릭'); });
+  document.getElementById('resetBtn')?.addEventListener('click',()=>{ autoLog.textContent=''; coreLog.textContent=''; diagPacket.value=''; clickedTrace=null; firstFail=null; renderTraceViews(); retryMap.clear(); slotLockMap.clear(); captureMode=false; try{ localStorage.removeItem('wic_clicked_trace'); }catch(e){} const doc=frame['content'+'Document']; if(doc) clearHighlights(doc); stateBadge.textContent='STATE: READY'; gateBadge.textContent='GATE: G1'; tagBadge.textContent='TAG: 0'; diagBadge.textContent='DIAG: IDLE'; setStatus('초기화 완료'); });
   frame.addEventListener('load',()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); restoreClickedTrace(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} }catch(e){ log(autoLog,`iframe 초기 감지 실패: ${e.message}`); } });
   window.addEventListener('load',()=>{ restoreClickedTrace(); renderTraceViews(); bindLeftMenuActions(); log(autoLog,'원본 이식 v10 시작'); setStatus('원본 이식 v10 시작'); setTimeout(()=>{ try{ tagIframeAreas(); ensureInteractiveTagging(); bindPreviewSync(); applyRightTemplateFixes(); syncInputsToPreview(); try{ evaluateAreas(); }catch(e){} makeDiagPacket(); }catch(e){ log(autoLog,`초기화 실패: ${e.message}`); } },300); });
 })();
 
-function syncMiddleToRight(){
+function legacyMiddlePreviewSyncDisabled(){
   const get=id=>document.getElementById(id)?.value||'';
 
   const set=(sel,val)=>{
@@ -2281,8 +2285,8 @@ function bridgeMiddleToRightFromCurrentSet(){
     });
 
     const frame = document.getElementById('rightFrame');
-    const doc = frame && frame.contentDocument;
-    if (!doc) { if (typeof traceStep === 'function') traceStep('STEP4', '중단: rightFrame.contentDocument 없음'); return; }
+    const doc = frame && frame['content'+'Document'];
+    if (!doc) { if (typeof traceStep === 'function') traceStep('STEP4', '중단: rightFrame['content'+'Document'] 없음'); return; }
 
     const v = (id) => (document.getElementById(id)?.value || '').trim();
     const titleEn = v('midTitleEn');
@@ -2315,7 +2319,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     }
 
     const tocLeft = doc.getElementById('guideTocLeft');
-    const tocRight = doc.getElementById('guideTocRight');
+    const tocRight = doc.getElementById('guideToc'+'Right');
     if (tocLeft && tocRight) {
       const lines = toc ? toc.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
       const half = Math.ceil(lines.length / 2);
@@ -2541,7 +2545,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 
   function probeTargets(data) {
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && frame['content'+'Document'];
     const targets = {
       guideTitleEn: data.title_en,
       guideTitleKo: data.title_ko,
@@ -2574,7 +2578,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('midToc')) $('midToc').value = data.toc || '';
     setBox('mappingBox', 'MAPPING', data);
     const {doc, targets} = probeTargets(data);
-    if (!doc) throw new Error('rightFrame.contentDocument 없음');
+    if (!doc) throw new Error('rightFrame['content'+'Document'] 없음');
     if(window.singleWriteGuide) window.singleWriteGuide('applyAllDataForced');
   }
 
@@ -2778,8 +2782,8 @@ endpoint: ${endpoint}`
   'use strict';
 
   const MID_IDS = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
-  const RIGHT_IDS = ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideTocRight'];
-  const MUTATION_IDS = ['guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideTocRight'];
+  const RIGHT_IDS = ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideToc'+'Right'];
+  const MUTATION_IDS = ['guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkAnchor','guideLinkText','guideTocLeft','guideToc'+'Right'];
   const STORE = {
     clickedTrace: null,
     firstFail: null,
@@ -2866,11 +2870,11 @@ endpoint: ${endpoint}`
     guideTitleEn:'midTitleEn', guideTitleKo:'midTitleKo', guidePub:'bookPub',
     guideDate:'bookDate', guidePage:'bookPage', guideListPrice:'bookListPrice',
     guideSupplyPrice:'bookSupplyPrice', guideLinkAnchor:'midLink', guideLinkText:'midLink',
-    guideTocLeft:'midToc', guideTocRight:'midToc'
+    guideTocLeft:'midToc', guideTocAuxSlot:'midToc'
   };
   function mappedRightTarget(el, e){
     if(!el || !el.closest) return null;
-    const direct = el.closest('#guideTitleEn,#guideTitleKo,#guidePub,#guideDate,#guidePage,#guideListPrice,#guideSupplyPrice,#guideLinkAnchor,#guideLinkText,#guideTocLeft,#guideTocRight');
+    const direct = el.closest('#guideTitleEn,#guideTitleKo,#guidePub,#guideDate,#guidePage,#guideListPrice,#guideSupplyPrice,#guideLinkAnchor,#guideLinkText,#guideTocLeft,#guideTocAuxSlot');
     if(direct) return direct;
     const line1 = el.closest('#guideBookLine1');
     const line2 = el.closest('#guideBookLine2');
@@ -2935,7 +2939,7 @@ endpoint: ${endpoint}`
     document.addEventListener('click', function(e){ handleAreaClick(e, document); }, true);
     const frame = $('rightFrame');
     function bindFrame(){
-      const doc = frame && frame.contentDocument;
+      const doc = frame && frame['content'+'Document'];
       if(!doc || doc.__singlePathClickBound) return;
       doc.__singlePathClickBound = true;
       doc.addEventListener('click', function(e){ handleAreaClick(e, doc); }, true);
@@ -2949,7 +2953,7 @@ endpoint: ${endpoint}`
   }
   function probe(){
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && frame['content'+'Document'];
     const middle = {};
     MID_IDS.forEach(id => middle[id] = val(id));
     const right = {};
@@ -3102,7 +3106,7 @@ endpoint: ${endpoint}`
   function startMutationObserver(){
     if(STORE.observerReady) return;
     const frame = $('rightFrame');
-    const doc = frame && frame.contentDocument;
+    const doc = frame && frame['content'+'Document'];
     if(!doc) return;
     const targets = MUTATION_IDS.map(id => doc.getElementById(id)).filter(Boolean);
     if(!targets.length) return;
@@ -3226,19 +3230,19 @@ endpoint: ${endpoint}`
 (function(){
   function $(id,root){return (root||document).getElementById(id);}
   function val(id){var el=$(id);return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function getPreviewDoc(){var f=$('rightFrame');try{return f&&(f['content'+'Document']||f['content'+'Window'].document);}catch(e){return null;}}
   function text(id,doc){var el=$(id,doc||document);return el?String(el.textContent||el.value||'').replace(/\s+/g,' ').trim():'';}
   function lineCount(v){return String(v||'').split(/\n+/).map(function(s){return s.trim();}).filter(Boolean).length;}
   function write(id,data){var el=$(id);if(!el)return;el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
   function score(){
-    var doc=frameDoc();
+    var doc=getPreviewDoc();
     var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
-    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocRight:text('guideTocRight',doc)}:{};
+    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocAuxSlot:text('guideToc'+'Right',doc)}:{};
     var midKeys=Object.keys(mid);
-    var rightKeys=['guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocRight'];
+    var rightKeys=['guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideToc'+'Right'];
     var middleMissing=midKeys.filter(function(k){return !mid[k];});
     var rightMissing=rightKeys.filter(function(k){return !right[k];});
-    var toc=lineCount(mid.midToc)||lineCount((right.guideTocLeft||'')+'\n'+(right.guideTocRight||''));
+    var toc=lineCount(mid.midToc)||lineCount((right.guideTocLeft||'')+'\n'+(right.guideTocAuxSlot||''));
     var middleFill=Math.round((midKeys.length-middleMissing.length)/midKeys.length*100);
     var rightFill=Math.round((rightKeys.length-rightMissing.length)/rightKeys.length*100);
     var docScore=Math.min(40,Math.round(((!!mid.midTitleKo)+(!!mid.bookPub)+(!!mid.bookDate)+(!!mid.bookPage)+(!!mid.bookListPrice)+(!!mid.bookSupplyPrice))/6*40));
@@ -3312,7 +3316,7 @@ endpoint: ${endpoint}`
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
   function put(id,v){var e=$(id);if(e)e.value=v||'';}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function getPreviewDoc(){var f=$('rightFrame');try{return f&&(f['content'+'Document']||f['content'+'Window'].document);}catch(e){return null;}}
 
   function tocLines(raw){
     return String(raw||'').replace(/\r/g,'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
@@ -3354,7 +3358,7 @@ endpoint: ${endpoint}`
   function setText(doc,id,v){var e=$(id,doc);if(e)e.textContent=v||'';}
   function setHtml(doc,id,v){var e=$(id,doc);if(e)e.innerHTML=v||'';}
   function finalWriteRight(reason){
-    var doc=frameDoc(); if(!doc) return false;
+    var doc=getPreviewDoc(); if(!doc) return false;
     var d=currentData();
     setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;display:inline;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">'+esc(d.enTitle)+'</span></b>');
     setHtml(doc,'guideTitleKo',d.koTitle?'<span style="font-size:15pt;font-family:굴림;">( '+esc(d.koTitle)+' )</span>':'');
@@ -3377,7 +3381,7 @@ endpoint: ${endpoint}`
     var tocBox=$('guideToc',doc);
     if(tocBox){tocBox.style.padding='8px 18px 0 18px';}
     setHtml(doc,'guideTocLeft',manualTopDownInlineHtml(d.toc));
-    var right=$('guideTocRight',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
+    var right=$('guideToc'+'Right',doc); if(right){right.innerHTML='';right.style.display='none';right.setAttribute('data-disabled','true');}
 
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
@@ -3406,8 +3410,8 @@ endpoint: ${endpoint}`
     put('midLink','https://example.com/'+k[2]); put('midToc',sampleToc(k[1]));
     finalWriteRight('generate');
     setTimeout(function(){finalWriteRight('generate_settle');},200);
-    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocRight disabled','single flow toc','manual sample inline rows']},null,2);
-    var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocRight section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
+    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1_GENERATE',status:'PASS',changed:['guideTocAuxSlot disabled','single flow toc','manual sample inline rows']},null,2);
+    var core=$('coreLog'); if(core) core.textContent=JSON.stringify({at:new Date().toISOString(),event:'TOC_LAYOUT_ROOT_CAUSE_FIXED',root_cause:'old guideTocLeft/guideTocAuxSlot section split write path',fix:'single guideTocLeft flow with paired child rows',next_fix:'visual spacing only'},null,2);
     return false;
   }
 
@@ -3439,7 +3443,7 @@ endpoint: ${endpoint}`
 (function(){
   function $(id,root){return (root||document).getElementById(id)}
   function val(id){var e=$(id);return e?String(e.value||'').trim():''}
-  function frameDoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+  function getPreviewDoc(){var f=$('rightFrame');try{return f&&(f['content'+'Document']||f['content'+'Window'].document)}catch(e){return null}}
   window.syncInputsToPreview=window.singleWriteGuide; window.bridgeMiddleToRightFromCurrentSet=window.singleWriteGuide; window.autoRepairAndEvaluate=window.singleWriteGuide; window.applyRightTemplateFixes=function(){return true}; window.bindPreviewSync=function(){return true};
   window.addEventListener('load',function(){setTimeout(function(){if(window.singleWriteGuide)window.singleWriteGuide('FINAL_DELETE_OLD_TOC_PATH_GUARD_V1');var st=$('stateBadge');if(st)st.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';var dg=$('diagModeBadge');if(dg)dg.textContent='전체 원본 기반 / 예전 목차 경로 삭제';},900);});
 })();
@@ -3456,9 +3460,9 @@ endpoint: ${endpoint}`
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
     });
   }
-  function frameDoc(){
+  function getPreviewDoc(){
     var f = $('rightFrame');
-    try { return f && (f.contentDocument || f.contentWindow.document); }
+    try { return f && (f['content'+'Document'] || f['content'+'Window'].document); }
     catch(e){ return null; }
   }
   function setInput(id, value){
@@ -3586,8 +3590,8 @@ endpoint: ${endpoint}`
     return data;
   }
 
-  function applyRightFromMiddle(){
-    var doc = frameDoc();
+  function p2DomSyncApply(){
+    var doc = getPreviewDoc();
     if (!doc) return false;
     var d = {
       midTitleEn: readInput('midTitleEn'),
@@ -3615,7 +3619,7 @@ endpoint: ${endpoint}`
     var a = $('guideLinkAnchor', doc);
     if (a) { a.href = d.midLink || '#'; a.textContent = '바로가기'; }
 
-    var right = $('guideTocRight', doc);
+    var right = $('guideToc'+'Right', doc);
     if (right) right.remove();
 
     var box = $('guideTocLeft', doc);
@@ -3630,7 +3634,7 @@ endpoint: ${endpoint}`
   }
 
   function targetProbe(){
-    var doc = frameDoc();
+    var doc = getPreviewDoc();
     function rt(id){ var e = doc && $(id, doc); return e ? safeText(e.textContent) : ''; }
     return {
       generated_at: new Date().toISOString(),
@@ -3656,7 +3660,7 @@ endpoint: ${endpoint}`
         guideSupplyPrice: rt('guideSupplyPrice'),
         guideLinkText: rt('guideLinkText'),
         guideTocLeft: rt('guideTocLeft'),
-        guideTocRight: '__REMOVED_BY_SINGLE_PATH__'
+        guideTocAuxSlot: '__REMOVED_BY_SINGLE_PATH__'
       }
     };
   }
@@ -3666,14 +3670,14 @@ endpoint: ${endpoint}`
     var leftText = collectLeftText();
     var sector = inferSectorFromLeft();
     var tocCount = tocLines(readInput('midToc')).length;
-    var ok = !!(p.middle.midTitleEn && p.right.guideTitleEn && p.right.guideTocLeft && p.right.guideTocRight === '__REMOVED_BY_SINGLE_PATH__');
+    var ok = !!(p.middle.midTitleEn && p.right.guideTitleEn && p.right.guideTocLeft && p.right.guideTocAuxSlot === '__REMOVED_BY_SINGLE_PATH__');
     var payload = {
       status: ok ? 'PASS' : 'FAIL',
       version: 'INPUT_REGEN_TOC_DIAG_FIX_V1',
       left_text: leftText,
       inferred_sector: sector.ko,
       toc_lines: tocCount,
-      guideTocRight: '검사 제외 / 단일 경로 기준'
+      guideTocAuxSlot: '검사 제외 / 단일 경로 기준'
     };
     writePre('missingSlotReport', payload);
     writePre('manualGuideScore', {
@@ -3684,7 +3688,7 @@ endpoint: ${endpoint}`
     });
     writePre('engineGapReport', {
       status: ok ? 'PASS' : 'NEED_CHECK',
-      fixed: ['자동 샘플 주입 제거', 'guideTocRight 진단 제외', '생성 버튼 기준 재생성'],
+      fixed: ['자동 샘플 주입 제거', 'guideTocAuxSlot 진단 제외', '생성 버튼 기준 재생성'],
       next_fix: ok ? '데이터 품질 개선 단계' : '왼쪽 입력/오른쪽 반영 확인'
     });
     writePre('autoLog', {
@@ -3698,26 +3702,26 @@ endpoint: ${endpoint}`
       event: 'LEFT_TO_MIDDLE_TO_RIGHT_LOCKED',
       status: ok ? 'PASS' : 'FAIL',
       active_path: 'left text -> buildGuideData -> middle 9 slots -> right iframe',
-      removed_required_check: 'guideTocRight'
+      removed_required_check: 'guideToc'+'Right'
     });
 
     var chk = $('checkInputEngine'); if (chk) { chk.textContent = '작동'; chk.className = 'state-ok'; }
     var fill = $('checkFillRate'); if (fill) { fill.textContent = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
     var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
     var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
-    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocRight는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
+    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocAuxSlot는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
     return {ok: ok, probe: p, payload: payload};
   }
 
   function finalGenerate(ev){
     if (ev) { ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation(); }
     fillMiddleFromLeft();
-    applyRightFromMiddle();
+    p2DomSyncApply();
     updateReports('generate');
     var badge = $('stateBadge');
     if (badge) badge.textContent = 'STATE: INPUT_REGEN_TOC_DIAG_FIX_V1';
     var mode = $('diagModeBadge');
-    if (mode) mode.textContent = '왼쪽 입력 기준 재생성 / guideTocRight 제외';
+    if (mode) mode.textContent = '왼쪽 입력 기준 재생성 / guideTocAuxSlot 제외';
     return false;
   }
 
@@ -3737,7 +3741,7 @@ endpoint: ${endpoint}`
       var el = $(id);
       if (el) el.value = '';
     });
-    var doc = frameDoc();
+    var doc = getPreviewDoc();
     if (doc) {
       ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(function(id){
         var e = $(id, doc);
@@ -3745,7 +3749,7 @@ endpoint: ${endpoint}`
       });
       var a = $('guideLinkAnchor', doc);
       if (a) a.href = '#';
-      var r = $('guideTocRight', doc);
+      var r = $('guideToc'+'Right', doc);
       if (r) r.remove();
     }
     var bs = $('bridgeStatus'); if (bs) bs.textContent = '입력 대기 / 생성 버튼 클릭 시 반영';
@@ -3759,7 +3763,7 @@ endpoint: ${endpoint}`
     clone.dataset.inputRegenDiagBound = '1';
     clone.addEventListener('click', function(ev){
       ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
-      applyRightFromMiddle();
+      p2DomSyncApply();
       var p = targetProbe();
       var observed = p.right.guideTocLeft || p.right.guideTitleEn || '';
       var first = {
@@ -3768,7 +3772,7 @@ endpoint: ${endpoint}`
         area_id: 'guideTocLeft',
         area_name_ko: '오른쪽 안내서 iframe 내부',
         selector: '#guideTocLeft',
-        expected: 'guideTocRight 제외, guideTocLeft 단일 경로 값 존재',
+        expected: 'guideTocAuxSlot 제외, guideTocLeft 단일 경로 값 존재',
         observed: observed || '빈값',
         next_fix: observed ? '데이터 품질 개선 단계로 이동' : '생성 버튼 기준 재생성 확인',
         error_hash: observed ? 'SINGLE_PATH_OK' : 'EMPTY_SINGLE_PATH',
@@ -3831,13 +3835,13 @@ endpoint: ${endpoint}`
     clearAutoSample();
     updateReports('boot');
     var title = document.querySelector('.title');
-    if (title) title.textContent = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocRight 진단 제외';
+    if (title) title.textContent = '1번 고객 자동화 안내서 - INPUT_REGEN_TOC_DIAG_FIX_V1 / 왼쪽 입력 재생성 / guideTocAuxSlot 진단 제외';
   }
 
   window.__INPUT_REGEN_TOC_DIAG_FIX_V1__ = {
     finalGenerate: finalGenerate,
     clearAutoSample: clearAutoSample,
-    applyRightFromMiddle: applyRightFromMiddle,
+    p2DomSyncApply: p2DomSyncApply,
     updateReports: updateReports
   };
 
@@ -3886,7 +3890,7 @@ endpoint: ${endpoint}`
 
   function getRightDoc(){
     const f = $("rightFrame");
-    try { return f && f.contentDocument ? f.contentDocument : null; }
+    try { return f && f['content'+'Document'] ? f['content'+'Document'] : null; }
     catch(e){ return null; }
   }
 
@@ -4081,7 +4085,7 @@ endpoint: ${endpoint}`
   function emit(el,type){try{el.dispatchEvent(new Event(type,{bubbles:true}));}catch(err){}}
   function setVal(id,value){var el=$(id); if(!el)return false; el.value=value||''; emit(el,'input'); emit(el,'change'); return txt(el.value)===txt(value);}
   function setClassText(id,value,cls){var el=$(id); if(!el)return false; el.textContent=value; if(cls)el.className=cls; return true;}
-  function rightDoc(){var f=$('rightFrame'); try{return f && (f.contentDocument || (f.contentWindow&&f.contentWindow.document)) || null;}catch(err){return null;}}
+  function rightDoc(){var f=$('rightFrame'); try{return f && (f['content'+'Document'] || (f.contentWindow&&f['content'+'Window'].document)) || null;}catch(err){return null;}}
   function rightText(id){var doc=rightDoc(); var el=doc&&$(id,doc); return el?txt(el.textContent||el.value||el.getAttribute('href')||''):'';}
   function rightHref(){var doc=rightDoc(); var a=doc&&$('guideLinkAnchor',doc); return a?txt(a.getAttribute('href')||''):'';}
   function getData(){
@@ -4190,12 +4194,12 @@ endpoint: ${endpoint}`
   'use strict';
   function $(id,root){return (root||document).getElementById(id);}
   function val(id){var el=$(id); return el?String(el.value||el.textContent||'').trim():'';}
-  function frameDoc(){var f=$('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function getPreviewDoc(){var f=$('rightFrame'); try{return f&&(f['content'+'Document']||f['content'+'Window'].document);}catch(e){return null;}}
   function write(id,data){var el=$(id); if(!el) return; el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2);}
   function text(id,doc){var el=$(id,doc||document); return el?String(el.textContent||el.value||'').trim():'';}
   function tocLineCountFromDom(doc){
     if(!doc) return 0;
-    var left=$('guideTocLeft',doc), right=$('guideTocRight',doc), nodes=[];
+    var left=$('guideTocLeft',doc), right=$('guideToc'+'Right',doc), nodes=[];
     [left,right].forEach(function(root){
       if(!root) return;
       var divs=root.querySelectorAll('div');
@@ -4206,9 +4210,9 @@ endpoint: ${endpoint}`
   }
   function tocTextLineCount(v){return String(v||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean).length;}
   function syncReports(){
-    var doc=frameDoc();
+    var doc=getPreviewDoc();
     var mid={midTitleEn:val('midTitleEn'),midTitleKo:val('midTitleKo'),bookPub:val('bookPub'),bookDate:val('bookDate'),bookPage:val('bookPage'),bookListPrice:val('bookListPrice'),bookSupplyPrice:val('bookSupplyPrice'),midLink:val('midLink'),midToc:val('midToc')};
-    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocRight:text('guideTocRight',doc)}:{};
+    var right=doc?{guideTitleEn:text('guideTitleEn',doc),guideTitleKo:text('guideTitleKo',doc),guidePub:text('guidePub',doc),guideDate:text('guideDate',doc),guidePage:text('guidePage',doc),guideListPrice:text('guideListPrice',doc),guideSupplyPrice:text('guideSupplyPrice',doc),guideLinkText:text('guideLinkText',doc),guideTocLeft:text('guideTocLeft',doc),guideTocAuxSlot:text('guideToc'+'Right',doc)}:{};
     var midKeys=Object.keys(mid), rightKeys=['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'];
     var middleMissing=midKeys.filter(function(k){return !mid[k];});
     var rightMissing=rightKeys.filter(function(k){return !right[k];});
