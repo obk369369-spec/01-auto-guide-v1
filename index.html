@@ -3445,9 +3445,9 @@ endpoint: ${endpoint}`
 
   document.addEventListener('DOMContentLoaded',function(){
     replaceButtonHandler();
-    setTimeout(function(){replaceButtonHandler(); finalGenerate();},350);
+    // P4_BUTTON_ONLY_V2: 초기 로딩 시 자동 생성 금지. 안내서 5개 생성 버튼 클릭 후에만 finalGenerate 실행.
   });
-  setTimeout(function(){replaceButtonHandler(); finalWriteRight('late_lock');},900);
+  setTimeout(function(){replaceButtonHandler();},900);
 })();
 </script>
 
@@ -4268,6 +4268,22 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<script id="P4_BUTTON_ONLY_V2_GUARD">
+(function(){
+  'use strict';
+  function $(id){return document.getElementById(id);}
+  var MID=['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+  window.__P4_BUTTON_ONLY_V2__={rule:'no auto generation on page load; generate only by generateBtn click',status:'WAITING_INPUT'};
+  function setStatus(){
+    var b=$('diagModeBadge'); if(b) b.textContent='P4 버튼 클릭 전 대기';
+    var st=$('bridgeStatus'); if(st) st.textContent='입력 대기 / 생성 버튼 클릭 시 반영';
+    var auto=$('autoLog'); if(auto) auto.textContent=JSON.stringify({at:new Date().toISOString(),event:'P4_BUTTON_ONLY_V2_READY',status:'WAITING_INPUT',rule:'초기 로딩 자동 채움 금지'},null,2);
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(setStatus,200);});
+  window.addEventListener('load',function(){setTimeout(setStatus,500);});
+})();
+</script>
 </body>
 
 </html>
