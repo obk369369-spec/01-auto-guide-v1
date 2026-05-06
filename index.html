@@ -94,6 +94,12 @@
   .fixed-error-panel .row{display:flex;justify-content:space-between;border-bottom:1px dashed #ddd;padding:4px 0;gap:8px;}
   .fixed-error-panel .row:last-child{border-bottom:0;}
 
+
+/* P3_LAYOUT_ONLY_V1: P2 데이터 흐름은 건드리지 않고 화면 폭/줄바꿈만 보정 */
+#midLink{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.35;}
+#midTitleEn,#midTitleKo{white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all;line-height:1.35;}
+#midToc{line-height:1.45;white-space:pre-wrap;}
+#rightFrame{min-height:1450px;}
 </style>
 
 </head>
@@ -134,7 +140,7 @@
 
 
 <div style="margin:8px 12px;padding:10px;border:2px solid #b45309;border-radius:10px;background:#fff7ed;font-size:12px;line-height:1.5;">
-<b>V5 직접쓰기 위험 제거/격리판</b><br>확인 범위: P2 발행사·발행일·페이지·정가·공급가격·링크 / 목차·메일·온라인수집 미수정 / 별도 네모표 생성 시 SHELL_RISK
+<b>V6/P3 정렬 보정판</b><br>확인 범위: P2 발행사·발행일·페이지·정가·공급가격·링크 / 목차·메일·온라인수집 미수정 / 별도 네모표 생성 시 SHELL_RISK
 </div>
 <div class="wrap">
     <div class="left">
@@ -263,6 +269,13 @@ v\:* {behavior:url(#default#VML);}
 o\:* {behavior:url(#default#VML);}
 w\:* {behavior:url(#default#VML);}
 .shape {behavior:url(#default#VML);}
+
+/* P3_LAYOUT_ONLY_V1: guide print layout only */
+#guideTitleEn{max-width:98% !important;line-height:1.18 !important;margin-bottom:6px !important;word-break:keep-all !important;overflow-wrap:break-word !important;}
+#guideTitleEn span{font-size:17pt !important;line-height:1.18 !important;word-break:keep-all !important;overflow-wrap:break-word !important;}
+#guideTitleKo{max-width:96% !important;line-height:1.28 !important;margin-top:8px !important;margin-bottom:8px !important;word-break:keep-all !important;overflow-wrap:break-word !important;}
+#guideLinkText{display:inline-block !important;max-width:315pt !important;vertical-align:top !important;word-break:break-word !important;overflow-wrap:anywhere !important;line-height:1.25 !important;}
+#guideTocBox,#guideTocLeft,#guideTocAuxSlot{line-height:1.32 !important;word-break:keep-all !important;overflow-wrap:break-word !important;}
 &lt;/style&gt;
 &lt;![endif]--&gt;
 &lt;title&gt;E-09-01&lt;/title&gt;
