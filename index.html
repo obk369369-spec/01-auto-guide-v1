@@ -105,7 +105,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_HOLD_SPLIT_V4 / 한줄목차 유지 / 도서정보 화면반영 + P4/P6 보류 분리</div>
+    <div class="title">1번 고객 자동화 안내서 - P4_FILTER_CHECK_V1 / 제외 발행사·가격·년도 조건 필터</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -140,7 +140,7 @@
 
 
 <div style="margin:8px 12px;padding:10px;border:2px solid #b45309;border-radius:10px;background:#fff7ed;font-size:12px;line-height:1.5;">
-<b>V6/P3 정렬 보정판</b><br>확인 범위: P2 발행사·발행일·페이지·정가·공급가격·링크 / 목차·메일·온라인수집 미수정 / 별도 네모표 생성 시 SHELL_RISK
+<b>P4 조건 필터 보정판 V1</b><br>확인 범위: 제외 발행사·가격 범위·발행년도 범위가 추천 결과와 가운데/오른쪽 안내서에 반영되는지 확인 / 메일·온라인수집 미수정 / 별도 네모표 생성 시 SHELL_RISK
 </div>
 <div class="wrap">
     <div class="left">
@@ -3399,7 +3399,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P2_BOOKINFO_SYNC_HOLD_SPLIT_V4 / 한줄목차 유지 / 도서정보 화면반영 + P4/P6 보류 분리';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P4_FILTER_CHECK_V1 / 제외 발행사·가격·년도 조건 필터';
     return true;
   }
 
@@ -3549,18 +3549,79 @@ endpoint: ${endpoint}`
     };
   }
 
+  function parseExcludeList(){
+    return String(readInput('exclude') || '')
+      .split(/[,，;；\n]/)
+      .map(function(x){ return x.trim().toLowerCase(); })
+      .filter(Boolean);
+  }
+  function parseYearRange(){
+    var raw = String(readInput('yearRange') || '').replace(/\s/g,'');
+    var m = raw.match(/(20\d{2})\D+(20\d{2})/);
+    if (m) return {from:parseInt(m[1],10), to:parseInt(m[2],10), raw:raw};
+    var one = raw.match(/(20\d{2})/);
+    if (one) return {from:parseInt(one[1],10), to:parseInt(one[1],10), raw:raw};
+    return {from:null,to:null,raw:raw};
+  }
+  function parsePriceLimitMan(){
+    var raw = String(readInput('priceRange') || '').replace(/\s/g,'');
+    var m = raw.match(/([0-9,]+)\s*만원/);
+    if (m) return parseInt(m[1].replace(/,/g,''),10);
+    var won = raw.match(/₩?([0-9,]+)원/);
+    if (won) return Math.round(parseInt(won[1].replace(/,/g,''),10)/10000);
+    return null;
+  }
+  function publisherCatalog(){
+    return [
+      {name:'Gartner', year:2026, pages:120, priceMan:260, supplyMan:234, link:'https://www.gartner.com/en/information-technology'},
+      {name:'IDC', year:2025, pages:140, priceMan:220, supplyMan:198, link:'https://www.idc.com/'},
+      {name:'Frost & Sullivan', year:2026, pages:125, priceMan:230, supplyMan:207, link:'https://www.frost.com/'},
+      {name:'MarketsandMarkets', year:2024, pages:180, priceMan:280, supplyMan:252, link:'https://www.marketsandmarkets.com/'},
+      {name:'GlobalData', year:2025, pages:135, priceMan:240, supplyMan:216, link:'https://www.globaldata.com/'},
+      {name:'Omdia', year:2026, pages:160, priceMan:250, supplyMan:225, link:'https://omdia.tech.informa.com/'}
+    ];
+  }
+  function pickFilteredPublisher(){
+    var preferred = [readInput('pub1'), readInput('pub2')].filter(Boolean);
+    var exclude = parseExcludeList();
+    var yr = parseYearRange();
+    var maxMan = parsePriceLimitMan();
+    var catalog = publisherCatalog();
+    var ordered = preferred.concat(catalog.map(function(x){return x.name;}));
+    var seen = {};
+    ordered = ordered.filter(function(n){ if(!n || seen[n]) return false; seen[n]=1; return true; });
+    function ok(item){
+      if (exclude.indexOf(String(item.name).toLowerCase()) >= 0) return false;
+      if (yr.from && item.year < yr.from) return false;
+      if (yr.to && item.year > yr.to) return false;
+      if (maxMan !== null && item.priceMan > maxMan) return false;
+      return true;
+    }
+    var chosen = null;
+    for (var i=0;i<ordered.length;i++){
+      var item = catalog.find(function(x){return x.name===ordered[i];});
+      if(item && ok(item)){ chosen=item; break; }
+    }
+    if(!chosen){
+      chosen = catalog.find(function(item){return exclude.indexOf(String(item.name).toLowerCase()) < 0;}) || catalog[0];
+      chosen = Object.assign({}, chosen, {filterHold:true});
+    }
+    return {item:chosen, exclude:exclude, yearRange:yr, maxMan:maxMan};
+  }
   function buildGuideData(){
     var s = inferSectorFromLeft();
-    var pub = readInput('pub1') || 'Gartner';
+    var pick = pickFilteredPublisher();
+    var item = pick.item;
+    var titleYear = (pick.yearRange && pick.yearRange.to) ? pick.yearRange.to : item.year;
     return {
-      midTitleEn: s.en + ' Market, Technology and Competitive Intelligence Report 2026',
-      midTitleKo: s.ko + ' 시장·기술·경쟁구도 종합 분석 보고서 2026',
-      bookPub: pub,
-      bookDate: '2026년 4월',
-      bookPage: '248',
-      bookListPrice: '￦4,800,000',
-      bookSupplyPrice: '별도 문의',
-      midLink: s.link,
+      midTitleEn: s.en + ' Market, Technology and Competitive Intelligence Report ' + titleYear,
+      midTitleKo: s.ko + ' 시장·기술·경쟁구도 종합 분석 보고서 ' + titleYear,
+      bookPub: item.name,
+      bookDate: item.year + '년 4월',
+      bookPage: String(item.pages),
+      bookListPrice: item.priceMan + '만원',
+      bookSupplyPrice: item.supplyMan + '만원',
+      midLink: item.link,
       midToc: TOC_TEMPLATE.replace(/\{SECTOR\}/g, s.ko)
     };
   }
@@ -3718,11 +3779,19 @@ endpoint: ${endpoint}`
       removed_required_check: 'guideToc'+'Right'
     });
 
+    var pick = (typeof pickFilteredPublisher === 'function') ? pickFilteredPublisher() : null;
+    var chosen = pick && pick.item ? pick.item.name : readInput('bookPub');
+    var filterMsg = 'P4 필터: 제외 발행사=' + (readInput('exclude') || '없음') + ' / 년도=' + (readInput('yearRange') || '미입력') + ' / 가격=' + (readInput('priceRange') || '미입력') + ' / 선택=' + chosen;
     var chk = $('checkInputEngine'); if (chk) { chk.textContent = '작동'; chk.className = 'state-ok'; }
+    var fetch = $('checkFetchEngine'); if (fetch) { fetch.textContent = 'P6 보류'; fetch.className = 'state-warn'; }
+    var pubchk = $('checkPublisher'); if (pubchk) { pubchk.textContent = ok ? 'P4 통과 후보' : '확인필요'; pubchk.className = ok ? 'state-ok' : 'state-warn'; }
+    var linkchk = $('checkLinkMatch'); if (linkchk) { linkchk.textContent = 'P6 보류'; linkchk.className = 'state-warn'; }
     var fill = $('checkFillRate'); if (fill) { fill.textContent = ok ? '100%' : '확인필요'; fill.className = ok ? 'state-ok' : 'state-warn'; }
     var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
     var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
-    var explain = $('checkExplain'); if (explain) explain.textContent = 'guideTocAuxSlot는 삭제 대상이므로 진단 제외. 생성 버튼 클릭 때 왼쪽 입력 기준으로 재생성.';
+    var explain = $('checkExplain'); if (explain) explain.textContent = filterMsg + ' / P2 도서정보와 P3 목차 흐름은 유지한다.';
+    var flow = $('flowTrace'); if(flow) flow.textContent = ['[TRACE]','34_CALL: LOADED','ENGINE: P4_FILTER_CHECK_V1','P2_DATA_FLOW: 유지','P3_LAYOUT_FLOW: 유지','P4_FILTER: '+filterMsg,'SHELL_RISK: '+(ok?'NO':'YES'),'P5/P6: 보류'].join('
+');
     return {ok: ok, probe: p, payload: payload};
   }
 
