@@ -4696,3 +4696,72 @@ endpoint: ${endpoint}`
 
 
 <!-- removed TOC_MANUAL_INLINE_LAYOUT_FIX_V1 conflicting old/write path -->
+
+<style id="p5-auto-judge-style">
+#p5AutoJudgePanel{margin-top:10px;border:2px solid #0f172a;border-radius:10px;background:#f8fafc;padding:10px;font-size:12px;line-height:1.45;}
+#p5AutoJudgePanel h3{margin:0 0 8px 0;font-size:14px;}
+.p5-judge-row{display:flex;justify-content:space-between;border-bottom:1px dashed #cbd5e1;padding:4px 0;gap:8px;}
+.p5-judge-row:last-child{border-bottom:none;}
+.p5-pass{color:#047857;font-weight:800;}
+.p5-hold{color:#b45309;font-weight:800;}
+.p5-fail{color:#b91c1c;font-weight:800;}
+</style>
+<script id="p5-auto-judge-repeat-block-v2">
+(function(){
+  var ENGINE='P5_AUTO_JUDGE_REPEAT_BLOCK_V2';
+  function $(id){return document.getElementById(id);}
+  function val(id){var e=$(id); return e ? (e.value || e.textContent || '').trim() : '';}
+  function hasUsefulText(s){return !!s && s.length>=12 && !/확인 필요|추천 보고서|발행사 확인 필요|링크 확인 필요/.test(s);}
+  function installPanel(){
+    if($('p5AutoJudgePanel')) return;
+    var base=$('p5MessagePanel') || document.querySelector('.middle');
+    if(!base) return;
+    var p=document.createElement('div');
+    p.id='p5AutoJudgePanel';
+    p.innerHTML='<h3>P5 자동 판정 / 반복 전가 차단</h3>'
+      +'<div class="p5-judge-row"><span>메일 제목</span><span id="p5JudgeSubject" class="p5-hold">대기</span></div>'
+      +'<div class="p5-judge-row"><span>메일 본문</span><span id="p5JudgeBody" class="p5-hold">대기</span></div>'
+      +'<div class="p5-judge-row"><span>유선 멘트</span><span id="p5JudgePhone" class="p5-hold">대기</span></div>'
+      +'<div class="p5-judge-row"><span>후속 문구</span><span id="p5JudgeFollow" class="p5-hold">대기</span></div>'
+      +'<div class="p5-judge-row"><span>전체 판정</span><span id="p5JudgeFinal" class="p5-hold">생성 전</span></div>'
+      +'<div id="p5JudgeReason" style="margin-top:8px;white-space:pre-wrap;color:#334155;">동일 캡처 반복 금지. FAIL 1회 발생 시 원인만 수정.</div>';
+    base.appendChild(p);
+  }
+  function set(id, txt, cls){var e=$(id); if(e){e.textContent=txt; e.className=cls;}}
+  function judge(){
+    installPanel();
+    var sub=val('p5MailSubject'), body=val('p5MailBody'), phone=val('p5PhoneScript'), follow=val('p5FollowUp');
+    var rows=[
+      ['p5JudgeSubject', sub, 10, '메일 제목 비어 있음/너무 짧음'],
+      ['p5JudgeBody', body, 60, '메일 본문 비어 있음/너무 짧음'],
+      ['p5JudgePhone', phone, 40, '유선 멘트 비어 있음/너무 짧음'],
+      ['p5JudgeFollow', follow, 30, '후속 문구 비어 있음/너무 짧음']
+    ];
+    var fail=[];
+    rows.forEach(function(r){
+      var ok=hasUsefulText(r[1]) && r[1].length>=r[2];
+      set(r[0], ok?'PASS':'FAIL', ok?'p5-pass':'p5-fail');
+      if(!ok) fail.push(r[3]);
+    });
+    var final=$('p5JudgeFinal'), reason=$('p5JudgeReason');
+    if(fail.length){
+      if(final){final.textContent='FAIL / 반복 테스트 금지'; final.className='p5-fail';}
+      if(reason){reason.textContent='FAIL 원인:\n- '+fail.join('\n- ')+'\n\n다음 행동: 같은 화면 재테스트 금지. P5 문구 생성 연결부만 수정.';}
+      var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_AUTO_JUDGE: FAIL\nREPEAT_TEST: BLOCK\nNEXT_FIX: P5_MESSAGE_BINDING_ONLY';
+      return false;
+    }
+    if(final){final.textContent='PASS 후보 / P6 전환 가능'; final.className='p5-pass';}
+    if(reason){reason.textContent='P5 메일/유선/후속 문구 자동 판정 통과. 같은 P5 확인 반복 금지.';}
+    var st=$('p5MessageState'); if(st) st.textContent='P5 자동 판정 PASS 후보 / 반복 테스트 금지 / P6 진행 가능';
+    var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_AUTO_JUDGE: PASS_CANDIDATE\nREPEAT_TEST: BLOCK\nNEXT: P6_FINAL_STABILITY';
+    return true;
+  }
+  function bind(){
+    installPanel();
+    var gen=$('generateBtn'); if(gen) gen.addEventListener('click', function(){setTimeout(judge, 800); setTimeout(judge, 1500);}, true);
+    ['p5MailSubject','p5MailBody','p5PhoneScript','p5FollowUp','midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookSupplyPrice','midLink'].forEach(function(id){var e=$(id); if(e) e.addEventListener('input', function(){setTimeout(judge,200);});});
+    setTimeout(judge,1000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
