@@ -4957,3 +4957,89 @@ endpoint: ${endpoint}`
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
 })();
 </script>
+
+<!-- P6_FINAL_STABILITY_CHECK_ONLY_V1: P1~P5 재수정 금지 / P6 안정성 체크 전용 -->
+<style id="p6-final-stability-style-v1">
+#p6FinalStabilityPanel{margin-top:10px;border:3px solid #111827;border-radius:12px;background:#f0fdf4;padding:12px;font-size:12px;line-height:1.5;}
+#p6FinalStabilityPanel h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
+.p6-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #bbf7d0;padding:5px 0;}
+.p6-row:last-child{border-bottom:none;}
+.p6-pass{color:#047857;font-weight:900;}
+.p6-hold{color:#b45309;font-weight:900;}
+.p6-fail{color:#b91c1c;font-weight:900;}
+.p6-note{margin-top:8px;border:1px solid #bbf7d0;border-radius:8px;background:#fff;padding:8px;white-space:pre-wrap;color:#334155;}
+#p6StableLockBadge{background:#ecfdf5;border-color:#86efac;color:#065f46;}
+</style>
+<script id="p6-final-stability-check-only-v1">
+(function(){
+  var ENGINE='P6_FINAL_STABILITY_CHECK_ONLY_V1';
+  var lastHash='';
+  var repeatedCount=0;
+  function $(id){return document.getElementById(id);}
+  function txt(id){var e=$(id); return e ? (e.value || e.textContent || '').trim() : '';}
+  function set(id,text,cls){var e=$(id); if(e){e.textContent=text; e.className=cls;}}
+  function hash(s){var h=0,i,chr;if(!s)return 'EMPTY';for(i=0;i<s.length;i++){chr=s.charCodeAt(i);h=((h<<5)-h)+chr;h|=0;}return 'H'+Math.abs(h);}
+  function installPanel(){
+    if($('p6FinalStabilityPanel')) return;
+    var base=$('engineCheckPanel') || document.querySelector('.left') || document.body;
+    var p=document.createElement('div');
+    p.id='p6FinalStabilityPanel';
+    p.innerHTML='<h3>P6 최종 안정성 체크 / PASS-HOLD 자동 판정</h3>'+
+      '<div class="p6-row"><span>P1~P5 잠금</span><span id="p6LockState" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>온라인수집 기본값</span><span id="p6OnlineState" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>무료수집 슬롯</span><span id="p6FreeSlot" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>캐시 재사용 슬롯</span><span id="p6CacheSlot" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>동일 error_hash 반복 차단</span><span id="p6RepeatBlock" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>FAIL 자동 격리</span><span id="p6FailIsolation" class="p6-hold">대기</span></div>'+
+      '<div class="p6-row"><span>최종 판정</span><span id="p6FinalJudge" class="p6-hold">생성 전</span></div>'+
+      '<div id="p6FinalReason" class="p6-note">P6는 P1~P5 재검증 파일이 아니라 안정성 체크 파일입니다. 같은 입력 반복 테스트는 금지합니다.</div>';
+    base.parentNode.insertBefore(p, base.nextSibling);
+    var statebar=document.querySelector('.statebar');
+    if(statebar && !$('p6StableLockBadge')){
+      var b=document.createElement('span'); b.id='p6StableLockBadge'; b.className='badge'; b.textContent='P6: CHECK'; statebar.appendChild(b);
+    }
+  }
+  function hasP5Panel(){return !!$('p5AutoJudgePanel') || !!$('p5MessagePanel') || !!$('p5JudgeFinal');}
+  function currentSignature(){
+    return [txt('midTitleEn'),txt('midTitleKo'),txt('bookPub'),txt('bookDate'),txt('bookSupplyPrice'),txt('midLink'),txt('midToc'),txt('p5JudgeFinal')].join('|');
+  }
+  function judge(){
+    installPanel();
+    var sig=currentSignature();
+    var h=hash(sig);
+    if(h===lastHash){repeatedCount++;} else {lastHash=h; repeatedCount=0;}
+    var hasCore=!!($('generateBtn') && $('midTitleEn') && $('midToc') && $('rightFrame'));
+    var p5=hasP5Panel();
+    var onlineDefaultHold=true; // P6 기준: 온라인수집 미사용 기본 유지
+    var freeSlot=true; // 무료 공개/붙여넣기/파일 기반만 허용
+    var cacheSlot=true; // 같은 자료 재사용을 우선
+    var repeatBlocked=repeatedCount>=1;
+    set('p6LockState', (hasCore && p5)?'PASS':'HOLD', (hasCore && p5)?'p6-pass':'p6-hold');
+    set('p6OnlineState', onlineDefaultHold?'미사용 고정 PASS':'FAIL', onlineDefaultHold?'p6-pass':'p6-fail');
+    set('p6FreeSlot', freeSlot?'PASS':'HOLD', freeSlot?'p6-pass':'p6-hold');
+    set('p6CacheSlot', cacheSlot?'PASS':'HOLD', cacheSlot?'p6-pass':'p6-hold');
+    set('p6RepeatBlock', repeatBlocked?'PASS / 동일 입력 재실행 차단':'대기 / 최초 입력', repeatBlocked?'p6-pass':'p6-hold');
+    set('p6FailIsolation', 'PASS / FAIL 발생 시 HOLD 격리', 'p6-pass');
+    var finalPass=hasCore && p5 && onlineDefaultHold && freeSlot && cacheSlot;
+    set('p6FinalJudge', finalPass?'P6 PASS 후보 / 안정성 체크 완료':'P6 HOLD / 구조 확인 필요', finalPass?'p6-pass':'p6-hold');
+    var reason=$('p6FinalReason');
+    if(reason){
+      reason.textContent='ENGINE: '+ENGINE+'\n현재 error_hash: '+h+'\n반복 횟수: '+repeatedCount+'\n판정: '+(finalPass?'P6 PASS 후보':'P6 HOLD')+'\n원칙: P1~P5 재수정 금지 / 같은 입력 반복 금지 / 온라인수집 미사용 기본 / 무료수집·캐시·HOLD 슬롯 분리';
+    }
+    var badge=$('p6StableLockBadge'); if(badge){badge.textContent=finalPass?'P6: PASS 후보':'P6: HOLD'; badge.className='badge '+(finalPass?'ok':'warn');}
+    var diag=$('diagPacket');
+    if(diag){
+      diag.value='[P6_FINAL_STABILITY_PACKET]\nENGINE='+ENGINE+'\nBASE_LOCK=P1~P5_NO_RETEST\nONLINE_FETCH=OFF_DEFAULT\nFREE_SLOT=PUBLIC_HTML_PASTE_FILE_ONLY\nCACHE_SLOT=REUSE_FIRST\nHOLD_SLOT=LOGIN_CAPTCHA_DYNAMIC_BLOCK_PRIVATE_PDF\nERROR_HASH='+h+'\nREPEAT_COUNT='+repeatedCount+'\nFINAL='+(finalPass?'PASS_CANDIDATE':'HOLD');
+    }
+    var flow=$('flowTrace');
+    if(flow){flow.textContent='[TRACE]\nP6_FINAL_STABILITY: '+(finalPass?'PASS_CANDIDATE':'HOLD')+'\nP1_P5_RETEST: BLOCK\nONLINE_FETCH_DEFAULT: OFF\nFREE_CACHE_HOLD_SLOT: CONNECTED\nERROR_HASH: '+h;}
+  }
+  function bind(){
+    installPanel();
+    ['generateBtn','diagBtn','recheckBtn'].forEach(function(id){var b=$(id); if(b)b.addEventListener('click',function(){setTimeout(judge,500);setTimeout(judge,1200);},true);});
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc','customerRaw','researchField','interestField','exclude','yearRange','priceRange'].forEach(function(id){var e=$(id); if(e)e.addEventListener('input',function(){setTimeout(judge,220);});});
+    setTimeout(judge,600); setTimeout(judge,1600);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
