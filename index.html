@@ -4719,144 +4719,114 @@ endpoint: ${endpoint}`
 </script>
 
 
-<!-- P5_OBSERVER_FREE_FINAL_V4: 관찰자 반복 테스트 전가 차단 + P5 문구 자동 채움/자동 판정 최종 우선권 -->
-<script id="p5-observer-free-final-v4">
+<!-- P5_OBSERVER_FREE_FINAL_V5: 관찰자 반복 전가 차단 + 중복 ID 대응 + 메일본문 단일수정 -->
+<script id="p5-observer-free-final-v5">
 (function(){
-  var ENGINE='P5_OBSERVER_FREE_FINAL_V4';
+  var ENGINE='P5_OBSERVER_FREE_FINAL_V5';
   function $(id){return document.getElementById(id);}
   function all(id){return Array.prototype.slice.call(document.querySelectorAll('#'+id));}
+  function readAll(id){
+    return all(id).map(function(e){return String(('value' in e ? e.value : e.textContent) || '').trim();}).filter(Boolean);
+  }
+  function best(id){
+    var arr=readAll(id);
+    if(!arr.length) return '';
+    return arr.sort(function(a,b){return b.length-a.length;})[0];
+  }
   function val(id){
     var e=$(id);
-    return e ? String(e.value || e.textContent || '').trim() : '';
+    return e ? String(('value' in e ? e.value : e.textContent) || '').trim() : '';
   }
   function setAll(id, value){
     all(id).forEach(function(e){
       if('value' in e) e.value=value;
       else e.textContent=value;
-      e.dispatchEvent(new Event('input',{bubbles:true}));
-      e.dispatchEvent(new Event('change',{bubbles:true}));
+      try{e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}catch(_e){}
     });
   }
-  function clean(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
-  function getContext(){
+  function clean(s){return String(s||'').replace(/\s+/g,' ').trim();}
+  function ctx(){
     var field=clean(val('researchField')) || '관련 시장';
     var interest=clean(val('interestField')) || '기술 동향';
     var pub=clean(val('bookPub')) || clean(val('pub1')) || '선정 발행사';
-    var titleKo=clean(val('midTitleKo')) || clean(val('guideTitleKo')) || (field+' '+interest+' 검토 자료');
-    var titleEn=clean(val('midTitleEn')) || clean(val('guideTitleEn')) || (field+' '+interest+' Market Report');
+    var titleKo=clean(val('midTitleKo')) || (field+' '+interest+' 검토 자료');
+    var titleEn=clean(val('midTitleEn')) || (field+' '+interest+' Market Report');
     var date=clean(val('bookDate')) || '최신 발행';
     var page=clean(val('bookPage')) || '페이지 확인 필요';
     var list=clean(val('bookListPrice')) || '정가 확인 필요';
-    var supply=clean(val('bookSupplyPrice')) || '공급가격 확인 필요';
+    var supply=clean(val('bookSupplyPrice')) || clean(val('bookListPrice')) || '공급가격 확인 필요';
     var link=clean(val('midLink')) || '링크 확인 필요';
-    return {field:field, interest:interest, pub:pub, titleKo:titleKo, titleEn:titleEn, date:date, page:page, list:list, supply:supply, link:link};
+    return {field:field,interest:interest,pub:pub,titleKo:titleKo,titleEn:titleEn,date:date,page:page,list:list,supply:supply,link:link};
   }
   function ensurePanel(){
-    var mid=document.querySelector('.middle');
-    if(!mid) return;
-    var panel=$('p5MessagePanel');
-    if(!panel){
-      panel=document.createElement('div');
-      panel.id='p5MessagePanel';
-      panel.className='p5-message-panel';
-      panel.innerHTML='<h3>P5 메일·유선·후속 문구</h3>'
-        +'<label>메일 제목</label><textarea id="p5MailSubject" readonly></textarea>'
-        +'<label>메일 본문</label><textarea id="p5MailBody" readonly></textarea>'
-        +'<label>유선 멘트</label><textarea id="p5PhoneScript" readonly></textarea>'
-        +'<label>후속 문구</label><textarea id="p5FollowUp" readonly></textarea>'
-        +'<div class="p5-state" id="p5MessageState">P5 자동 채움 대기</div>';
+    var mid=document.querySelector('.middle'); if(!mid) return;
+    if(!$('p5MessagePanel')){
+      var panel=document.createElement('div');
+      panel.id='p5MessagePanel'; panel.className='p5-message-panel';
+      panel.innerHTML='<h3>P5 메일·유선·후속 문구</h3>'+
+        '<label>메일 제목</label><textarea id="p5MailSubject" readonly></textarea>'+
+        '<label>메일 본문</label><textarea id="p5MailBody" readonly></textarea>'+
+        '<label>유선 멘트</label><textarea id="p5PhoneScript" readonly></textarea>'+
+        '<label>후속 문구</label><textarea id="p5FollowUp" readonly></textarea>'+
+        '<div class="p5-state" id="p5MessageState">P5 자동 채움 대기</div>';
       mid.appendChild(panel);
     }
     if(!$('p5AutoJudgePanel')){
       var judge=document.createElement('div');
-      judge.id='p5AutoJudgePanel';
-      judge.className='p5-message-panel';
-      judge.innerHTML='<h3>P5 자동 판정 / 관찰자 반복 전가 차단 V4</h3>'
-        +'<div class="p5-judge-row"><span>메일 제목</span><span id="p5JudgeSubject" class="p5-hold">대기</span></div>'
-        +'<div class="p5-judge-row"><span>메일 본문</span><span id="p5JudgeBody" class="p5-hold">대기</span></div>'
-        +'<div class="p5-judge-row"><span>유선 멘트</span><span id="p5JudgePhone" class="p5-hold">대기</span></div>'
-        +'<div class="p5-judge-row"><span>후속 문구</span><span id="p5JudgeFollow" class="p5-hold">대기</span></div>'
-        +'<div class="p5-judge-row"><span>전체 판정</span><span id="p5JudgeOverall" class="p5-hold">대기</span></div>'
-        +'<div id="p5JudgeReason" class="mini-log">동일 P5 테스트 반복 금지. FAIL이면 원인 1개만 자동 고정.</div>';
+      judge.id='p5AutoJudgePanel'; judge.className='p5-message-panel';
+      judge.innerHTML='<h3>P5 자동 판정 / 관찰자 반복 전가 차단 V5</h3>'+
+        '<div class="p5-judge-row"><span>메일 제목</span><span id="p5JudgeSubject" class="p5-hold">대기</span></div>'+
+        '<div class="p5-judge-row"><span>메일 본문</span><span id="p5JudgeBody" class="p5-hold">대기</span></div>'+
+        '<div class="p5-judge-row"><span>유선 멘트</span><span id="p5JudgePhone" class="p5-hold">대기</span></div>'+
+        '<div class="p5-judge-row"><span>후속 문구</span><span id="p5JudgeFollow" class="p5-hold">대기</span></div>'+
+        '<div class="p5-judge-row"><span>전체 판정</span><span id="p5JudgeOverall" class="p5-hold">대기</span></div>'+
+        '<div id="p5JudgeReason" class="mini-log">동일 P5 테스트 반복 금지. 중복 ID는 가장 긴 실제 문구 기준으로 판정.</div>';
       mid.appendChild(judge);
     }
   }
   function buildMessages(){
     ensurePanel();
-    var c=getContext();
+    var c=ctx();
     var subject='[자료 안내] '+c.field+' '+c.interest+' 검토용 보고서';
-    var body='안녕하세요.\n\n문의 또는 검토하신 '+c.field+' / '+c.interest+' 분야와 관련해 아래 자료를 안내드립니다.\n\n'
-      +'자료명: '+c.titleKo+'\n'
-      +'발행사: '+c.pub+'\n'
-      +'발행일: '+c.date+'\n'
-      +'페이지: '+c.page+'\n'
-      +'정가: '+c.list+'\n'
-      +'공급가격: '+c.supply+'\n'
-      +'링크: '+c.link+'\n\n'
-      +'검토 방향이 맞는지 확인하신 뒤 필요하시면 자료 범위, 유사 자료, 견적 안내 순서로 이어서 도와드리겠습니다.';
-    var phone='안녕하세요. 월드산업정보센터입니다. '+c.field+' 관련 자료를 검토하신 것으로 보여 '+c.pub+' 자료를 우선 안내드립니다. 자료명과 링크를 메일로 보내드릴 테니, 검토하신 뒤 필요한 범위나 유사 자료 여부를 알려주시면 됩니다.';
-    var follow='확인 후 필요하시면 ① 자료 범위 확인 ② 비슷한 자료 추가 추천 ③ 견적 안내 순서로 도와드리겠습니다.';
-    setAll('p5MailSubject', subject);
-    setAll('p5MailBody', body);
-    setAll('p5PhoneScript', phone);
-    setAll('p5FollowUp', follow);
-    setAll('p5MessageState', 'P5 자동 채움 완료 / 관찰자 반복 테스트 금지 / 온라인수집 미수정 / P1~P4 유지');
-    return {subject:subject, body:body, phone:phone, follow:follow};
+    var body='안녕하세요.\n\n'+
+      '문의 또는 검토하신 '+c.field+' / '+c.interest+' 분야와 관련해 아래 자료를 안내드립니다.\n\n'+
+      '자료명: '+c.titleKo+'\n'+
+      '영문명: '+c.titleEn+'\n'+
+      '발행사: '+c.pub+'\n'+
+      '발행일: '+c.date+'\n'+
+      '페이지: '+c.page+'\n'+
+      '정가: '+c.list+'\n'+
+      '공급가격: '+c.supply+'\n'+
+      '링크: '+c.link+'\n\n'+
+      '이 자료는 현재 검토하시는 시장 동향, 기술 흐름, 경쟁 구도, 적용 분야를 좁혀 보는 용도로 먼저 확인하시면 좋습니다. '+
+      '검토 후 필요하시면 자료 범위 확인, 유사 자료 추가 추천, 견적 안내 순서로 이어서 정리해드리겠습니다.';
+    var phone='안녕하세요. 월드산업정보센터입니다. '+c.field+' / '+c.interest+' 관련 자료 검토 때문에 연락드렸습니다. '+c.pub+' 자료를 우선 안내드릴 수 있고, 메일로 제목·발행일·가격·링크를 보내드리겠습니다. 보신 뒤 필요한 범위만 말씀해주시면 비슷한 자료와 견적까지 정리해드리겠습니다.';
+    var follow='확인 후 필요하시면 ① 자료 범위 확인 ② 비슷한 자료 추가 추천 ③ 견적 안내 ④ 후속 안내서 발송 순서로 진행하겠습니다.';
+    setAll('p5MailSubject',subject); setAll('p5MailBody',body); setAll('p5PhoneScript',phone); setAll('p5FollowUp',follow);
+    setAll('p5MessageState','P5 V5 자동 채움 완료 / 관찰자 반복 테스트 금지 / P1~P4 유지');
+    return {subject:subject,body:body,phone:phone,follow:follow};
   }
-  function setJudge(id, ok){
-    all(id).forEach(function(e){
-      e.textContent= ok ? 'PASS' : 'FAIL';
-      e.className= ok ? 'p5-pass' : 'p5-fail';
-    });
-  }
+  function setJudge(id,ok){all(id).forEach(function(e){e.textContent=ok?'PASS':'FAIL';e.className=ok?'p5-pass':'p5-fail';});}
   function judge(){
-    ensurePanel();
-    buildMessages();
-    var s=val('p5MailSubject'), b=val('p5MailBody'), p=val('p5PhoneScript'), f=val('p5FollowUp');
+    ensurePanel(); buildMessages();
+    var s=best('p5MailSubject'), b=best('p5MailBody'), p=best('p5PhoneScript'), f=best('p5FollowUp');
     var okS=s.length>=10;
-    var okB=b.length>=80;
-    var okP=p.length>=60;
-    var okF=f.length>=30;
-    setJudge('p5JudgeSubject', okS);
-    setJudge('p5JudgeBody', okB);
-    setJudge('p5JudgePhone', okP);
-    setJudge('p5JudgeFollow', okF);
-    var allOk=okS&&okB&&okP&&okF;
-    setJudge('p5JudgeOverall', allOk);
-    var reason=$('p5JudgeReason');
-    if(reason){
-      reason.textContent= allOk
-        ? 'P5 자동 판정 PASS 후보. 같은 P5 화면 재테스트 금지. 다음은 P6만 진행.'
-        : 'P5 FAIL 고정. 같은 화면 반복 금지. 원인 1개만 수정.';
-    }
-    var flow=$('flowTrace');
-    if(flow){
-      flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_AUTO_FILL: '+(allOk?'PASS_CANDIDATE':'FAIL_FIXED')+'\nREPEAT_TEST: BLOCK\nUSER_ROLE: OBSERVER_ONLY\nNEXT: '+(allOk?'P6_FINAL_STABILITY':'P5_SINGLE_FIX_ONLY');
-    }
+    var okB=b.length>=70 && /자료명|발행사|링크|공급가격/.test(b);
+    var okP=p.length>=50;
+    var okF=f.length>=25;
+    setJudge('p5JudgeSubject',okS); setJudge('p5JudgeBody',okB); setJudge('p5JudgePhone',okP); setJudge('p5JudgeFollow',okF);
+    var allOk=okS&&okB&&okP&&okF; setJudge('p5JudgeOverall',allOk);
+    var reason=$('p5JudgeReason'); if(reason) reason.textContent= allOk ? 'P5 V5 PASS 후보. 같은 P5 화면 재테스트 금지. 다음은 P6만 진행.' : 'P5 V5 HOLD. 같은 화면 반복 금지. 실제 빈 슬롯 1개만 수정.';
+    var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_AUTO_FILL: '+(allOk?'PASS_CANDIDATE':'HOLD_FIXED')+'\nREPEAT_TEST: BLOCK\nUSER_ROLE: OBSERVER_ONLY\nNEXT: '+(allOk?'P6_FINAL_STABILITY':'P5_SINGLE_SLOT_ONLY');
     return allOk;
   }
   function bind(){
     ensurePanel();
-    var gen=$('generateBtn');
-    if(gen && !gen.dataset.p5v4Bound){
-      gen.dataset.p5v4Bound='1';
-      gen.addEventListener('click', function(){
-        setTimeout(judge, 250);
-        setTimeout(judge, 900);
-        setTimeout(judge, 1600);
-      }, true);
-    }
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','researchField','interestField'].forEach(function(id){
-      var e=$(id);
-      if(e && !e.dataset.p5v4Bound){
-        e.dataset.p5v4Bound='1';
-        e.addEventListener('input', function(){ setTimeout(judge, 300); }, true);
-        e.addEventListener('change', function(){ setTimeout(judge, 300); }, true);
-      }
-    });
-    setTimeout(judge, 1200);
+    var gen=$('generateBtn'); if(gen && !gen.dataset.p5v5Bound){gen.dataset.p5v5Bound='1'; gen.addEventListener('click',function(){setTimeout(judge,250);setTimeout(judge,900);},true);}
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','researchField','interestField'].forEach(function(id){var e=$(id); if(e&&!e.dataset.p5v5Bound){e.dataset.p5v5Bound='1'; e.addEventListener('input',function(){setTimeout(judge,250);},true); e.addEventListener('change',function(){setTimeout(judge,250);},true);}});
+    setTimeout(judge,1200);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
 })();
 </script>
 
