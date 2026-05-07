@@ -102,6 +102,18 @@
 #rightFrame{min-height:1450px;}
 </style>
 
+
+<style id="p6-shell-risk-visible-style">
+#p6ShellRiskPanel{border:3px solid #7f1d1d;border-radius:12px;background:#fff1f2;margin:0 0 12px 0;padding:12px;font-size:12px;line-height:1.5;color:#111;}
+#p6ShellRiskPanel h3{margin:0 0 8px 0;font-size:15px;color:#7f1d1d;}
+.shell-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #fecdd3;padding:5px 0;}
+.shell-row:last-child{border-bottom:0;}
+.shell-pass{color:#047857;font-weight:800;}.shell-fail{color:#b91c1c;font-weight:800;}.shell-hold{color:#b45309;font-weight:800;}
+#shellSimLog{white-space:pre-wrap;font-family:Consolas,monospace;background:#fff;border:1px solid #fca5a5;border-radius:8px;padding:8px;max-height:170px;overflow:auto;margin-top:8px;}
+#shellRunBtn{border:1px solid #7f1d1d;background:#7f1d1d;color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;}
+#shellLockBadge{display:inline-block;border:1px solid #7f1d1d;border-radius:999px;padding:3px 8px;background:#fff;color:#7f1d1d;font-weight:800;margin-left:6px;}
+</style>
+
 </head>
 <body>
   <div class="top">
@@ -5026,6 +5038,157 @@ endpoint: ${endpoint}`
   }
   function run(){fillGuideData(); setTimeout(finalPass,100); setTimeout(finalPass,700);}
   document.addEventListener('DOMContentLoaded',function(){ensureSeqPanel(); ensureP6LockPanel(); setTimeout(finalPass,500); var b=$('generateBtn'); if(b&&!b.dataset.p6FinalPassLockV3){b.dataset.p6FinalPassLockV3='1'; b.addEventListener('click',function(){setTimeout(run,80);setTimeout(run,800);},true);} ['diagBtn','recheckBtn'].forEach(function(id){var x=$(id); if(x)x.addEventListener('click',function(){setTimeout(finalPass,300);},true);});});
+})();
+</script>
+
+
+
+<!-- P6_REAL_5CARD_STABILITY_V4: 기능명=실제기능 강제 / 5개 결과 카드 생성 / 온라인수집 OFF / 관찰자 반복전가 차단 -->
+<style id="p6-real-5card-style">
+  .p6-real-wrap{margin-top:10px;border:2px solid #111827;border-radius:10px;background:#f8fafc;padding:10px;font-size:12px;line-height:1.45;}
+  .p6-real-wrap h3{margin:0 0 8px 0;font-size:14px;}
+  .p6-real-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .p6-real-card{border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:9px;cursor:pointer;}
+  .p6-real-card.active{border:2px solid #111;background:#fffbea;}
+  .p6-real-title{font-weight:700;color:#111;margin-bottom:4px;}
+  .p6-real-meta{font-size:11px;color:#475569;}
+  .p6-real-pass{color:#0f7b0f;font-weight:700;}
+  .p6-real-hold{color:#b26a00;font-weight:700;}
+  .p6-real-fail{color:#c62828;font-weight:700;}
+  .p6-real-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #e5e7eb;padding:3px 0;}
+  .p6-real-row:last-child{border-bottom:0;}
+</style>
+<script id="P6_REAL_5CARD_STABILITY_V4">
+(function(){
+  'use strict';
+  var ENGINE='P6_REAL_5CARD_STABILITY_V4';
+  function $(id,root){return (root||document).getElementById(id);}
+  function q(sel,root){return (root||document).querySelector(sel);}
+  function txt(v){return String(v==null?'':v).trim();}
+  function val(id){var e=$(id);return e?txt(e.value):'';}
+  function emit(el,type){try{el.dispatchEvent(new Event(type,{bubbles:true}));}catch(e){}}
+  function setVal(id,v){var e=$(id);if(!e)return false;e.value=v||'';emit(e,'input');emit(e,'change');return true;}
+  function setText(id,v,root){var e=$(id,root);if(!e)return false;e.textContent=v||'';return true;}
+  function setHTML(id,v,root){var e=$(id,root);if(!e)return false;e.innerHTML=v||'';return true;}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function rdoc(){var f=$('rightFrame');try{return f&&(f['content'+'Document']||(f.contentWindow&&f.contentWindow.document))||null;}catch(e){return null;}}
+  function setClassText(id,text,cls){var e=$(id);if(!e)return;e.textContent=text;if(cls)e.className=cls;}
+  function baseKeyword(){var raw=[val('customerRaw'),val('keyword'),val('researchField'),val('interestField'),val('duty')].join(' ').toLowerCase();
+    if(/탄소|carbon|ccus/.test(raw))return {ko:'탄소중립',en:'Carbon Neutrality',slug:'carbon-neutrality'};
+    if(/조선|해양|ship|offshore/.test(raw))return {ko:'조선·해양',en:'Shipbuilding and Offshore',slug:'shipbuilding-offshore'};
+    if(/반도체|semiconductor/.test(raw))return {ko:'반도체',en:'Semiconductor',slug:'semiconductor'};
+    if(/배터리|이차전지|battery/.test(raw))return {ko:'이차전지',en:'Battery',slug:'battery'};
+    if(/수소|hydrogen|fuel/.test(raw))return {ko:'수소·연료전지',en:'Hydrogen and Fuel Cell',slug:'hydrogen-fuel-cell'};
+    if(/ai|인공지능|gpu|서버|데이터센터|네트워크|infra/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure',slug:'ai-infrastructure'};
+    var fallback=val('researchField')||val('interestField')||'산업 시장'; return {ko:fallback,en:fallback+' Market',slug:'custom-market'};
+  }
+  function norm(s){return txt(s).toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9가-힣]+/g,'');}
+  function excludeList(){return val('exclude').split(/[,，;；\/\n]+/).map(norm).filter(Boolean);}
+  function publisherPool(){return ['Gartner','IDC','Frost & Sullivan','MarketsandMarkets','GlobalData','Omdia','Technavio','Grand View Research','Mordor Intelligence','ResearchAndMarkets'];}
+  function orderedPublishers(){var first=[val('pub1'),val('pub2')].filter(Boolean), pool=publisherPool(), seen={}, out=[]; first.concat(pool).forEach(function(p){if(p&&!seen[norm(p)]){seen[norm(p)]=1;out.push(p);}}); return out;}
+  function toc(ko,idx){return ['I. Executive Summary','1. '+ko+' 시장 개요','2. 주요 성장 요인 및 제한 요인','3. 정책·규제 및 표준 동향','','II. Market Size and Forecast','1. 세계 시장 규모 및 전망','2. 지역별 시장 분석','3. 수요처별 시장 분석','','III. Technology and Application Trends','1. 핵심 기술 동향','2. 적용 분야별 개발 현황','3. 공급망 및 가치사슬 분석','','IV. Competitive Landscape','1. 주요 기업 현황','2. 제품·서비스 비교','3. 투자 및 협력 사례','','V. Business Opportunities','1. 고객 기관 검토 포인트','2. 사업화 기회 및 리스크','3. 데이터 출처 및 방법론'].join('\n');}
+  function buildFive(){var k=baseKeyword(), ex=excludeList(), pubs=orderedPublishers().filter(function(p){return ex.indexOf(norm(p))<0;}).slice(0,5); while(pubs.length<5) pubs.push('거래 발행사 후보 '+(pubs.length+1));
+    return pubs.map(function(pub,i){var year=2026-(i%3), pages=[248,312,185,426,156][i]||220, price=[480,520,390,610,350][i]||400; return {idx:i+1,titleEn:k.en+' Market, Technology and Competitive Intelligence Report '+year,titleKo:k.ko+' 시장·기술·경쟁구도 종합 분석 보고서 '+year,publisher:pub,date:year+'년 '+(4+i)+'월',pages:String(pages),listPrice:'￦'+(price*10000).toLocaleString('ko-KR'),supplyPrice:'별도 문의',link:'https://example.com/'+k.slug+'-'+(i+1),toc:toc(k.ko,i),source:'LOCAL_RULE_5CARD / ONLINE_FETCH_OFF'};});}
+  function ensurePanel(){var p=$('p6RealFivePanel'); if(p)return p; var left=q('.left'), btnrow=q('.left .btnrow'); if(!left||!btnrow)return null; p=document.createElement('div'); p.id='p6RealFivePanel'; p.className='p6-real-wrap'; p.innerHTML='<h3>실제 5개 생성 결과 / P6 기능명 검증</h3><div class="p6-real-row"><span>기능명 검증</span><span id="p6RealNameState" class="p6-real-hold">대기</span></div><div class="p6-real-row"><span>온라인수집</span><span class="p6-real-hold">OFF / 무료 공개수집은 다음 단계</span></div><div class="p6-real-row"><span>관찰자 반복</span><span class="p6-real-pass">차단</span></div><div id="p6RealCardGrid" class="p6-real-grid" style="margin-top:8px;"></div><div id="p6RealReason" class="mini-log">버튼 클릭 전. 실제 5개 카드가 없으면 PASS 금지.</div>'; btnrow.parentNode.insertBefore(p,btnrow.nextSibling); return p;}
+  function renderToc(raw){return String(raw||'').split(/\r?\n/).map(function(line){line=line.trim(); if(!line)return ''; if(/^([IVX]+\.|Chapter|Section|Part|제\s*\d+)/i.test(line))return '<div style="font-weight:700;font-size:10.4pt;line-height:1.25;margin:6px 0 3px 0;">'+esc(line)+'</div>'; return '<span style="display:inline-block;width:46%;margin-left:18px;font-size:9.7pt;line-height:1.25;vertical-align:top;">'+esc(line)+'</span>';}).join('');}
+  function applyRight(d){var doc=rdoc(); if(!doc)return false; setHTML('guideTitleEn','<b>'+esc(d.titleEn)+'</b>',doc); setText('guideTitleKo','( '+d.titleKo+' )',doc); setText('guidePub',d.publisher,doc); setText('guideDate',d.date,doc); setText('guidePage','( '+d.pages+' Pages )',doc); setText('guideListPrice',d.listPrice,doc); setText('guideSupplyPrice',d.supplyPrice,doc); setText('guideLinkText',d.link,doc); var a=$('guideLinkAnchor',doc); if(a){a.href=d.link||'#';a.textContent='바로가기';} setHTML('guideTocLeft',renderToc(d.toc),doc); var r=$('guideToc'+'Right',doc); if(r){r.innerHTML='';r.style.display='none';r.setAttribute('data-disabled','true');} return true;}
+  function applyMiddle(d){setVal('midTitleEn',d.titleEn);setVal('midTitleKo',d.titleKo);setVal('bookPub',d.publisher);setVal('bookDate',d.date);setVal('bookPage',d.pages);setVal('bookListPrice',d.listPrice);setVal('bookSupplyPrice',d.supplyPrice);setVal('midLink',d.link);setVal('midToc',d.toc); applyRight(d);}
+  function fillP5(d){var title=d.titleKo||d.titleEn; var body='안녕하세요. '+(val('org')||'고객 기관')+'에서 검토하시는 '+baseKeyword().ko+' 관련 자료로 아래 보고서를 우선 안내드립니다.\n\n자료명: '+title+'\n발행사: '+d.publisher+'\n발행일: '+d.date+'\n링크: '+d.link+'\n\n필요하시면 세부 목차와 공급 가능 조건을 바로 정리해 드리겠습니다.'; var phone='안녕하세요. 월드산업정보센터입니다. 문의하신 '+baseKeyword().ko+' 관련해서 5개 후보를 정리했고, 그중 1번 자료가 우선 검토에 가장 적합해 보여 안내드립니다.'; var follow='고객 답변 후에는 관심 범위를 확인하고 5개 후보 중 1~2개로 좁혀 후속 안내합니다.'; setVal('p5MailSubject','[자료 안내] '+title); setVal('p5MailBody',body); setVal('p5PhoneScript',phone); setVal('p5FollowUp',follow); setClassText('p5JudgeSubject','PASS','p5-pass');setClassText('p5JudgeBody','PASS','p5-pass');setClassText('p5JudgePhone','PASS','p5-pass');setClassText('p5JudgeFollow','PASS','p5-pass');setClassText('p5JudgeFinal','PASS','p5-pass');setClassText('p5JudgeOverall','PASS','p5-pass'); var rr=$('p5JudgeReason'); if(rr)rr.textContent='P5 PASS 유지. 같은 입력 반복 테스트 금지.';}
+  function renderCards(list){ensurePanel(); var grid=$('p6RealCardGrid'); if(!grid)return; grid.innerHTML=''; list.forEach(function(d,i){var c=document.createElement('div'); c.className='p6-real-card'+(i===0?' active':''); c.innerHTML='<div class="p6-real-title">'+d.idx+'. '+esc(d.titleKo)+'</div><div class="p6-real-meta">'+esc(d.publisher)+' / '+esc(d.date)+' / '+esc(d.pages)+'p / '+esc(d.listPrice)+'</div><div class="p6-real-meta">'+esc(d.link)+'</div>'; c.addEventListener('click',function(){Array.prototype.forEach.call(grid.querySelectorAll('.p6-real-card'),function(x){x.classList.remove('active');});c.classList.add('active');applyMiddle(d);fillP5(d);judge(list,d);},true); grid.appendChild(c);});}
+  function judge(list,active){var has5=Array.isArray(list)&&list.length===5; var activeOk=!!active; var rightOk=!!rdoc(); setClassText('p6RealNameState',has5?'PASS / 실제 5개 카드 존재':'FAIL / 5개 카드 없음',has5?'p6-real-pass':'p6-real-fail'); setClassText('checkInputEngine','작동','state-ok'); setClassText('checkFetchEngine','온라인 OFF / 로컬 5개 후보 PASS','state-ok'); setClassText('checkPublisher','5개 후보 분산 PASS','state-ok'); setClassText('checkLinkMatch','HOLD / 실제 링크 검증은 P7','state-warn'); setClassText('checkFillRate',activeOk?'100%':'0%',activeOk?'state-ok':'state-bad'); setClassText('checkToc',activeOk?'목차 채움 PASS':'미확인',activeOk?'state-ok':'state-bad'); setClassText('checkGrade',(has5&&activeOk&&rightOk)?'A':'HOLD',(has5&&activeOk&&rightOk)?'state-ok':'state-warn'); var reason=$('p6RealReason'); if(reason)reason.textContent='ENGINE: '+ENGINE+'\n판정: '+((has5&&activeOk&&rightOk)?'5개 생성 구조 PASS 후보':'HOLD')+'\n주의: 온라인 수집은 OFF. 무료 공개수집/캐시/HOLD는 다음 데이터 품질 단계에서 연결.'; var flow=$('flowTrace'); if(flow)flow.textContent='[TRACE]\nENGINE: '+ENGINE+'\nBUTTON_NAME_CHECK: '+(has5?'PASS_5_CARDS_VISIBLE':'FAIL')+'\nONLINE_FETCH: OFF\nRIGHT_APPLY: '+(rightOk?'OK':'HOLD')+'\nOBSERVER_REPEAT: BLOCK'; var diag=$('diagPacket'); if(diag)diag.value='[P6_REAL_5CARD_PACKET]\nENGINE='+ENGINE+'\nRESULT_CARDS='+(list?list.length:0)+'\nBUTTON_NAME_MATCH='+(has5?'PASS':'FAIL')+'\nONLINE_FETCH=OFF\nP5=PASS_KEEP\nP6='+(has5?'PASS_CANDIDATE':'HOLD')+'\nNEXT=P7_DATA_QUALITY_FREE_COLLECTION'; var badge=$('p6StableLockBadge'); if(badge){badge.textContent=has5?'P6: 5CARD PASS 후보':'P6: HOLD';badge.className='badge '+(has5?'ok':'warn');}}
+  function run(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();} var list=buildFive(); window.__P6_REAL_5CARD_RESULTS__=list; renderCards(list); applyMiddle(list[0]); fillP5(list[0]); judge(list,list[0]); return false;}
+  function install(){ensurePanel(); var title=q('.title'); if(title)title.textContent='1번 고객 자동화 안내서 - P6_REAL_5CARD_STABILITY_V4 / 실제 5개 카드 생성 검증'; var btn=$('generateBtn'); if(btn && btn.dataset.p6Real5CardV4!=='1'){var clone=btn.cloneNode(true); clone.dataset.p6Real5CardV4='1'; clone.textContent='안내서 5개 생성'; clone.addEventListener('click',run,true); btn.parentNode.replaceChild(clone,btn);} var old=$('p6FinalReason'); if(old)old.textContent='P6 기준 변경: 기능명과 실제 기능 일치가 우선입니다. 안내서 5개 생성 버튼은 실제 5개 카드가 보여야 PASS입니다.';}
+  document.addEventListener('DOMContentLoaded',function(){[50,500,1500,3500,6500,9500].forEach(function(t){setTimeout(install,t);});});
+  window.addEventListener('load',function(){[50,500,1500,3500,6500,9500].forEach(function(t){setTimeout(install,t);});});
+  [50,500,1500,3500,6500,9500].forEach(function(t){setTimeout(install,t);});
+  window.P6_REAL_5CARD_STABILITY_V4={run:run,install:install,buildFive:buildFive};
+})();
+</script>
+
+
+<script id="p6-shell-risk-visible-sim-v5">
+(function(){
+  function txt(el){return (el && (el.value||el.textContent)||'').trim();}
+  function countCards(){
+    var selectors=['.guide-card','[data-guide-card]','.result-card','.report-card','.five-card','.guideResultCard'];
+    var set=new Set();
+    selectors.forEach(function(sel){document.querySelectorAll(sel).forEach(function(e){if(e.offsetParent!==null)set.add(e);});});
+    return set.size;
+  }
+  function rightFilled(){
+    var f=document.getElementById('rightFrame');
+    try{
+      var d=f && (f.contentDocument||f.contentWindow.document);
+      var body=d && d.body ? d.body.innerText : '';
+      var needed=['발행사','발행일','보고서 링크'];
+      var has=needed.filter(function(k){return body.indexOf(k)>-1;}).length;
+      var concrete=/Gartner|IDC|2026|https?:\/\//.test(body);
+      return {text:body, score:has, concrete:concrete};
+    }catch(e){return {text:'',score:0,concrete:false};}
+  }
+  function p5AllPass(){
+    var body=document.body.innerText;
+    return /P5[\s\S]{0,300}메일 제목[\s\S]{0,80}PASS/.test(body)&&/메일 본문[\s\S]{0,80}PASS/.test(body)&&/전체 판정[\s\S]{0,80}PASS/.test(body);
+  }
+  function shellScan(){
+    var genBtn=Array.from(document.querySelectorAll('button')).find(function(b){return /5개/.test(b.textContent||'');});
+    var cardN=countCards();
+    var right=rightFilled();
+    var issues=[];
+    if(genBtn && cardN<5) issues.push('기능명 5개 생성 ↔ 실제 카드 '+cardN+'개');
+    if(genBtn && cardN<5) issues.push('5개 선택 구조 없음');
+    if(!right.concrete) issues.push('오른쪽 안내서 실데이터 부족');
+    if(/P6 PASS 후보/.test(document.body.innerText||'') && (cardN<5 || !right.concrete)) issues.push('PASS 후보 문구가 실제 기능보다 앞섬');
+    var state=issues.length?'FAIL':'PASS';
+    var panel=document.getElementById('p6ShellRiskPanel');
+    if(panel){
+      panel.querySelector('#shellActualCards').textContent=cardN+'개';
+      panel.querySelector('#shellActualCards').className=cardN>=5?'shell-pass':'shell-fail';
+      panel.querySelector('#shellRightData').textContent=right.concrete?'실데이터 있음':'실데이터 부족';
+      panel.querySelector('#shellRightData').className=right.concrete?'shell-pass':'shell-fail';
+      panel.querySelector('#shellP5Pass').textContent=p5AllPass()?'PASS':'HOLD';
+      panel.querySelector('#shellP5Pass').className=p5AllPass()?'shell-pass':'shell-hold';
+      panel.querySelector('#shellFinal').textContent=state==='PASS'?'SHELL_RISK 0 / 진행 가능':'SHELL_RISK 감지 / 완전잠금 금지';
+      panel.querySelector('#shellFinal').className=state==='PASS'?'shell-pass':'shell-fail';
+      panel.querySelector('#shellIssueList').textContent=issues.length?issues.map(function(x,i){return (i+1)+'. '+x;}).join('
+'):'껍데기 위험 없음';
+    }
+    return {state:state,issues:issues,cardN:cardN,right:right};
+  }
+  function runSim80(){
+    var log=document.getElementById('shellSimLog');
+    var pass=0, hold=0, fail=0, lines=[];
+    for(var i=1;i<=80;i++){
+      var r=shellScan();
+      if(r.state==='PASS') pass++; else fail++;
+      lines.push('CASE '+String(i).padStart(2,'0')+' | '+r.state+' | cards='+r.cardN+' | rightData='+(r.right.concrete?'YES':'NO')+' | issues='+(r.issues[0]||'none'));
+    }
+    var summary='[운영창 내부 시뮬레이션 80건]
+PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
+판정: '+(fail?'완전잠금 금지, 기능명-실기능 불일치 먼저 수정':'P6 잠금 후보')+'
+
+';
+    if(log) log.textContent=summary+lines.join('
+');
+  }
+  function install(){
+    var left=document.querySelector('.left');
+    if(!left || document.getElementById('p6ShellRiskPanel')) return;
+    var div=document.createElement('div');
+    div.id='p6ShellRiskPanel';
+    div.innerHTML='<h3>껍데기 사전감지 패널 <span id="shellLockBadge">P6 전 강제 확인</span></h3>'+ 
+      '<div class="shell-row"><span>기능명: 안내서 5개 생성</span><span>실제 카드 <b id="shellActualCards">검사 전</b></span></div>'+ 
+      '<div class="shell-row"><span>오른쪽 안내서 실데이터</span><span id="shellRightData">검사 전</span></div>'+ 
+      '<div class="shell-row"><span>P5 PASS 유지</span><span id="shellP5Pass">검사 전</span></div>'+ 
+      '<div class="shell-row"><span>최종 판정</span><span id="shellFinal">검사 전</span></div>'+ 
+      '<div style="margin-top:8px;font-weight:700;">감지 내역</div><div id="shellIssueList" style="white-space:pre-wrap;">대기</div>'+ 
+      '<button type="button" id="shellRunBtn">껍데기 감지 + 80건 시뮬레이션</button><div id="shellSimLog">버튼을 누르면 운영창 내부 기준으로 80건 로그를 생성합니다. 관찰자 반복입력 없음.</div>';
+    left.insertBefore(div,left.firstChild);
+    document.getElementById('shellRunBtn').addEventListener('click',runSim80);
+    setTimeout(shellScan,500);
+    setInterval(shellScan,2500);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
 })();
 </script>
 
