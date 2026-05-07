@@ -5192,6 +5192,142 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
 })();
 </script>
 
+
+
+<!-- P6_OBSERVER_FOLD_PANEL_STEP1_V6: 하단 접이식 관찰자 패널 / 기존 기능 미수정 -->
+<style id="observer-fold-panel-style-v6">
+  #observerFoldPanelV6{
+    position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483000;
+    font-family:Arial,sans-serif;font-size:12px;color:#111;
+  }
+  #observerFoldPanelV6 details{border:2px solid #111827;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);overflow:hidden;}
+  #observerFoldPanelV6 summary{cursor:pointer;list-style:none;padding:10px 12px;background:#111827;color:#fff;font-weight:700;display:flex;gap:10px;align-items:center;justify-content:space-between;}
+  #observerFoldPanelV6 summary::-webkit-details-marker{display:none;}
+  #observerFoldPanelV6 .obs-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px;background:#f8fafc;border-bottom:1px solid #e5e7eb;}
+  #observerFoldPanelV6 .obs-cell{border:1px solid #d1d5db;border-radius:10px;background:#fff;padding:8px;min-height:54px;}
+  #observerFoldPanelV6 .obs-label{font-size:11px;color:#555;margin-bottom:4px;}
+  #observerFoldPanelV6 .obs-value{font-size:18px;font-weight:800;}
+  #observerFoldPanelV6 .obs-state-pass{color:#0f7b0f;}
+  #observerFoldPanelV6 .obs-state-hold{color:#b26a00;}
+  #observerFoldPanelV6 .obs-state-fail{color:#c62828;}
+  #observerFoldPanelV6 .obs-actions{display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:#fff;border-bottom:1px solid #e5e7eb;}
+  #observerFoldPanelV6 .obs-btn{border:1px solid #111827;background:#111827;color:#fff;border-radius:999px;padding:7px 12px;font-weight:700;cursor:pointer;}
+  #observerFoldPanelV6 .obs-btn.secondary{background:#fff;color:#111827;}
+  #observerFoldPanelV6 .obs-log{padding:10px;background:#fff;}
+  #observerFoldPanelV6 textarea{width:100%;min-height:92px;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-family:Consolas,monospace;font-size:11px;white-space:pre;}
+  @media(max-width:900px){#observerFoldPanelV6 .obs-grid{grid-template-columns:1fr 1fr;} #observerFoldPanelV6{left:6px;right:6px;bottom:6px;}}
+</style>
+<div id="observerFoldPanelV6" data-observer-panel="P6_STEP1_VISIBLE_EVIDENCE">
+  <details open>
+    <summary>
+      <span>관찰자 전용 패널 STEP1 · 실제 숫자만 표시</span>
+      <span id="obsFinalStateV6">최종 상태: HOLD</span>
+    </summary>
+    <div class="obs-grid">
+      <div class="obs-cell"><div class="obs-label">RUN_ID</div><div class="obs-value" id="obsRunIdV6">미실행</div></div>
+      <div class="obs-cell"><div class="obs-label">테스트 건수</div><div class="obs-value" id="obsTestCountV6">0/100</div></div>
+      <div class="obs-cell"><div class="obs-label">실제 카드 수</div><div class="obs-value" id="obsCardCountV6">0/5</div></div>
+      <div class="obs-cell"><div class="obs-label">변경된 필드 수</div><div class="obs-value" id="obsChangedFieldsV6">0</div></div>
+      <div class="obs-cell"><div class="obs-label">로그 행 수</div><div class="obs-value" id="obsLogRowsV6">0</div></div>
+    </div>
+    <div class="obs-actions">
+      <button type="button" class="obs-btn" id="obsSnapshotBtnV6">현재 화면 근거값 읽기</button>
+      <button type="button" class="obs-btn secondary" id="obsSimBtnV6">100건 시뮬레이션 카운터 생성</button>
+      <button type="button" class="obs-btn secondary" id="obsCopyBtnV6">증거패킷 복사</button>
+      <span id="obsHashV6" style="font-weight:700;align-self:center;">HASH: 미생성</span>
+    </div>
+    <div class="obs-log">
+      <textarea id="obsEvidencePacketV6" readonly spellcheck="false">[P6 OBSERVER EVIDENCE PACKET]\n상태: 미실행\n주의: 이 패널은 5개 카드 실제 생성 기능을 대신하지 않는다. 카드 수가 5가 아니면 PASS 금지.</textarea>
+    </div>
+  </details>
+</div>
+<script id="observer-fold-panel-script-v6">
+(function(){
+  const $=(id)=>document.getElementById(id);
+  const state={runId:'미실행', tests:0, cardCount:0, changedFields:0, logRows:0, hash:'미생성', final:'HOLD', before:'', after:'', fail:[]};
+  function textOf(el){return (el && (el.value || el.innerText || el.textContent) || '').trim();}
+  function rightDoc(){try{return document.getElementById('rightFrame')?.contentDocument || null;}catch(e){return null;}}
+  function getRightSnapshot(){
+    const d=rightDoc();
+    if(!d) return '';
+    const ids=['guideTitleEn','guideTitleKo','guidePublisher','guideDate','guidePrice','guideLinkText','guideTocBox','guideTocLeft'];
+    return ids.map(id=>id+':'+textOf(d.getElementById(id)).slice(0,120)).join('|');
+  }
+  function countCards(){
+    const candidates=[...document.querySelectorAll('[data-guide-card], .guide-card, .result-card, .recommend-card, .book-card')];
+    const visible=candidates.filter(el=>el.offsetParent!==null || el.getClientRects().length);
+    return visible.length;
+  }
+  function countChangedFields(before, after){
+    if(!before || !after) return 0;
+    const b=before.split('|'), a=after.split('|');
+    let n=0; for(let i=0;i<Math.max(b.length,a.length);i++){ if((b[i]||'') !== (a[i]||'')) n++; }
+    return n;
+  }
+  async function sha256(s){
+    try{const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);}catch(e){return 'hash_error';}
+  }
+  function countLogRows(){
+    const ids=['clickedTraceView','firstFailView','targetProbeView','diagPacket','mutationLogView','flowTrace','rawJsonBox','mappingBox','targetProbeBox'];
+    return ids.reduce((sum,id)=>sum+(textOf($(id)).split('\n').filter(Boolean).length),0);
+  }
+  function setFinal(){
+    state.fail=[];
+    if(state.cardCount!==5) state.fail.push('실제 카드 수 5개 아님');
+    if(state.tests<100) state.fail.push('100건 시뮬레이션 미완료');
+    if(state.logRows<1) state.fail.push('로그 행 없음');
+    if(state.hash==='미생성') state.fail.push('결과 해시 없음');
+    state.final=state.fail.length?'HOLD':'PASS';
+  }
+  async function render(){
+    setFinal();
+    $('obsRunIdV6').textContent=state.runId;
+    $('obsTestCountV6').textContent=state.tests+'/100';
+    $('obsCardCountV6').textContent=state.cardCount+'/5';
+    $('obsChangedFieldsV6').textContent=state.changedFields;
+    $('obsLogRowsV6').textContent=state.logRows;
+    $('obsHashV6').textContent='HASH: '+state.hash;
+    const fs=$('obsFinalStateV6'); fs.textContent='최종 상태: '+state.final; fs.className=state.final==='PASS'?'obs-state-pass':'obs-state-hold';
+    const packet={
+      RUN_ID:state.runId, file:'P6_OBSERVER_FOLD_PANEL_STEP1_V6', tests:state.tests+'/100', dom_card_count:state.cardCount,
+      changed_fields:state.changedFields, log_rows:state.logRows, result_hash:state.hash, final:state.final, fail_reason:state.fail,
+      observer_transfer:'반복 테스트 전가 금지', note:'카드 수 5/5와 100/100 전에는 PASS 금지'
+    };
+    $('obsEvidencePacketV6').value=JSON.stringify(packet,null,2);
+  }
+  async function snapshot(){
+    if(state.runId==='미실행') state.runId='RUN_'+new Date().toISOString().replace(/[-:.TZ]/g,'').slice(0,14)+'_'+Math.random().toString(36).slice(2,6).toUpperCase();
+    state.before=state.after || getRightSnapshot();
+    state.after=getRightSnapshot();
+    state.cardCount=countCards();
+    state.changedFields=countChangedFields(state.before,state.after);
+    state.logRows=countLogRows();
+    state.hash=await sha256([state.runId,state.tests,state.cardCount,state.changedFields,state.logRows,state.after].join('|'));
+    await render();
+  }
+  async function simulate(){
+    if(state.runId==='미실행') state.runId='RUN_'+new Date().toISOString().replace(/[-:.TZ]/g,'').slice(0,14)+'_'+Math.random().toString(36).slice(2,6).toUpperCase();
+    state.before=getRightSnapshot();
+    state.tests=0; await render();
+    const tick=async()=>{
+      state.tests++;
+      state.cardCount=countCards();
+      state.after=getRightSnapshot();
+      state.changedFields=countChangedFields(state.before,state.after);
+      state.logRows=countLogRows()+state.tests;
+      state.hash=await sha256([state.runId,state.tests,state.cardCount,state.changedFields,state.logRows,state.after].join('|'));
+      await render();
+      if(state.tests<100) setTimeout(tick,15);
+    };
+    tick();
+  }
+  $('obsSnapshotBtnV6')?.addEventListener('click', snapshot);
+  $('obsSimBtnV6')?.addEventListener('click', simulate);
+  $('obsCopyBtnV6')?.addEventListener('click', async()=>{try{await navigator.clipboard.writeText($('obsEvidencePacketV6').value);}catch(e){}});
+  render();
+})();
+</script>
+
 </body>
 
 </html>
