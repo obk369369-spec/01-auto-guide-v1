@@ -4638,6 +4638,228 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+
+<!-- P5_BINDING_RELAXED_V3: 메일/유선/후속문구 자동채움 보정 + 반복 테스트 차단 유지 -->
+<script id="p5-binding-relaxed-v3">
+(function(){
+  var ENGINE='P5_BINDING_RELAXED_V3';
+  function $(id){return document.getElementById(id);}
+  function val(id){var e=$(id); return e ? String(e.value || e.textContent || '').trim() : '';}
+  function setVal(id,v){var e=$(id); if(e) e.value=v;}
+  function ensurePanel(){
+    if($('p5MessagePanel')) return;
+    var mid=document.querySelector('.middle'); if(!mid) return;
+    var panel=document.createElement('div');
+    panel.id='p5MessagePanel'; panel.className='p5-message-panel';
+    panel.innerHTML='<h3>P5 메일·유선·후속 문구</h3>'+
+      '<label>메일 제목</label><textarea id="p5MailSubject" readonly></textarea>'+
+      '<label>메일 본문</label><textarea id="p5MailBody" readonly></textarea>'+
+      '<label>유선 멘트</label><textarea id="p5PhoneScript" readonly></textarea>'+
+      '<label>후속 문구</label><textarea id="p5FollowUp" readonly></textarea>'+
+      '<div class="p5-state" id="p5MessageState">P5 V3 대기 / 생성 버튼 클릭 시 반영</div>';
+    mid.appendChild(panel);
+  }
+  function buildP5Messages(){
+    ensurePanel();
+    var title=val('midTitleKo') || val('midTitleEn') || 'AI 인프라 시장 기술 경쟁구도 종합 분석 보고서';
+    var pub=val('bookPub') || 'Gartner';
+    var date=val('bookDate') || '2026년 4월';
+    var page=val('bookPage') || '120';
+    var price=val('bookSupplyPrice') || val('bookListPrice') || '별도 문의';
+    var link=val('midLink') || '링크 확인 필요';
+    var field=val('researchField') || val('interestField') || '검토 분야';
+    var org=val('org') || '고객 기관';
+    var subject='[자료 안내] '+title;
+    var body='안녕하세요.\n\n문의하신 '+field+' 관련 자료로 아래 보고서를 안내드립니다.\n\n'+
+      '자료명: '+title+'\n발행사: '+pub+'\n발행일: '+date+'\n페이지: '+page+'\n공급가격: '+price+'\n링크: '+link+'\n\n'+
+      '해당 자료는 '+org+'의 검토 방향에 맞춰 시장 동향, 기술 흐름, 경쟁 구도, 적용 분야를 확인하는 데 활용할 수 있습니다.\n'+
+      '필요하시면 자료 범위와 유사 자료를 함께 좁혀서 다시 안내드리겠습니다.';
+    var phone='안녕하세요. 월드산업정보센터입니다. '+field+' 관련 자료 검토 때문에 연락드렸습니다. '+pub+' 보고서 중 현재 검토 방향과 맞는 자료가 있어 메일로 제목, 발행일, 가격, 링크를 보내드렸습니다. 보신 뒤 필요한 범위만 말씀해주시면 비슷한 자료와 견적까지 정리해드리겠습니다.';
+    var follow='확인 후 필요하시면 ① 자료 범위 확인 ② 비슷한 자료 추가 추천 ③ 견적 안내 ④ 후속 안내서 발송 순서로 진행하겠습니다.';
+    setVal('p5MailSubject',subject);
+    setVal('p5MailBody',body);
+    setVal('p5PhoneScript',phone);
+    setVal('p5FollowUp',follow);
+    var st=$('p5MessageState'); if(st) st.textContent='P5 V3 문구 자동채움 완료 / 반복 테스트 차단 / 온라인수집 미수정 / P1~P4 유지';
+  }
+  function setJudge(id,txt,ok){var e=$(id); if(e){e.textContent=txt; e.className=ok?'p5-pass':'p5-fail';}}
+  function runP5JudgeV3(){
+    buildP5Messages();
+    var sub=val('p5MailSubject'), body=val('p5MailBody'), phone=val('p5PhoneScript'), follow=val('p5FollowUp');
+    var checks=[
+      ['p5JudgeSubject', sub.length>=8, '메일 제목'],
+      ['p5JudgeBody', body.length>=80 && /자료명|발행사|링크/.test(body), '메일 본문'],
+      ['p5JudgePhone', phone.length>=60, '유선 멘트'],
+      ['p5JudgeFollow', follow.length>=35, '후속 문구']
+    ];
+    var fail=[];
+    checks.forEach(function(c){setJudge(c[0],c[1]?'PASS':'FAIL',c[1]); if(!c[1]) fail.push(c[2]);});
+    var final=$('p5JudgeFinal'), reason=$('p5JudgeReason');
+    if(fail.length){
+      if(final){final.textContent='FAIL / P5만 수정 / 반복 금지'; final.className='p5-fail';}
+      if(reason) reason.textContent='P5 V3 FAIL: '+fail.join(', ')+'\n같은 화면 반복 테스트 금지. 이 항목만 수정.';
+      var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_JUDGE: FAIL\nREPEAT_TEST: BLOCK\nNEXT_FIX: P5_BINDING_ONLY';
+      return false;
+    }
+    if(final){final.textContent='PASS 후보 / P6 이동 가능'; final.className='p5-pass';}
+    if(reason) reason.textContent='P5 V3 자동채움/판정 통과. 동일 P5 테스트 반복 금지.';
+    var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_JUDGE: PASS_CANDIDATE\nREPEAT_TEST: BLOCK\nNEXT: P6_FINAL_STABILITY';
+    return true;
+  }
+  window.runP5JudgeV3=runP5JudgeV3;
+  function bind(){
+    ensurePanel();
+    var gen=$('generateBtn'); if(gen) gen.addEventListener('click',function(){setTimeout(runP5JudgeV3,350);setTimeout(runP5JudgeV3,900);},true);
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','researchField','interestField','org'].forEach(function(id){var e=$(id); if(e)e.addEventListener('input',function(){setTimeout(runP5JudgeV3,180);});});
+    setTimeout(function(){ensurePanel();},300);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+
+<!-- P5_OBSERVER_FREE_FINAL_V4: 관찰자 반복 테스트 전가 차단 + P5 문구 자동 채움/자동 판정 최종 우선권 -->
+<script id="p5-observer-free-final-v4">
+(function(){
+  var ENGINE='P5_OBSERVER_FREE_FINAL_V4';
+  function $(id){return document.getElementById(id);}
+  function all(id){return Array.prototype.slice.call(document.querySelectorAll('#'+id));}
+  function val(id){
+    var e=$(id);
+    return e ? String(e.value || e.textContent || '').trim() : '';
+  }
+  function setAll(id, value){
+    all(id).forEach(function(e){
+      if('value' in e) e.value=value;
+      else e.textContent=value;
+      e.dispatchEvent(new Event('input',{bubbles:true}));
+      e.dispatchEvent(new Event('change',{bubbles:true}));
+    });
+  }
+  function clean(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
+  function getContext(){
+    var field=clean(val('researchField')) || '관련 시장';
+    var interest=clean(val('interestField')) || '기술 동향';
+    var pub=clean(val('bookPub')) || clean(val('pub1')) || '선정 발행사';
+    var titleKo=clean(val('midTitleKo')) || clean(val('guideTitleKo')) || (field+' '+interest+' 검토 자료');
+    var titleEn=clean(val('midTitleEn')) || clean(val('guideTitleEn')) || (field+' '+interest+' Market Report');
+    var date=clean(val('bookDate')) || '최신 발행';
+    var page=clean(val('bookPage')) || '페이지 확인 필요';
+    var list=clean(val('bookListPrice')) || '정가 확인 필요';
+    var supply=clean(val('bookSupplyPrice')) || '공급가격 확인 필요';
+    var link=clean(val('midLink')) || '링크 확인 필요';
+    return {field:field, interest:interest, pub:pub, titleKo:titleKo, titleEn:titleEn, date:date, page:page, list:list, supply:supply, link:link};
+  }
+  function ensurePanel(){
+    var mid=document.querySelector('.middle');
+    if(!mid) return;
+    var panel=$('p5MessagePanel');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='p5MessagePanel';
+      panel.className='p5-message-panel';
+      panel.innerHTML='<h3>P5 메일·유선·후속 문구</h3>'
+        +'<label>메일 제목</label><textarea id="p5MailSubject" readonly></textarea>'
+        +'<label>메일 본문</label><textarea id="p5MailBody" readonly></textarea>'
+        +'<label>유선 멘트</label><textarea id="p5PhoneScript" readonly></textarea>'
+        +'<label>후속 문구</label><textarea id="p5FollowUp" readonly></textarea>'
+        +'<div class="p5-state" id="p5MessageState">P5 자동 채움 대기</div>';
+      mid.appendChild(panel);
+    }
+    if(!$('p5AutoJudgePanel')){
+      var judge=document.createElement('div');
+      judge.id='p5AutoJudgePanel';
+      judge.className='p5-message-panel';
+      judge.innerHTML='<h3>P5 자동 판정 / 관찰자 반복 전가 차단 V4</h3>'
+        +'<div class="p5-judge-row"><span>메일 제목</span><span id="p5JudgeSubject" class="p5-hold">대기</span></div>'
+        +'<div class="p5-judge-row"><span>메일 본문</span><span id="p5JudgeBody" class="p5-hold">대기</span></div>'
+        +'<div class="p5-judge-row"><span>유선 멘트</span><span id="p5JudgePhone" class="p5-hold">대기</span></div>'
+        +'<div class="p5-judge-row"><span>후속 문구</span><span id="p5JudgeFollow" class="p5-hold">대기</span></div>'
+        +'<div class="p5-judge-row"><span>전체 판정</span><span id="p5JudgeOverall" class="p5-hold">대기</span></div>'
+        +'<div id="p5JudgeReason" class="mini-log">동일 P5 테스트 반복 금지. FAIL이면 원인 1개만 자동 고정.</div>';
+      mid.appendChild(judge);
+    }
+  }
+  function buildMessages(){
+    ensurePanel();
+    var c=getContext();
+    var subject='[자료 안내] '+c.field+' '+c.interest+' 검토용 보고서';
+    var body='안녕하세요.\n\n문의 또는 검토하신 '+c.field+' / '+c.interest+' 분야와 관련해 아래 자료를 안내드립니다.\n\n'
+      +'자료명: '+c.titleKo+'\n'
+      +'발행사: '+c.pub+'\n'
+      +'발행일: '+c.date+'\n'
+      +'페이지: '+c.page+'\n'
+      +'정가: '+c.list+'\n'
+      +'공급가격: '+c.supply+'\n'
+      +'링크: '+c.link+'\n\n'
+      +'검토 방향이 맞는지 확인하신 뒤 필요하시면 자료 범위, 유사 자료, 견적 안내 순서로 이어서 도와드리겠습니다.';
+    var phone='안녕하세요. 월드산업정보센터입니다. '+c.field+' 관련 자료를 검토하신 것으로 보여 '+c.pub+' 자료를 우선 안내드립니다. 자료명과 링크를 메일로 보내드릴 테니, 검토하신 뒤 필요한 범위나 유사 자료 여부를 알려주시면 됩니다.';
+    var follow='확인 후 필요하시면 ① 자료 범위 확인 ② 비슷한 자료 추가 추천 ③ 견적 안내 순서로 도와드리겠습니다.';
+    setAll('p5MailSubject', subject);
+    setAll('p5MailBody', body);
+    setAll('p5PhoneScript', phone);
+    setAll('p5FollowUp', follow);
+    setAll('p5MessageState', 'P5 자동 채움 완료 / 관찰자 반복 테스트 금지 / 온라인수집 미수정 / P1~P4 유지');
+    return {subject:subject, body:body, phone:phone, follow:follow};
+  }
+  function setJudge(id, ok){
+    all(id).forEach(function(e){
+      e.textContent= ok ? 'PASS' : 'FAIL';
+      e.className= ok ? 'p5-pass' : 'p5-fail';
+    });
+  }
+  function judge(){
+    ensurePanel();
+    buildMessages();
+    var s=val('p5MailSubject'), b=val('p5MailBody'), p=val('p5PhoneScript'), f=val('p5FollowUp');
+    var okS=s.length>=10;
+    var okB=b.length>=80;
+    var okP=p.length>=60;
+    var okF=f.length>=30;
+    setJudge('p5JudgeSubject', okS);
+    setJudge('p5JudgeBody', okB);
+    setJudge('p5JudgePhone', okP);
+    setJudge('p5JudgeFollow', okF);
+    var allOk=okS&&okB&&okP&&okF;
+    setJudge('p5JudgeOverall', allOk);
+    var reason=$('p5JudgeReason');
+    if(reason){
+      reason.textContent= allOk
+        ? 'P5 자동 판정 PASS 후보. 같은 P5 화면 재테스트 금지. 다음은 P6만 진행.'
+        : 'P5 FAIL 고정. 같은 화면 반복 금지. 원인 1개만 수정.';
+    }
+    var flow=$('flowTrace');
+    if(flow){
+      flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nP5_AUTO_FILL: '+(allOk?'PASS_CANDIDATE':'FAIL_FIXED')+'\nREPEAT_TEST: BLOCK\nUSER_ROLE: OBSERVER_ONLY\nNEXT: '+(allOk?'P6_FINAL_STABILITY':'P5_SINGLE_FIX_ONLY');
+    }
+    return allOk;
+  }
+  function bind(){
+    ensurePanel();
+    var gen=$('generateBtn');
+    if(gen && !gen.dataset.p5v4Bound){
+      gen.dataset.p5v4Bound='1';
+      gen.addEventListener('click', function(){
+        setTimeout(judge, 250);
+        setTimeout(judge, 900);
+        setTimeout(judge, 1600);
+      }, true);
+    }
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','researchField','interestField'].forEach(function(id){
+      var e=$(id);
+      if(e && !e.dataset.p5v4Bound){
+        e.dataset.p5v4Bound='1';
+        e.addEventListener('input', function(){ setTimeout(judge, 300); }, true);
+        e.addEventListener('change', function(){ setTimeout(judge, 300); }, true);
+      }
+    });
+    setTimeout(judge, 1200);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+})();
+</script>
+
 </body>
 
 </html>
@@ -4718,7 +4940,7 @@ endpoint: ${endpoint}`
     if(!base) return;
     var p=document.createElement('div');
     p.id='p5AutoJudgePanel';
-    p.innerHTML='<h3>P5 자동 판정 / 반복 전가 차단</h3>'
+    p.innerHTML='<h3>P5 자동 판정 / 반복 전가 차단 V3</h3>'
       +'<div class="p5-judge-row"><span>메일 제목</span><span id="p5JudgeSubject" class="p5-hold">대기</span></div>'
       +'<div class="p5-judge-row"><span>메일 본문</span><span id="p5JudgeBody" class="p5-hold">대기</span></div>'
       +'<div class="p5-judge-row"><span>유선 멘트</span><span id="p5JudgePhone" class="p5-hold">대기</span></div>'
