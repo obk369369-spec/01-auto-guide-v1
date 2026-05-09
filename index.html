@@ -6469,6 +6469,180 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<!-- P6_DATA_QUALITY_STEP3_STRICT_BLANK_UNTIL_REAL_SOURCE: 샘플/임의목차/초기데이터 완전 차단 -->
+<style id="P6_STRICT_BLANK_STYLE">
+  #P6_STRICT_BLANK_BANNER{
+    margin:8px 12px;
+    padding:10px 12px;
+    border:3px solid #7f1d1d;
+    border-radius:10px;
+    background:#fff1f2;
+    font-size:12px;
+    line-height:1.5;
+  }
+  #P6_STRICT_BLANK_BANNER b{font-size:14px;color:#7f1d1d;}
+  #P6_STRICT_BLANK_BANNER .ok{color:#047857;font-weight:800;}
+  #P6_STRICT_BLANK_BANNER .bad{color:#b91c1c;font-weight:800;}
+</style>
+
+<script id="P6_STRICT_BLANK_SCRIPT">
+(function(){
+  if(window.__P6_STRICT_BLANK_UNTIL_REAL_SOURCE__) return;
+  window.__P6_STRICT_BLANK_UNTIL_REAL_SOURCE__ = true;
+
+  var BLOCK_WORDS = [
+    'AI Infrastructure Market',
+    'AI 인프라 시장기술 경쟁구도',
+    'AI Compute Supply Chain',
+    '산업 시장·기술·경쟁구도',
+    'Executive Summary',
+    'Market Size and Forecast',
+    'Gartner',
+    'GlobalData',
+    '2026년 4월',
+    '2025년 12월',
+    '260만원',
+    '234만원',
+    '250만원',
+    '225만원'
+  ];
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function q(sel, root){ return (root || document).querySelector(sel); }
+  function qa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function setVal(id, v){
+    var e=$(id);
+    if(!e) return;
+    if('value' in e) e.value = v || '';
+    else e.textContent = v || '';
+    try{e.dispatchEvent(new Event('input',{bubbles:true}));}catch(_){}
+    try{e.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}
+  }
+  function fdoc(){
+    var f=$('rightFrame');
+    try{return f && (f.contentDocument || f.contentWindow.document);}catch(e){return null;}
+  }
+  function setRight(id, v){
+    var d=fdoc(), e=d && $(id,d);
+    if(!e) return;
+    if(id === 'guideLinkAnchor'){
+      e.setAttribute('href', v || '#');
+      e.textContent = v ? '바로가기' : '';
+    } else {
+      e.textContent = v || '';
+    }
+  }
+  function clearMiddle(){
+    [
+      'midTitleEn','midTitleKo','bookPub','bookDate','bookPage',
+      'bookListPrice','bookSupplyPrice','midLink','midToc'
+    ].forEach(function(id){setVal(id,'');});
+  }
+  function clearRightKnownSlots(){
+    [
+      'guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage',
+      'guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft',
+      'guideTocBox','guideTocAuxSlot'
+    ].forEach(function(id){setRight(id,'');});
+    setRight('guideLinkAnchor','');
+  }
+  function scrubTextNodes(root){
+    if(!root) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(n){
+      var t = n.nodeValue || '';
+      if(BLOCK_WORDS.some(function(w){return t.indexOf(w)>=0;})){
+        n.nodeValue = '';
+      }
+    });
+  }
+  function scrubIframe(){
+    var d=fdoc();
+    if(!d) return;
+    clearRightKnownSlots();
+    scrubTextNodes(d.body || d);
+    // 링크 표시줄도 실제 URL 입력 전에는 빈칸 유지
+    var anchors = qa('a', d);
+    anchors.forEach(function(a){
+      var href = a.getAttribute('href') || '';
+      if(href.indexOf('gartner.com')>=0 || href.indexOf('globaldata.com')>=0){
+        a.removeAttribute('href');
+        a.textContent = '';
+      }
+    });
+    // 목차 영역으로 보이는 긴 문단 중 샘플 목차 포함 문장 제거
+    qa('p, div, span, td', d).forEach(function(el){
+      var tx = el.textContent || '';
+      if(BLOCK_WORDS.some(function(w){return tx.indexOf(w)>=0;})){
+        el.textContent = '';
+      }
+    });
+  }
+  function blockOldGenerateUntilUrl(){
+    var gen=$('generateBtn');
+    if(gen){
+      gen.textContent='공개 URL 입력 후 생성';
+      gen.title='실제 공개 URL 또는 원문 근거 없이는 샘플 생성 금지';
+    }
+  }
+  function installBanner(){
+    if($('P6_STRICT_BLANK_BANNER')) return;
+    var top=q('.top');
+    var div=document.createElement('div');
+    div.id='P6_STRICT_BLANK_BANNER';
+    div.innerHTML='<b>강제 수정: 샘플/임의 목차 표시 차단</b><br>'
+      +'<span class="ok">실제 공개 URL 또는 사용자가 준 원문 목차 전에는 안내서 빈칸 유지</span><br>'
+      +'<span class="bad">Gartner/GlobalData 예시, 임의 가격, 임의 목차, 샘플 제목 표시 금지</span>';
+    if(top && top.parentNode) top.parentNode.insertBefore(div, top.nextSibling);
+  }
+  function disableSample(){
+    var b=$('fillSampleBtn');
+    if(b){
+      b.textContent='샘플 입력 차단됨';
+      b.disabled=true;
+      b.style.opacity='0.5';
+      b.onclick=function(e){e.preventDefault();return false;};
+    }
+  }
+  function setStatus(){
+    var s=$('stateBadge'); if(s) s.textContent='STATE: STRICT_BLANK';
+    var g=$('gateBadge'); if(g) g.textContent='GATE: REAL_SOURCE_ONLY';
+    var d=$('diagBadge'); if(d) d.textContent='DIAG: SAMPLE_BLOCKED';
+    var bridge=$('bridgeStatus');
+    if(bridge) bridge.textContent='실제 공개 URL/원문 목차 입력 전: 안내서 빈칸 유지';
+    var packet=$('diagPacket');
+    if(packet && 'value' in packet){
+      packet.value='[P6_STRICT_BLANK_UNTIL_REAL_SOURCE]\n'
+        +'SAMPLE_DATA=BLOCKED\n'
+        +'FAKE_TOC=BLOCKED\n'
+        +'INITIAL_GUIDE_VALUES=CLEARED\n'
+        +'RULE=사용자 원문/공개URL 근거 없는 값은 안내서에 표시 금지\n'
+        +'NEXT=공개 보고서 URL 5개로 실제 추출';
+    }
+  }
+  function cleanAll(){
+    clearMiddle();
+    clearRightKnownSlots();
+    scrubIframe();
+    disableSample();
+    blockOldGenerateUntilUrl();
+    setStatus();
+  }
+  function install(){
+    installBanner();
+    cleanAll();
+    setTimeout(cleanAll, 300);
+    setTimeout(cleanAll, 1000);
+    setTimeout(cleanAll, 2500);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
+  else install();
+})();
+</script>
+
 </body>
 
 </html>
