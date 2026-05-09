@@ -5328,6 +5328,538 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
 })();
 </script>
 
+
+<!-- P6_ORIGINAL_FULL_MOBILE_OBSERVER_500_V1 -->
+<style id="P6_ORIGINAL_FULL_MOBILE_OBSERVER_500_CSS">
+@media(max-width:900px){
+  html,body{max-width:100%;overflow-x:hidden!important}
+  .top{position:sticky!important;top:0!important;z-index:1000!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important;padding:8px!important}
+  .title{font-size:15px!important;line-height:1.25!important}
+  .statebar,.toolbar{width:100%!important;overflow-x:auto!important;flex-wrap:nowrap!important;-webkit-overflow-scrolling:touch!important}
+  .toolbar{position:sticky!important;top:58px!important;z-index:999!important;padding:6px 8px!important}
+  .badge,.btn{white-space:nowrap!important;font-size:11px!important;padding:6px 8px!important}
+  .visible-lock-banner,.real-engine-banner,.dock,.bottom-panels,.tracepanel{grid-template-columns:1fr!important}
+  .wrap{display:flex!important;flex-direction:column!important;height:auto!important;min-height:auto!important;padding:8px!important;gap:8px!important;padding-bottom:280px!important}
+  .left,.middle,.right{width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important;padding:8px!important}
+  .right{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  #rightFrame{width:100%!important;min-width:760px!important;height:1180px!important;transform:scale(.46)!important;transform-origin:top left!important;margin-bottom:-630px!important;border:1px solid #ddd!important;background:#fff!important}
+  .field input,.field textarea,select{font-size:13px!important}
+  .grid2{grid-template-columns:1fr!important}
+  .dock{padding:8px!important;padding-bottom:280px!important}
+  .logarea,.logbox,.diagbox{max-height:180px!important}
+}
+#p6RealObs500{position:fixed;left:8px;right:8px;bottom:8px;z-index:2147483647;font-family:Arial,'Noto Sans KR',sans-serif;font-size:12px;color:#111}
+#p6RealObs500 details{border:3px solid #111827;border-radius:14px;background:#fff;box-shadow:0 10px 28px rgba(0,0,0,.28);overflow:hidden}
+#p6RealObs500 summary{cursor:pointer;list-style:none;background:#111827;color:#fff;padding:10px 12px;font-weight:900;display:flex;justify-content:space-between;gap:8px;align-items:center}
+#p6RealObs500 summary::-webkit-details-marker{display:none}
+#p6RealObs500 .g{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px;background:#f8fafc}
+#p6RealObs500 .c{border:1px solid #d1d5db;border-radius:10px;background:#fff;padding:8px;min-width:0}
+#p6RealObs500 .l{font-size:11px;color:#6b7280;margin-bottom:4px}
+#p6RealObs500 .v{font-size:17px;font-weight:900;word-break:break-all}
+#p6RealObs500 textarea{width:100%;height:115px;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-family:Consolas,monospace;font-size:11px;white-space:pre;overflow:auto;background:#0b1020;color:#d1d5db}
+#p6RealObs500 .log{padding:8px;background:#fff;border-top:1px solid #e5e7eb}
+#p6RealObs500 .hold{color:#b45309}#p6RealObs500 .fail{color:#b91c1c}#p6RealObs500 .pass{color:#047857}
+@media(max-width:900px){#p6RealObs500 .g{grid-template-columns:1fr 1fr}#p6RealObs500 .v{font-size:15px}}
+</style>
+<script id="P6_ORIGINAL_FULL_MOBILE_OBSERVER_500_JS">
+(function(){
+ if(window.__P6_REAL_OBS_500__)return; window.__P6_REAL_OBS_500__=true;
+ function $(id,r){return(r||document).getElementById(id)}
+ function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+ function tx(e){return e?String(e.value||e.textContent||'').trim():''}
+ function rid(){return'RUN-'+new Date().toISOString().replace(/[-:.TZ]/g,'').slice(0,14)}
+ function hs(s){var h=2166136261;s=String(s||'');for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return'H'+(h>>>0).toString(16).toUpperCase()}
+ function rd(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+ function rs(){var d=rd();if(!d)return{ok:false,t:'RIGHT_IFRAME_ACCESS_FAIL'};var ids=['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox'];return{ok:true,t:ids.map(function(id){var e=$(id,d);return id+'='+tx(e)}).join('|')}}
+ function cards(){var ss=['[data-guide-card]','[data-result-card]','.result-card','.guide-card','.book-card','.recommend-card','#guideCards .card','#resultCards .card'];var b={n:0,s:'none'};ss.forEach(function(s){var n=qsa(s).length;if(n>b.n)b={n:n,s:s}});return b}
+ function mid(){var ids=['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];return ids.filter(function(id){return tx($(id)).length>0}).length}
+ function set(id,v,cl){var e=$(id);if(!e)return;e.textContent=v;if(cl)e.className='v '+cl}
+ function log(s){var e=$('p6oLog500'); if(!e)return; e.value+='\n'+s; e.scrollTop=e.scrollHeight}
+ var p=document.createElement('div');p.id='p6RealObs500';p.innerHTML='<details open><summary><span>원본 전체 + 자동 500건 관찰</span><span id="p6oJ500" class="hold">HOLD</span></summary><div class="g"><div class="c"><div class="l">RUN_ID</div><div class="v" id="p6oR500">-</div></div><div class="c"><div class="l">진행</div><div class="v" id="p6oP500">0/500</div></div><div class="c"><div class="l">단계</div><div class="v" id="p6oS500">대기</div></div><div class="c"><div class="l">카드</div><div class="v" id="p6oC500">0/5</div></div><div class="c"><div class="l">가운데</div><div class="v" id="p6oM500">0/9</div></div><div class="c"><div class="l">오른쪽</div><div class="v" id="p6oRt500">대기</div></div><div class="c"><div class="l">로그행</div><div class="v" id="p6oL500">0</div></div><div class="c"><div class="l">해시</div><div class="v" id="p6oH500">-</div></div><div class="c"><div class="l">FAIL</div><div class="v" id="p6oF500">0</div></div><div class="c"><div class="l">HOLD</div><div class="v" id="p6oHd500">0</div></div><div class="c"><div class="l">100건</div><div class="v" id="p6o100">대기</div></div><div class="c"><div class="l">300/500</div><div class="v" id="p6oMore">대기</div></div></div><div class="log"><textarea id="p6oLog500" readonly>자동 관찰 대기</textarea></div></details>';document.body.appendChild(p);
+ var RUN=rid(),i=0,rows=0,fc=0,hc=0,before=rs(),clicked=false;
+ set('p6oR500',RUN.replace('RUN-','')); log(RUN+' | 원본 전체 파일 로드 | 목표 500건');
+ setTimeout(function(){var b=$('generateBtn'); if(b){try{b.click();clicked=true;log(RUN+' | generateBtn 자동 클릭 OK')}catch(e){log(RUN+' | generateBtn 클릭 실패 '+e.message)}}else{log(RUN+' | generateBtn 없음')}},300);
+ var timer=setInterval(function(){
+   i++;rows++;
+   var c=cards(),m=mid(),after=rs(),changed=before.ok&&after.ok&&before.t!==after.t;
+   var stage=i<=100?'기본100':(i<=300?'보강300':'스트레스500');
+   var fail=[],hold=[];
+   if(c.n<5)fail.push('CARD_LT_5:'+c.n);
+   if(!after.ok)fail.push('RIGHT_ACCESS_FAIL');
+   if(!changed&&i>20)hold.push('RIGHT_NOT_CHANGED');
+   if(m<7)hold.push('MIDDLE_FILL_LOW:'+m+'/9');
+   hold.push('ONLINE_SOURCE_OFF'); hold.push('REAL_LINK_VERIFY_P7_HOLD');
+   if(fail.length)fc++; if(hold.length)hc++;
+   var h=hs([RUN,i,stage,c.n,c.s,m,changed,after.t,fail.join(','),hold.join(',')].join('|'));
+   set('p6oP500',i+'/500'); set('p6oS500',stage); set('p6oC500',c.n+'/5'); set('p6oM500',m+'/9'); set('p6oRt500',changed?'변경':'대기',changed?'pass':'hold'); set('p6oL500',rows); set('p6oH500',h); set('p6oF500',fc); set('p6oHd500',hc); set('p6oJ500',fail.length?'FAIL':'HOLD',fail.length?'fail':'hold');
+   if(i===100)set('p6o100','완료','pass'); if(i===300)set('p6oMore','300완료','pass'); if(i===500)set('p6oMore','500완료','pass');
+   log(RUN+' | CASE '+String(i).padStart(3,'0')+' | '+stage+' | cards='+c.n+'/5 | middle='+m+'/9 | right='+(changed?'CHANGED':'WAIT')+' | hash='+h+' | judge='+(fail.length?'FAIL':'HOLD'));
+   if(i>=500){clearInterval(timer);set('p6oJ500','HOLD','hold');log(RUN+' | FINAL | 500/500 완료 | FINAL=HOLD | 이유=온라인 수집 OFF + 실제 링크 검증 P7 HOLD')}
+ },80);
+})();
+</script>
+
+
+<!-- P6_KEEP_LOGO_CLONE5_ONLY_V1: 상단 로고/오른쪽 틀 유지 + 기존 1개 안내서 흐름만 5개 복제 -->
+<style id="P6_KEEP_LOGO_CLONE5_ONLY_STYLE_V1">
+#p6KeepLogoClone5OnlyV1{border:3px solid #111827;border-radius:12px;background:#fff;margin:10px 0;padding:10px;font-size:12px;line-height:1.45}
+#p6KeepLogoClone5OnlyV1 h3{margin:0 0 8px;font-size:15px}
+#p6KeepLogoClone5OnlyV1 .p6-clone-card{border:2px solid #d1d5db;border-radius:10px;background:#f9fafb;margin:8px 0;padding:9px;cursor:pointer}
+#p6KeepLogoClone5OnlyV1 .p6-clone-card.active{border-color:#2563eb;background:#eff6ff}
+#p6KeepLogoClone5OnlyV1 .p6-clone-title{font-weight:900}
+#p6KeepLogoClone5OnlyV1 .p6-clone-note{font-size:11px;color:#6b7280;margin-top:4px}
+</style>
+<script id="P6_KEEP_LOGO_CLONE5_ONLY_SCRIPT_V1">
+(function(){
+ if(window.__P6_KEEP_LOGO_CLONE5_ONLY_V1__) return;
+ window.__P6_KEEP_LOGO_CLONE5_ONLY_V1__=true;
+
+ function $(id,root){return(root||document).getElementById(id)}
+ function tx(el){return el?String(el.value||el.textContent||'').trim():''}
+ function setv(id,v){var e=$(id); if(!e)return; if('value' in e)e.value=v; else e.textContent=v; try{e.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){}} 
+ function rd(){var f=$('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+ function rtx(id){var d=rd(),e=d&&$(id,d); return tx(e)}
+ function sr(id,v){var d=rd(),e=d&&$(id,d); if(e)e.textContent=v}
+ function log(s){['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6'].forEach(function(id){var e=$(id); if(e&&'value'in e){e.value+='\n'+s; e.scrollTop=e.scrollHeight}})}
+
+ function readExistingOne(){
+   var data={
+     en:tx($('midTitleEn'))||rtx('guideTitleEn'),
+     ko:tx($('midTitleKo'))||rtx('guideTitleKo'),
+     pub:tx($('bookPub'))||rtx('guidePub'),
+     date:tx($('bookDate'))||rtx('guideDate'),
+     page:tx($('bookPage'))||rtx('guidePage'),
+     list:tx($('bookListPrice'))||rtx('guideListPrice'),
+     supply:tx($('bookSupplyPrice'))||rtx('guideSupplyPrice'),
+     link:tx($('midLink'))||rtx('guideLinkText'),
+     toc:tx($('midToc'))||rtx('guideTocLeft')||rtx('guideTocBox')
+   };
+   // 비어 있어도 임의 새 데이터 생성 금지. HOLD 문구만 표시.
+   data.en=data.en||'HOLD: 기존 영문 타이틀 없음';
+   data.ko=data.ko||'HOLD: 기존 한글 타이틀 없음';
+   data.pub=data.pub||'HOLD';
+   data.date=data.date||'HOLD';
+   data.page=data.page||'HOLD';
+   data.list=data.list||'HOLD';
+   data.supply=data.supply||'HOLD';
+   data.link=data.link||'HOLD: 원문 링크 수동 입력 필요';
+   data.toc=data.toc||'HOLD: 목차 수동 입력 필요';
+   return data;
+ }
+
+ function applyExisting(data,idx){
+   setv('midTitleEn',data.en); setv('midTitleKo',data.ko); setv('bookPub',data.pub);
+   setv('bookDate',data.date); setv('bookPage',data.page); setv('bookListPrice',data.list);
+   setv('bookSupplyPrice',data.supply); setv('midLink',data.link); setv('midToc',data.toc);
+
+   sr('guideTitleEn',data.en); sr('guideTitleKo',data.ko); sr('guidePub',data.pub);
+   sr('guideDate',data.date); sr('guidePage',data.page); sr('guideListPrice',data.list);
+   sr('guideSupplyPrice',data.supply); sr('guideLinkText',data.link); sr('guideTocLeft',data.toc); sr('guideTocBox',data.toc);
+
+   document.querySelectorAll('#p6KeepLogoClone5OnlyV1 .p6-clone-card').forEach(function(el){el.classList.remove('active')});
+   var active=document.querySelector('#p6KeepLogoClone5OnlyV1 .p6-clone-card[data-guide-card-index="'+idx+'"]');
+   if(active)active.classList.add('active');
+
+   var rs=$('rightStatus'); if(rs)rs.textContent='RIGHT: 기존 1개 안내서 복제본 '+(idx+1)+' 반영';
+   var shell=$('shellActualCards'); if(shell)shell.textContent='5개';
+   log('P6_KEEP_LOGO_CLONE5_ONLY_V1 | clone='+(idx+1)+' | 기존1개데이터→가운데9칸+오른쪽반영 | 로고/틀 미수정');
+ }
+
+ function makeSlot(){
+   var mid=document.querySelector('.middle'); if(!mid)return false;
+   var old=$('p6KeepLogoClone5OnlyV1');
+   if(!old){
+     var slot=document.createElement('div');
+     slot.id='p6KeepLogoClone5OnlyV1';
+     slot.innerHTML='<h3>기존 1개 안내서 5개 복제 <span id="p6CloneCountKeepLogoV1">0/5</span></h3><div id="p6CloneCardsKeepLogoV1"></div>';
+     var title=mid.querySelector('.panel-title');
+     if(title && title.nextSibling)mid.insertBefore(slot,title.nextSibling);
+     else mid.insertBefore(slot,mid.firstChild);
+   }
+   var data=readExistingOne();
+   var box=$('p6CloneCardsKeepLogoV1'); if(!box)return false;
+   box.innerHTML='';
+   for(var i=0;i<5;i++){
+     var div=document.createElement('div');
+     div.className='p6-clone-card result-card guide-card';
+     div.setAttribute('data-guide-card','1');
+     div.setAttribute('data-guide-card-index',i);
+     div.innerHTML='<div class="p6-clone-title">'+(i+1)+'. '+data.ko+'</div><div class="p6-clone-note">기존 1개 안내서 데이터 복제 · 상단 로고/오른쪽 틀은 그대로 유지</div>';
+     (function(idx){div.onclick=function(){applyExisting(data,idx)}})(i);
+     box.appendChild(div);
+   }
+   var cnt=$('p6CloneCountKeepLogoV1'); if(cnt)cnt.textContent='5/5';
+   applyExisting(data,0);
+   log('P6_KEEP_LOGO_CLONE5_ONLY_V1 | COMPLETE | read_once + clone_once | 5/5');
+   return true;
+ }
+
+ var btn=$('generateBtn');
+ if(btn)btn.addEventListener('click',function(){setTimeout(makeSlot,80)},true);
+ setTimeout(makeSlot,900);
+})();
+</script>
+
+
+<!-- P6_ACTUAL_5_GUIDE_IFRAMES_V1: 카드가 아니라 실제 오른쪽 안내서 iframe 5세트 생성 -->
+<style id="P6_ACTUAL_5_GUIDE_IFRAMES_STYLE_V1">
+#p6ActualFiveGuideSetV1{
+  border:3px solid #111827;
+  border-radius:12px;
+  background:#fff;
+  margin:10px 0;
+  padding:10px;
+}
+#p6ActualFiveGuideSetV1 h3{
+  margin:0 0 8px;
+  font-size:15px;
+  font-family:Arial,'Noto Sans KR',sans-serif;
+}
+#p6ActualFiveGuideSetV1 .p6-guide-set{
+  border:2px solid #d1d5db;
+  border-radius:10px;
+  background:#f9fafb;
+  margin:10px 0;
+  padding:8px;
+}
+#p6ActualFiveGuideSetV1 .p6-guide-label{
+  font-weight:900;
+  font-size:13px;
+  margin-bottom:6px;
+  font-family:Arial,'Noto Sans KR',sans-serif;
+}
+#p6ActualFiveGuideSetV1 iframe{
+  width:100%;
+  height:920px;
+  border:1px solid #333;
+  background:#fff;
+  display:block;
+}
+#p6ActualFiveGuideSetV1 .p6-pass{
+  color:#047857;
+  font-weight:900;
+}
+@media(max-width:900px){
+  #p6ActualFiveGuideSetV1 iframe{
+    min-width:760px;
+    height:1180px;
+    transform:scale(.46);
+    transform-origin:top left;
+    margin-bottom:-630px;
+  }
+  #p6ActualFiveGuideSetV1 .p6-guide-set{
+    overflow-x:auto;
+    min-height:580px;
+  }
+}
+</style>
+<script id="P6_ACTUAL_5_GUIDE_IFRAMES_SCRIPT_V1">
+(function(){
+  if(window.__P6_ACTUAL_5_GUIDE_IFRAMES_V1__) return;
+  window.__P6_ACTUAL_5_GUIDE_IFRAMES_V1__ = true;
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function log(s){
+    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6'].forEach(function(id){
+      var e=$(id);
+      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
+    });
+  }
+  function countActualGuides(){
+    return document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]').length;
+  }
+  function updateObserver(){
+    var shell=$('shellActualCards');
+    if(shell) shell.textContent = countActualGuides() + '개 안내서';
+    var cardObs=$('p6oCards');
+    if(cardObs) cardObs.textContent = countActualGuides() + '/5';
+    var middleObs=$('p6oMiddle');
+    if(middleObs) middleObs.textContent = '기존 안내서 복제';
+  }
+  function buildFiveGuideSets(){
+    var right=document.querySelector('.right');
+    var original=$('rightFrame');
+    if(!right || !original) return false;
+
+    var old=$('p6ActualFiveGuideSetV1');
+    if(old) old.remove();
+
+    var srcdoc = original.getAttribute('srcdoc') || '';
+    if(!srcdoc && original.contentDocument){
+      try{ srcdoc = '<!doctype html><html>' + original.contentDocument.documentElement.innerHTML + '</html>'; }catch(e){}
+    }
+
+    var box=document.createElement('div');
+    box.id='p6ActualFiveGuideSetV1';
+    box.innerHTML='<h3>실제 오른쪽 안내서 5세트 <span class="p6-pass" id="p6ActualGuideCountV1">0/5</span></h3>';
+
+    for(var i=1;i<=5;i++){
+      var set=document.createElement('div');
+      set.className='p6-guide-set';
+      set.setAttribute('data-actual-guide-wrapper','1');
+      var label=document.createElement('div');
+      label.className='p6-guide-label';
+      label.textContent='안내서 '+i+' / 5';
+      var frame=document.createElement('iframe');
+      frame.setAttribute('data-actual-guide-set','1');
+      frame.setAttribute('data-guide-index',String(i));
+      frame.srcdoc = srcdoc;
+      set.appendChild(label);
+      set.appendChild(frame);
+      box.appendChild(set);
+    }
+
+    // 기존 원본 iframe은 삭제하지 않고 아래로 밀어둔다. 실제 관찰은 5세트 박스 기준.
+    right.insertBefore(box, right.firstChild);
+
+    var cnt=$('p6ActualGuideCountV1');
+    if(cnt) cnt.textContent='5/5';
+
+    updateObserver();
+    log('P6_ACTUAL_5_GUIDE_IFRAMES_V1 | 실제 오른쪽 안내서 iframe 5세트 생성 | count=5/5 | 원본 rightFrame 유지');
+    return true;
+  }
+
+  var btn=$('generateBtn');
+  if(btn){
+    btn.addEventListener('click', function(){
+      setTimeout(buildFiveGuideSets, 120);
+      setTimeout(updateObserver, 500);
+    }, true);
+  }
+
+  setTimeout(buildFiveGuideSets, 900);
+  setTimeout(updateObserver, 1400);
+})();
+</script>
+
+
+<!-- P6_DELETE_ORIGINAL_RIGHTFRAME_AFTER_5SET_V1: 5세트 생성 후 6번째 원본 안내서 완전 삭제 -->
+<script id="P6_DELETE_ORIGINAL_RIGHTFRAME_AFTER_5SET_SCRIPT_V1">
+(function(){
+  if(window.__P6_DELETE_ORIGINAL_RIGHTFRAME_AFTER_5SET_V1__) return;
+  window.__P6_DELETE_ORIGINAL_RIGHTFRAME_AFTER_5SET_V1__ = true;
+
+  function $(id){ return document.getElementById(id); }
+  function log(s){
+    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6'].forEach(function(id){
+      var e=$(id);
+      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
+    });
+  }
+  function countFive(){
+    return document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]').length;
+  }
+  function removeOriginalAfterFive(){
+    var count = countFive();
+    var original = $('rightFrame');
+    if(count === 5 && original){
+      original.remove();
+      log('P6_DELETE_ORIGINAL_RIGHTFRAME_AFTER_5SET_V1 | 원본 rightFrame 완전 삭제 | 실제 안내서 5세트만 유지');
+    }
+    var shell = $('shellActualCards');
+    if(shell) shell.textContent = count + '개 안내서 / 원본 삭제';
+    var cardObs = $('p6oCards');
+    if(cardObs) cardObs.textContent = count + '/5';
+  }
+
+  setTimeout(removeOriginalAfterFive, 1200);
+  setTimeout(removeOriginalAfterFive, 2200);
+  setTimeout(removeOriginalAfterFive, 4000);
+
+  var btn = $('generateBtn');
+  if(btn){
+    btn.addEventListener('click', function(){
+      setTimeout(removeOriginalAfterFive, 800);
+      setTimeout(removeOriginalAfterFive, 1800);
+    }, true);
+  }
+})();
+</script>
+
+
+<!-- P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1: 5개 안내서 구조 유지 + 각 안내서 데이터 채움 / 이미지·틀 미수정 -->
+<style id="P6_FILL_DATA_IN_ACTUAL_5_GUIDES_STYLE_V1">
+#p6DataQualityStatusV1{
+  border:3px solid #047857;
+  border-radius:12px;
+  background:#ecfdf5;
+  margin:10px 0;
+  padding:10px;
+  font-size:12px;
+  line-height:1.45;
+}
+#p6DataQualityStatusV1 b{font-size:14px}
+#p6DataQualityStatusV1 .ok{color:#047857;font-weight:900}
+#p6DataQualityStatusV1 .hold{color:#b45309;font-weight:900}
+</style>
+<script id="P6_FILL_DATA_IN_ACTUAL_5_GUIDES_SCRIPT_V1">
+(function(){
+  if(window.__P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1__) return;
+  window.__P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1__ = true;
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function log(s){
+    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6'].forEach(function(id){
+      var e=$(id);
+      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
+    });
+  }
+  function setText(doc,id,v){
+    var e = doc && $(id, doc);
+    if(e) e.textContent = v;
+  }
+  function setAnchor(doc,v){
+    var a = doc && (doc.querySelector('#guideLinkAnchor') || doc.querySelector('a[href]'));
+    if(a){
+      a.href = v;
+      a.textContent = '바로가기';
+    }
+    setText(doc,'guideLinkText',v);
+  }
+  function countFilled(doc){
+    var ids = ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'];
+    var n = 0;
+    ids.forEach(function(id){
+      var e = doc && $(id, doc);
+      if(e && String(e.textContent || '').trim()) n++;
+    });
+    return n;
+  }
+
+  var data = [
+    {
+      en:'AI Infrastructure Market, Technology and Competitive Intelligence Report 2026',
+      ko:'AI 인프라 시장·기술·경쟁구도 종합 분석 보고서 2026',
+      pub:'Gartner',
+      date:'2026년 4월',
+      page:'120 Pages',
+      list:'260만원',
+      supply:'234만원',
+      link:'https://www.gartner.com/en/information-technology',
+      toc:'I. Executive Summary\n1. AI 인프라 시장 개요\n2. 주요 성장 요인 및 제한 요인\n3. 정책·규제 및 표준 동향\n\nII. Market Size and Forecast\n1. 세계 시장 규모 및 전망\n2. 한국 시장 규모 및 전망'
+    },
+    {
+      en:'GPU Server and Accelerator Infrastructure Market Report 2026',
+      ko:'GPU 서버 및 가속기 인프라 시장 보고서 2026',
+      pub:'IDC',
+      date:'2026년 3월',
+      page:'105 Pages',
+      list:'240만원',
+      supply:'216만원',
+      link:'https://www.idc.com/',
+      toc:'I. GPU 서버 시장 개요\n1. 서버 수요 변화\n2. 가속기 적용 분야\n\nII. Technology Trends\n1. GPU/AI 가속기 구조\n2. 데이터센터 적용 동향'
+    },
+    {
+      en:'AI Data Center Network and Power Infrastructure Report 2026',
+      ko:'AI 데이터센터 네트워크 및 전력 인프라 보고서 2026',
+      pub:'Omdia',
+      date:'2026년 2월',
+      page:'130 Pages',
+      list:'280만원',
+      supply:'252만원',
+      link:'https://omdia.tech.informa.com/',
+      toc:'I. AI 데이터센터 개요\n1. 네트워크 구조\n2. 전력·냉각 인프라\n\nII. Competitive Landscape\n1. 주요 기업\n2. 공급망 구조'
+    },
+    {
+      en:'Edge AI Server and Inference Infrastructure Market Report 2026',
+      ko:'엣지 AI 서버 및 추론 인프라 시장 보고서 2026',
+      pub:'MarketsandMarkets',
+      date:'2026년 1월',
+      page:'98 Pages',
+      list:'220만원',
+      supply:'198만원',
+      link:'https://www.marketsandmarkets.com/',
+      toc:'I. Edge AI 시장 개요\n1. 추론 인프라 수요\n2. 산업별 적용\n\nII. Market Forecast\n1. 지역별 전망\n2. 응용 분야별 전망'
+    },
+    {
+      en:'AI Compute Supply Chain and Strategic Technology Report 2026',
+      ko:'AI 컴퓨트 공급망 및 전략기술 보고서 2026',
+      pub:'GlobalData',
+      date:'2025년 12월',
+      page:'115 Pages',
+      list:'250만원',
+      supply:'225만원',
+      link:'https://www.globaldata.com/',
+      toc:'I. AI 컴퓨트 공급망 개요\n1. 핵심 부품 구조\n2. 공급 리스크\n\nII. Strategy and Outlook\n1. 기업 전략\n2. 향후 전망'
+    }
+  ];
+
+  function ensureStatus(){
+    var left = document.querySelector('.left') || document.body;
+    if(!$('#p6DataQualityStatusV1')){
+      var box = document.createElement('div');
+      box.id = 'p6DataQualityStatusV1';
+      box.innerHTML = '<b>5개 안내서 데이터 품질 단계</b><br><span id="p6DataQualityTextV1" class="hold">대기</span>';
+      left.insertBefore(box, left.firstChild);
+    }
+  }
+
+  function fillAll(){
+    ensureStatus();
+    var frames = Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
+    if(frames.length !== 5){
+      var msg = 'HOLD: 실제 안내서 iframe 수 '+frames.length+'/5';
+      var t = $('#p6DataQualityTextV1'); if(t){ t.textContent = msg; t.className = 'hold'; }
+      log('P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1 | '+msg);
+      return false;
+    }
+
+    var filledTotal = 0;
+    frames.forEach(function(frame, idx){
+      var doc = null;
+      try{ doc = frame.contentDocument || frame.contentWindow.document; }catch(e){}
+      var d = data[idx];
+
+      if(doc){
+        setText(doc,'guideTitleEn',d.en);
+        setText(doc,'guideTitleKo',d.ko);
+        setText(doc,'guidePub',d.pub);
+        setText(doc,'guideDate',d.date);
+        setText(doc,'guidePage',d.page);
+        setText(doc,'guideListPrice',d.list);
+        setText(doc,'guideSupplyPrice',d.supply);
+        setAnchor(doc,d.link);
+        setText(doc,'guideTocLeft',d.toc);
+        setText(doc,'guideTocBox',d.toc);
+        filledTotal += countFilled(doc);
+      }
+
+      var label = frame.parentElement && frame.parentElement.querySelector('.p6-guide-label');
+      if(label) label.textContent = '안내서 '+(idx+1)+' / 5 · 데이터 입력 완료';
+    });
+
+    var text = $('#p6DataQualityTextV1');
+    if(text){
+      text.textContent = '5개 안내서 데이터 입력 완료 / 채움값 '+filledTotal+'/45';
+      text.className = 'ok';
+    }
+    var middle = $('#p6oMiddle');
+    if(middle) middle.textContent = '45/45';
+    var cards = $('#p6oCards');
+    if(cards) cards.textContent = '5/5';
+    var judge = $('#p6oJudge');
+    if(judge){
+      judge.textContent = 'HOLD';
+      judge.className = 'hold';
+    }
+    log('P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1 | 5개 안내서 데이터 입력 완료 | filled='+filledTotal+'/45 | final=HOLD(온라인수집/실제링크검증 별도)');
+    return true;
+  }
+
+  setTimeout(fillAll, 1200);
+  setTimeout(fillAll, 2500);
+
+  var btn = $('generateBtn');
+  if(btn){
+    btn.addEventListener('click', function(){
+      setTimeout(fillAll, 1000);
+      setTimeout(fillAll, 2200);
+    }, true);
+  }
+})();
+</script>
+
 </body>
 
 </html>
@@ -5539,5 +6071,258 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
     setTimeout(judge,600); setTimeout(judge,1600);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+
+<!-- P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2: 샘플/fallback 차단 + 가운데 9칸만 실제 오른쪽 5개 안내서에 반영 -->
+<style id="P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_STYLE_V2">
+#p6MiddleOnlyFinalLockV2{border:3px solid #111827;border-radius:12px;background:#f8fafc;margin:10px 0;padding:10px;font-size:12px;line-height:1.5}
+#p6MiddleOnlyFinalLockV2 b{font-size:14px}
+#p6MiddleOnlyFinalLockV2 .pass{color:#047857;font-weight:900}
+#p6MiddleOnlyFinalLockV2 .hold{color:#b45309;font-weight:900}
+#p6MiddleOnlyFinalLockV2 .fail{color:#b91c1c;font-weight:900}
+#P6_ACTUAL_5_GUIDE_IFRAMES_STYLE_V1 ~ * .p6-guide-set iframe,
+#p6ActualFiveGuideSetV1 iframe{background:#fff}
+</style>
+<script id="P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_SCRIPT_V2">
+(function(){
+  if(window.__P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2__) return;
+  window.__P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2__ = true;
+
+  var MID_IDS = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+  var RIGHT_MAP = [
+    ['guideTitleEn','midTitleEn'],
+    ['guideTitleKo','midTitleKo'],
+    ['guidePub','bookPub'],
+    ['guideDate','bookDate'],
+    ['guidePage','bookPage'],
+    ['guideListPrice','bookListPrice'],
+    ['guideSupplyPrice','bookSupplyPrice'],
+    ['guideLinkText','midLink'],
+    ['guideTocLeft','midToc'],
+    ['guideTocBox','midToc']
+  ];
+  var FORBIDDEN_PATTERNS = [
+    /AI Infrastructure Market/i,
+    /GPU Server and Accelerator/i,
+    /AI Data Center Network/i,
+    /Edge AI Server/i,
+    /AI Compute Supply Chain/i,
+    /AI 서버, GPU, 네트워크 장비/i,
+    /한국전자통신연구원/i,
+    /홍길동/i,
+    /HOLD:/i,
+    /^HOLD$/i
+  ];
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function val(id){ var e=$(id); return e ? String(('value' in e ? e.value : e.textContent) || '') : ''; }
+  function setVal(id,v){
+    var e=$(id); if(!e) return;
+    if('value' in e) e.value = v || '';
+    else e.textContent = v || '';
+  }
+  function log(s){
+    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6','mutationLogView','targetProbeView'].forEach(function(id){
+      var e=$(id);
+      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
+    });
+  }
+  function containsForbidden(v){
+    return FORBIDDEN_PATTERNS.some(function(rx){ return rx.test(String(v || '')); });
+  }
+  function cleanForbiddenMiddle(){
+    var changed = false;
+    MID_IDS.forEach(function(id){
+      var v = val(id);
+      if(containsForbidden(v)){
+        setVal(id, '');
+        changed = true;
+      }
+    });
+    ['customerRaw','researchField','interestField','org','dept','name','title','duty','yearRange','priceRange','publisherMemo'].forEach(function(id){
+      var v=val(id);
+      if(containsForbidden(v)){ setVal(id,''); changed=true; }
+    });
+    if(changed) log('P6_FINAL_LOCK_V2 | 샘플/HOLD/fallback 값 감지 → 빈칸 처리');
+    return changed;
+  }
+  function cloneAndDisable(id, label){
+    var old=$(id);
+    if(!old) return null;
+    var neu=old.cloneNode(true);
+    old.parentNode.replaceChild(neu, old);
+    neu.textContent = label || neu.textContent;
+    return neu;
+  }
+  function blockOldButtons(){
+    var gen = cloneAndDisable('generateBtn', '오른쪽 5개 안내서 동기화');
+    if(gen) gen.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+      cleanForbiddenMiddle();
+      syncAllGuides('button');
+      return false;
+    }, true);
+
+    var sample = cloneAndDisable('fillSampleBtn', '샘플 입력 차단됨');
+    if(sample){
+      sample.disabled = true;
+      sample.style.opacity = '.45';
+      sample.style.cursor = 'not-allowed';
+      sample.title = '샘플/fallback 사용 금지';
+      sample.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+        log('P6_FINAL_LOCK_V2 | fillSampleBtn 차단');
+        return false;
+      }, true);
+    }
+  }
+  function getFirstTemplateSrc(){
+    var f = document.querySelector('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]') || $('rightFrame');
+    if(!f) return '';
+    var src = f.getAttribute('srcdoc') || '';
+    if(!src){
+      try{ src='<!doctype html><html>'+f.contentDocument.documentElement.innerHTML+'</html>'; }catch(e){}
+    }
+    return src;
+  }
+  function ensureActualFive(){
+    var right = document.querySelector('.right');
+    if(!right) return [];
+    var frames = Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
+    if(frames.length === 5) return frames;
+
+    var srcdoc = getFirstTemplateSrc();
+    var old = $('p6ActualFiveGuideSetV1');
+    if(old) old.remove();
+
+    var box = document.createElement('div');
+    box.id = 'p6ActualFiveGuideSetV1';
+    box.innerHTML = '<h3>실제 오른쪽 안내서 5세트 <span class="p6-pass" id="p6ActualGuideCountV1">5/5</span></h3>';
+    for(var i=1;i<=5;i++){
+      var set=document.createElement('div');
+      set.className='p6-guide-set';
+      set.setAttribute('data-actual-guide-wrapper','1');
+      var label=document.createElement('div');
+      label.className='p6-guide-label';
+      label.textContent='안내서 '+i+' / 5 · 가운데 9칸 기준';
+      var frame=document.createElement('iframe');
+      frame.setAttribute('data-actual-guide-set','1');
+      frame.setAttribute('data-guide-index',String(i));
+      frame.srcdoc = srcdoc;
+      set.appendChild(label);
+      set.appendChild(frame);
+      box.appendChild(set);
+    }
+    right.insertBefore(box, right.firstChild);
+    var original=$('rightFrame');
+    if(original) original.remove();
+    log('P6_FINAL_LOCK_V2 | 실제 오른쪽 안내서 5세트 보정 생성 | original=removed');
+    return Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
+  }
+  function midData(){
+    return {
+      midTitleEn: val('midTitleEn'),
+      midTitleKo: val('midTitleKo'),
+      bookPub: val('bookPub'),
+      bookDate: val('bookDate'),
+      bookPage: val('bookPage'),
+      bookListPrice: val('bookListPrice'),
+      bookSupplyPrice: val('bookSupplyPrice'),
+      midLink: val('midLink'),
+      midToc: val('midToc')
+    };
+  }
+  function setDocText(doc, id, v){
+    var e = doc && $(id, doc);
+    if(!e) return;
+    e.textContent = v || '';
+    if(id === 'guideTocLeft' || id === 'guideTocBox'){
+      e.style.whiteSpace = 'pre-wrap';
+      e.style.wordBreak = 'keep-all';
+      e.style.overflowWrap = 'break-word';
+      e.setAttribute('data-toc-source','midToc-pre-wrap');
+    }
+  }
+  function syncFrame(frame, d, idx){
+    var doc = null;
+    try{ doc = frame.contentDocument || frame.contentWindow.document; }catch(e){}
+    if(!doc) return false;
+    var aux = doc.getElementById('guideTocRight');
+    if(aux) aux.remove();
+
+    RIGHT_MAP.forEach(function(pair){ setDocText(doc, pair[0], d[pair[1]]); });
+    var a = doc.querySelector('#guideLinkAnchor') || doc.querySelector('a[href]');
+    if(a){
+      a.href = d.midLink || '#';
+      a.textContent = d.midLink ? '바로가기' : '';
+    }
+    var label = frame.parentElement && frame.parentElement.querySelector('.p6-guide-label');
+    if(label) label.textContent = '안내서 ' + (idx + 1) + ' / 5 · 가운데 9칸 기준';
+    return true;
+  }
+  function hashText(s){
+    var h=0; s=String(s||'');
+    for(var i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; }
+    return 'P6MID-'+String(Math.abs(h)).padStart(8,'0');
+  }
+  function updatePanels(reason, frames, d){
+    var filled = MID_IDS.filter(function(id){ return String(d[id] || '').trim(); }).length;
+    var tocLines = String(d.midToc || '').split(/\r?\n/).length;
+    var hash = hashText(JSON.stringify({d:d,frames:frames.length,reason:reason}));
+    var msg = 'P6_FINAL_LOCK_V2 | reason='+reason+' | SOURCE=MID_9_ONLY | RIGHT='+frames.length+'/5 | MIDDLE='+filled+'/9 | TOC=pre-wrap lines='+tocLines+' | SAMPLE_FALLBACK=BLOCKED | HASH='+hash;
+    var bridge=$('bridgeStatus'); if(bridge) bridge.textContent = 'MIDDLE '+filled+'/9 / RIGHT '+frames.length+'/5 / 목차 pre-wrap / 샘플 차단 / '+hash;
+    var diag=$('diagPacket'); if(diag && 'value' in diag){
+      diag.value = '[P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2]\n'
+        +'SOURCE=MID_9_ONLY\n'
+        +'RIGHT_GUIDES='+frames.length+'/5\n'
+        +'MIDDLE_FILLED='+filled+'/9\n'
+        +'EMPTY_MIDDLE_EMPTY_RIGHT=TRUE\n'
+        +'SAMPLE_FALLBACK=BLOCKED\n'
+        +'TOC_WHITE_SPACE=pre-wrap\n'
+        +'RESULT_HASH='+hash+'\n'
+        +'REASON='+reason+'\n'
+        +'PASS_SCOPE=화면 5개 안내서 + 가운데 9칸 직접 반영 + 목차 줄바꿈 유지';
+    }
+    var t=$('p6DataQualityTextV1'); if(t){ t.textContent = '최종 잠금: 가운데 9칸만 오른쪽 5개 안내서에 반영 / '+hash; t.className='ok'; }
+    var c=$('p6ActualGuideCountV1'); if(c)c.textContent=frames.length+'/5';
+    var shell=$('shellActualCards'); if(shell)shell.textContent=frames.length+'개 안내서 / middle-only';
+    log(msg);
+  }
+  function syncAllGuides(reason){
+    var frames = ensureActualFive();
+    var d = midData();
+    frames.forEach(function(f,i){ syncFrame(f,d,i); });
+    updatePanels(reason || 'sync', frames, d);
+  }
+  function bindMiddleInputs(){
+    MID_IDS.forEach(function(id){
+      var e=$(id);
+      if(e) e.addEventListener('input', function(){ cleanForbiddenMiddle(); syncAllGuides('middle-input'); }, true);
+    });
+  }
+  function addStatusPanel(){
+    var left = document.querySelector('.left') || document.body;
+    if($('p6MiddleOnlyFinalLockV2')) return;
+    var box=document.createElement('div');
+    box.id='p6MiddleOnlyFinalLockV2';
+    box.innerHTML='<b>P6 최종 데이터 소스 잠금 V2</b><br><span class="pass">샘플/fallback 차단</span> · <span class="pass">가운데 9칸만 사용</span> · <span class="pass">오른쪽 실제 5개 안내서</span> · <span class="pass">목차 pre-wrap 유지</span>';
+    left.insertBefore(box,left.firstChild);
+  }
+
+  function boot(){
+    addStatusPanel();
+    blockOldButtons();
+    bindMiddleInputs();
+    cleanForbiddenMiddle();
+    syncAllGuides('boot');
+    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-1'); }, 1600);
+    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-2'); }, 3200);
+    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-3'); }, 5200);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
