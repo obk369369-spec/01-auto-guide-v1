@@ -6293,6 +6293,182 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<!-- P6_DATA_QUALITY_STEP3_CLEAN_NO_SAMPLE_NO_BOTTOM_PANEL: 하단 관찰패널 제거 + 샘플 데이터 초기화 -->
+<style id="P6_DQ3_CLEAN_NO_SAMPLE_STYLE">
+  /* 더 이상 쓰지 않는 자동 500건/스트레스/관찰 패널은 화면과 동작에서 제거 */
+  #auto500Panel,
+  #stress500Panel,
+  #observer500Panel,
+  #P6_AUTO_500_OBSERVER,
+  #P6_ORIGINAL_OBSERVER_500,
+  #P6_REALTIME_OBSERVER,
+  #P6_DQ2_ARCHIVE,
+  .auto500-panel,
+  .stress500-panel,
+  .observer500-panel,
+  .bottom-observer-panel,
+  .bottom-fixed-observer,
+  [data-observer-panel="500"],
+  [data-panel="auto500"],
+  [data-panel="stress500"] {
+    display:none !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+    height:0 !important;
+    max-height:0 !important;
+    overflow:hidden !important;
+  }
+
+  /* 화면 아래 고정 검은 관찰바 제거 */
+  body > div[style*="position: fixed"][style*="bottom"],
+  body > section[style*="position: fixed"][style*="bottom"],
+  body > details[style*="position: fixed"][style*="bottom"] {
+    display:none !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+  }
+
+  #P6_CLEAN_STATE_BANNER {
+    margin:8px 12px;
+    padding:10px 12px;
+    border:2px solid #065f46;
+    border-radius:10px;
+    background:#ecfdf5;
+    font-size:12px;
+    line-height:1.5;
+  }
+  #P6_CLEAN_STATE_BANNER b {font-size:14px;}
+  #P6_CLEAN_STATE_BANNER .ok {color:#047857;font-weight:800;}
+  #P6_CLEAN_STATE_BANNER .hold {color:#b45309;font-weight:800;}
+</style>
+
+<script id="P6_DQ3_CLEAN_NO_SAMPLE_SCRIPT">
+(function(){
+  if(window.__P6_DQ3_CLEAN_NO_SAMPLE__) return;
+  window.__P6_DQ3_CLEAN_NO_SAMPLE__ = true;
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function q(sel, root){ return (root || document).querySelector(sel); }
+  function qa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function setVal(id, v){
+    var e=$(id);
+    if(!e) return;
+    if('value' in e) e.value = v || '';
+    else e.textContent = v || '';
+    try{e.dispatchEvent(new Event('input',{bubbles:true}));}catch(_){}
+    try{e.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}
+  }
+  function fdoc(){
+    var f=$('rightFrame');
+    try{return f && (f.contentDocument || f.contentWindow.document);}catch(e){return null;}
+  }
+  function setRight(id, v){
+    var d=fdoc(), e=d && $(id,d);
+    if(!e) return;
+    if(id === 'guideLinkAnchor'){
+      e.setAttribute('href', v || '#');
+      e.textContent = v ? '바로가기' : '';
+    } else {
+      e.textContent = v || '';
+    }
+  }
+  function clearRightGuide(){
+    [
+      'guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage',
+      'guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft',
+      'guideTocBox','guideTocAuxSlot'
+    ].forEach(function(id){ setRight(id, ''); });
+    setRight('guideLinkAnchor', '');
+  }
+  function clearMiddle(){
+    [
+      'midTitleEn','midTitleKo','bookPub','bookDate','bookPage',
+      'bookListPrice','bookSupplyPrice','midLink','midToc'
+    ].forEach(function(id){ setVal(id, ''); });
+  }
+  function removeBottomPanels(){
+    var removeTextPatterns = [
+      '원본 전체 + 자동 500건 관찰',
+      '스트레스500',
+      '500/500',
+      '자동 500건',
+      'observer 500',
+      'AUTO 500'
+    ];
+    qa('body *').forEach(function(el){
+      var txt = (el.innerText || '').slice(0, 200);
+      var style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+      var fixedBottom = style && style.position === 'fixed' && (style.bottom === '0px' || parseInt(style.bottom || '999',10) <= 30);
+      var hit = removeTextPatterns.some(function(p){ return txt.indexOf(p) >= 0; });
+      if((fixedBottom && hit) || (hit && (el.id || '').toLowerCase().indexOf('panel') >= 0)){
+        el.remove();
+      }
+    });
+  }
+  function disableOldObservers(){
+    // 기존 500건 시뮬레이션 인터벌이 있더라도 화면 표시와 재실행을 막는다.
+    window.P6_AUTO500_DISABLED = true;
+    window.P6_STRESS500_DISABLED = true;
+    window.P6_OBSERVER_PANEL_DISABLED = true;
+  }
+  function installBanner(){
+    if($('P6_CLEAN_STATE_BANNER')) return;
+    var top=q('.top');
+    var div=document.createElement('div');
+    div.id='P6_CLEAN_STATE_BANNER';
+    div.innerHTML='<b>STEP3 정리판</b><br>'
+      +'<span class="ok">하단 500건 관찰패널 제거</span> · '
+      +'<span class="ok">샘플 데이터 초기 표시 차단</span> · '
+      +'<span class="hold">실제 공개 URL 입력 전 안내서는 빈칸 유지</span><br>'
+      +'다음 단계는 공개 보고서 URL 5개를 넣어 자동 추출 가능/차단/HOLD를 판정하는 단계다.';
+    if(top && top.parentNode) top.parentNode.insertBefore(div, top.nextSibling);
+  }
+  function blockSampleAgain(){
+    var b=$('fillSampleBtn');
+    if(b){
+      b.textContent='샘플 입력 차단됨';
+      b.disabled=true;
+      b.style.opacity='0.5';
+      b.title='34번 기준: 샘플/fallback 자동 표시 금지';
+      b.onclick=function(e){e.preventDefault();return false;};
+    }
+  }
+  function setStatus(){
+    var s=$('stateBadge'); if(s) s.textContent='STATE: STEP3_CLEAN_READY';
+    var g=$('gateBadge'); if(g) g.textContent='GATE: ONLINE_SOURCE_ONLY';
+    var d=$('diagBadge'); if(d) d.textContent='DIAG: CLEAN_NO_SAMPLE';
+    var bridge=$('bridgeStatus');
+    if(bridge) bridge.textContent='STEP3 대기 / 실제 공개 URL 입력 전에는 안내서 자동 채움 없음';
+    var packet=$('diagPacket');
+    if(packet && 'value' in packet){
+      packet.value='[P6_STEP3_CLEAN_NO_SAMPLE]\n'
+        +'BOTTOM_500_PANEL=REMOVED\n'
+        +'SAMPLE_DATA=BLOCKED\n'
+        +'INITIAL_RIGHT_GUIDE=EMPTY_UNTIL_REAL_URL\n'
+        +'RULE=실제 공개 URL 또는 원문 근거 없으면 빈칸/HOLD\n'
+        +'NEXT=공개 보고서 URL 5개 입력 후 자동 추출/HOLD 판정';
+    }
+  }
+  function install(){
+    disableOldObservers();
+    installBanner();
+    blockSampleAgain();
+    removeBottomPanels();
+    clearMiddle();
+    clearRightGuide();
+    setStatus();
+    // 혹시 늦게 삽입되는 하단 패널 제거
+    setTimeout(removeBottomPanels, 300);
+    setTimeout(removeBottomPanels, 1000);
+    setTimeout(function(){ clearMiddle(); clearRightGuide(); setStatus(); }, 500);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
+  else install();
+})();
+</script>
+
 </body>
 
 </html>
