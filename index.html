@@ -6256,6 +6256,43 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
 })();
 </script>
 
+
+<!-- P6_DATA_QUALITY_STEP3_ONLINE_SOURCE_CONNECT_APPLIED -->
+<style id="P6_DQ3_ONLINE_SOURCE_STYLE">
+#P6_DQ3_ONLINE_PANEL{border:2px solid #164e63;border-radius:12px;background:#ecfeff;margin:10px 0;padding:10px;font-size:12px;line-height:1.45}
+#P6_DQ3_ONLINE_PANEL h3{margin:0 0 8px;font-size:15px}
+#P6_DQ3_ONLINE_PANEL textarea{width:100%;min-height:105px;border:1px solid #94a3b8;border-radius:8px;padding:8px;font-size:12px;line-height:1.45}
+#P6_DQ3_ONLINE_PANEL .dq3-btn{border:1px solid #0f172a;background:#0f172a;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;margin:8px 6px 4px 0}
+#P6_DQ3_ONLINE_PANEL .dq3-btn.gray{background:#475569;border-color:#475569}
+#P6_DQ3_ONLINE_PANEL .dq3-row{border:1px solid #bae6fd;background:#fff;border-radius:10px;padding:8px;margin:7px 0;white-space:pre-wrap}
+#P6_DQ3_ONLINE_PANEL .ok{color:#047857;font-weight:800}.hold{color:#b45309;font-weight:800}.fail{color:#b91c1c;font-weight:800}
+#P6_DQ3_ONLINE_PANEL input{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px;font-size:12px;margin-top:4px}
+</style>
+<script id="P6_DQ3_ONLINE_SOURCE_SCRIPT">
+(function(){
+if(window.__P6_DQ3_ONLINE_SOURCE__)return;window.__P6_DQ3_ONLINE_SOURCE__=true;
+var RUN_ID='DQ3-'+new Date().toISOString().replace(/[-:.TZ]/g,'').slice(0,14),MAX=5;
+function $(id,r){return(r||document).getElementById(id)}function q(s,r){return(r||document).querySelector(s)}
+function clean(s){return String(s==null?'':s).replace(/\s+/g,' ').trim()}function val(id){var e=$(id);return e?String(e.value||e.textContent||'').trim():''}
+function setVal(id,v){var e=$(id);if(!e)return;if('value'in e)e.value=v||'';else e.textContent=v||'';try{e.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){}try{e.dispatchEvent(new Event('change',{bubbles:true}))}catch(_){}}
+function fdoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+function setRight(id,v){var d=fdoc(),e=d&&$(id,d);if(!e)return;if(id==='guideLinkAnchor'){e.setAttribute('href',v||'#');e.textContent=v?'바로가기':''}else e.textContent=v||''}
+function hash(s){var h=0;s=String(s||'');for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return'DQ3H-'+Math.abs(h)}
+function log(m){['diagPacket','clickedTraceView','mutationLogView'].forEach(function(id){var e=$(id);if(e&&'value'in e){e.value+=(e.value?'\n':'')+m;e.scrollTop=e.scrollHeight}})}
+function ensurePanel(){var left=q('.left');if(!left)return null;var p=$('P6_DQ3_ONLINE_PANEL');if(p)return p;p=document.createElement('div');p.id='P6_DQ3_ONLINE_PANEL';p.innerHTML='<h3>STEP3 온라인 원문 연결</h3><div>공개 보고서 URL을 줄마다 1개씩 넣는다. 자동 추출이 막히면 HOLD + 원문 링크 + 수동칸으로 남긴다.</div><textarea id="P6_DQ3_URLS" placeholder="https://...&#10;https://..."></textarea><button class="dq3-btn" id="P6_DQ3_FETCH_BTN" type="button">공개 URL 5개 자동 추출</button><button class="dq3-btn gray" id="P6_DQ3_MANUAL_BTN" type="button">현재 원문에서 링크만 카드화</button><div id="P6_DQ3_STATUS" class="dq3-row">대기</div><div id="P6_DQ3_RESULTS"></div>';var btn=q('#generateBtn',left);if(btn&&btn.parentNode)btn.parentNode.parentNode.insertBefore(p,btn.parentNode.nextSibling);else left.insertBefore(p,left.firstChild);$('P6_DQ3_FETCH_BTN').addEventListener('click',runFetch);$('P6_DQ3_MANUAL_BTN').addEventListener('click',runLinkOnly);return p}
+function urlsFromInput(){var raw=val('P6_DQ3_URLS')||val('customerRaw');var m=raw.match(/https?:\/\/[^\s<>"')\]]+/g)||[];var seen={};return m.filter(function(u){if(seen[u])return false;seen[u]=1;return true}).slice(0,MAX)}
+function extractFromHtml(src,url){var doc;try{doc=new DOMParser().parseFromString(src,'text/html')}catch(e){doc=null}var title='',desc='';if(doc){title=clean((q('meta[property="og:title"]',doc)||{}).content||(q('meta[name="twitter:title"]',doc)||{}).content||(doc.title||''));desc=clean((q('meta[name="description"]',doc)||{}).content||(q('meta[property="og:description"]',doc)||{}).content||'')}var body=doc&&doc.body?clean(doc.body.innerText||''):clean(src);var pubs=['Gartner','IDC','Frost & Sullivan','MarketsandMarkets','GlobalData','Omdia','TrendForce','SNE Research','Yole','BIS Research','Grand View Research','Fortune Business Insights','Mordor Intelligence','IMARC','ResearchAndMarkets'];var pub='';for(var i=0;i<pubs.length;i++){if((title+' '+desc+' '+body).toLowerCase().indexOf(pubs[i].toLowerCase())>=0){pub=pubs[i];break}}var all=title+' '+desc+' '+body;var date=(all.match(/20[2-9][0-9](?:[.\-\/년 ]\s?(?:0?[1-9]|1[0-2]))?/i)||[''])[0];var price=(all.match(/(?:₩|￦|\$)?\s?[0-9][0-9,.]*\s?(?:원|만원|USD|KRW|달러)/i)||[''])[0];var pages=(all.match(/[0-9]{2,5}\s?(?:pages|페이지|쪽)/i)||[''])[0];var toc='';var t=body.search(/table of contents|contents|목차|차례/i);if(t>=0)toc=body.slice(t,t+800).replace(/\s{2,}/g,'\n').trim();return{title:title||'',titleKo:'',publisher:pub||'',date:date||'',page:pages||'',listPrice:price||'',supplyPrice:'',link:url,toc:toc||'',status:title?'FETCH_OK_PARTIAL':'HOLD_FETCH_NO_TITLE',holdReason:title?'공개 HTML에서 일부 추출. 빈칸은 근거 부족.':'공개 HTML은 열렸지만 제목 추출 실패. 수동 확인 필요.'}}
+async function fetchOne(url){try{var res=await fetch(url,{method:'GET',mode:'cors',credentials:'omit'});var txt=await res.text();if(!res.ok)throw new Error('HTTP '+res.status);return extractFromHtml(txt,url)}catch(e){return{title:'',titleKo:'',publisher:'',date:'',page:'',listPrice:'',supplyPrice:'',link:url,toc:'',status:'HOLD_FETCH_BLOCKED',holdReason:'fetch 차단/CORS/동적 페이지. 원문 링크 유지 + 수동 작성칸 처리. reason='+String(e.message||e)}}}
+function linkOnlyCards(){var urls=urlsFromInput(),cards=[];for(var i=0;i<MAX;i++)cards.push({title:'',titleKo:'',publisher:'',date:'',page:'',listPrice:'',supplyPrice:'',link:urls[i]||'',toc:'',status:urls[i]?'HOLD_LINK_ONLY':'HOLD_EMPTY',holdReason:urls[i]?'링크만 확인됨. 제목/발행사/발행일/가격은 수동칸 유지.':'URL 없음.'});return cards}
+function render(cards){var box=$('P6_DQ3_RESULTS');if(!box)return;var ok=cards.filter(function(c){return c.status==='FETCH_OK_PARTIAL'}).length,hold=cards.length-ok;$('P6_DQ3_STATUS').innerHTML='RUN_ID='+RUN_ID+' / 자동추출 '+ok+'/5 / HOLD '+hold+'/5 / HASH='+hash(JSON.stringify(cards));box.innerHTML='';cards.forEach(function(c,idx){var row=document.createElement('div');row.className='dq3-row';row.innerHTML='<b>'+(idx+1)+'. '+(c.title||'제목 HOLD')+'</b><br>상태: <span class="'+(c.status==='FETCH_OK_PARTIAL'?'ok':'hold')+'">'+c.status+'</span><br>발행사: '+(c.publisher||'빈칸')+' / 발행일: '+(c.date||'빈칸')+' / 가격: '+(c.listPrice||'빈칸')+'<br>링크: '+(c.link||'빈칸')+'<br>HOLD: '+c.holdReason+'<br><input placeholder="수동 제목 입력칸"><input placeholder="수동 발행사/발행일/가격 메모칸">';row.addEventListener('click',function(){apply(c,idx)});box.appendChild(row)});log('[DQ3_RENDER] run='+RUN_ID+' ok='+ok+' hold='+hold+' hash='+hash(JSON.stringify(cards)))}
+function apply(c,idx){setVal('midTitleEn',c.title||'');setVal('midTitleKo',c.titleKo||'');setVal('bookPub',c.publisher||'');setVal('bookDate',c.date||'');setVal('bookPage',c.page||'');setVal('bookListPrice',c.listPrice||'');setVal('bookSupplyPrice',c.supplyPrice||'');setVal('midLink',c.link||'');setVal('midToc',c.toc||'');['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox'].forEach(function(id){var map={guideTitleEn:c.title,guideTitleKo:c.titleKo,guidePub:c.publisher,guideDate:c.date,guidePage:c.page,guideListPrice:c.listPrice,guideSupplyPrice:c.supplyPrice,guideLinkText:c.link,guideTocLeft:c.toc,guideTocBox:c.toc};setRight(id,map[id]||'')});setRight('guideLinkAnchor',c.link||'');var b=$('bridgeStatus');if(b)b.textContent='DQ3 온라인 카드 '+(idx+1)+' 반영 / '+c.status;log('[DQ3_APPLY] card='+(idx+1)+' status='+c.status+' link='+(c.link||''))}
+async function runFetch(){var urls=urlsFromInput();if(!urls.length){render(linkOnlyCards());return}$('P6_DQ3_STATUS').textContent='RUN_ID='+RUN_ID+' / 공개 URL 추출 중... '+urls.length+'/5';var cards=[];for(var i=0;i<MAX;i++){if(urls[i])cards.push(await fetchOne(urls[i]));else cards.push({title:'',titleKo:'',publisher:'',date:'',page:'',listPrice:'',supplyPrice:'',link:'',toc:'',status:'HOLD_EMPTY',holdReason:'URL 없음.'})}render(cards);apply(cards[0],0)}
+function runLinkOnly(){var cards=linkOnlyCards();render(cards);apply(cards[0],0)}
+function install(){ensurePanel();var badge=$('gateBadge');if(badge)badge.textContent='GATE: DATA_QUALITY_STEP3';var state=$('stateBadge');if(state)state.textContent='STATE: ONLINE_SOURCE_HOLD_READY';log('[DQ3_READY] 공개 URL 자동추출 준비 / CORS 차단 시 HOLD+링크+수동칸')}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+
 </body>
 
 </html>
