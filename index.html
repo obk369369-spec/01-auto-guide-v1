@@ -5988,7 +5988,7 @@ function fdoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.conten
 function setRight(id,v){var d=fdoc(),e=d&&$(id,d);if(!e)return;if(id==='guideLinkAnchor'){e.setAttribute('href',v||'#');e.textContent=v?'바로가기':''}else e.textContent=v||''}
 function hash(s){var h=0;s=String(s||'');for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return'DQ3H-'+Math.abs(h)}
 function log(m){['diagPacket','clickedTraceView','mutationLogView'].forEach(function(id){var e=$(id);if(e&&'value'in e){e.value+=(e.value?'\n':'')+m;e.scrollTop=e.scrollHeight}})}
-function ensurePanel(){var left=q('.left');if(!left)return null;var p=$('P6_DQ3_ONLINE_PANEL');if(p)return p;p=document.createElement('div');p.id='P6_DQ3_ONLINE_PANEL';p.innerHTML='<h3>STEP3 온라인 원문 연결</h3><div>공개 보고서 URL을 줄마다 1개씩 넣는다. 자동 추출이 막히면 HOLD + 원문 링크 + 수동칸으로 남긴다.</div><textarea id="P6_DQ3_URLS" placeholder="https://...&#10;https://..."></textarea><button class="dq3-btn" id="P6_DQ3_FETCH_BTN" type="button">공개 URL 5개 자동 추출</button><button class="dq3-btn gray" id="P6_DQ3_MANUAL_BTN" type="button">현재 원문에서 링크만 카드화</button><div id="P6_DQ3_STATUS" class="dq3-row">대기</div><div id="P6_DQ3_RESULTS"></div>';var btn=q('#generateBtn',left);if(btn&&btn.parentNode)btn.parentNode.parentNode.insertBefore(p,btn.parentNode.nextSibling);else left.insertBefore(p,left.firstChild);$('P6_DQ3_FETCH_BTN').addEventListener('click',runFetch);$('P6_DQ3_MANUAL_BTN').addEventListener('click',runLinkOnly);return p}
+function ensurePanel(){var left=q('.left');if(!left)return null;var p=$('P6_DQ3_ONLINE_PANEL');if(p)return p;p=document.createElement('div');p.id='P6_DQ3_ONLINE_PANEL';p.innerHTML='<h3>STEP3 보조 원문/HOLD 링크 보관</h3><div><b>주 흐름 아님.</b> 왼쪽 메뉴 텍스트 → 엔진 조합 → 공개 데이터 자동 탐색이 기본이다. 이 칸은 고객이 직접 보낸 URL 또는 자동 탐색 실패 시 원문 링크를 HOLD 증거로 보관할 때만 사용한다.</div><textarea id="P6_DQ3_URLS" placeholder="고객이 직접 준 URL 또는 HOLD 증거 링크만 선택 입력&#10;주 작업은 왼쪽 텍스트 기반 자동 탐색"></textarea><button class="dq3-btn" id="P6_DQ3_FETCH_BTN" type="button">보조 링크 5개 증거화</button><button class="dq3-btn gray" id="P6_DQ3_MANUAL_BTN" type="button">HOLD 원문 링크 카드화</button><div id="P6_DQ3_STATUS" class="dq3-row">보조 대기 / 기본은 왼쪽 텍스트 엔진</div><div id="P6_DQ3_RESULTS"></div>';var btn=q('#generateBtn',left);if(btn&&btn.parentNode)btn.parentNode.parentNode.insertBefore(p,btn.parentNode.nextSibling);else left.insertBefore(p,left.firstChild);$('P6_DQ3_FETCH_BTN').addEventListener('click',runFetch);$('P6_DQ3_MANUAL_BTN').addEventListener('click',runLinkOnly);return p}
 function urlsFromInput(){var raw=val('P6_DQ3_URLS')||val('customerRaw');var m=raw.match(/https?:\/\/[^\s<>"')\]]+/g)||[];var seen={};return m.filter(function(u){if(seen[u])return false;seen[u]=1;return true}).slice(0,MAX)}
 function extractFromHtml(src,url){var doc;try{doc=new DOMParser().parseFromString(src,'text/html')}catch(e){doc=null}var title='',desc='';if(doc){title=clean((q('meta[property="og:title"]',doc)||{}).content||(q('meta[name="twitter:title"]',doc)||{}).content||(doc.title||''));desc=clean((q('meta[name="description"]',doc)||{}).content||(q('meta[property="og:description"]',doc)||{}).content||'')}var body=doc&&doc.body?clean(doc.body.innerText||''):clean(src);var pubs=['','IDC','Frost & Sullivan','MarketsandMarkets','','Omdia','TrendForce','SNE Research','Yole','BIS Research','Grand View Research','Fortune Business Insights','Mordor Intelligence','IMARC','ResearchAndMarkets'];var pub='';for(var i=0;i<pubs.length;i++){if((title+' '+desc+' '+body).toLowerCase().indexOf(pubs[i].toLowerCase())>=0){pub=pubs[i];break}}var all=title+' '+desc+' '+body;var date=(all.match(/20[2-9][0-9](?:[.\-\/년 ]\s?(?:0?[1-9]|1[0-2]))?/i)||[''])[0];var price=(all.match(/(?:₩|￦|\$)?\s?[0-9][0-9,.]*\s?(?:원|만원|USD|KRW|달러)/i)||[''])[0];var pages=(all.match(/[0-9]{2,5}\s?(?:pages|페이지|쪽)/i)||[''])[0];var toc='';var t=body.search(/table of contents|contents|목차|차례/i);if(t>=0)toc=body.slice(t,t+800).replace(/\s{2,}/g,'\n').trim();return{title:title||'',titleKo:'',publisher:pub||'',date:date||'',page:pages||'',listPrice:price||'',supplyPrice:'',link:url,toc:toc||'',status:title?'FETCH_OK_PARTIAL':'HOLD_FETCH_NO_TITLE',holdReason:title?'공개 HTML에서 일부 추출. 빈칸은 근거 부족.':'공개 HTML은 열렸지만 제목 추출 실패. 수동 확인 필요.'}}
 async function fetchOne(url){try{var res=await fetch(url,{method:'GET',mode:'cors',credentials:'omit'});var txt=await res.text();if(!res.ok)throw new Error('HTTP '+res.status);return extractFromHtml(txt,url)}catch(e){return{title:'',titleKo:'',publisher:'',date:'',page:'',listPrice:'',supplyPrice:'',link:url,toc:'',status:'HOLD_FETCH_BLOCKED',holdReason:'fetch 차단/CORS/동적 페이지. 원문 링크 유지 + 수동 작성칸 처리. reason='+String(e.message||e)}}}
@@ -6389,5 +6389,114 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     setTimeout(judge,600); setTimeout(judge,1600);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+<style id="dq-layer-v6-style">
+#P6_DQ3_ONLINE_PANEL{display:none!important;}
+#dqQualityLayerV6{border:3px solid #111827;border-radius:12px;background:#f8fafc;margin:12px 0;padding:12px;font-size:12px;line-height:1.5;color:#111827;}
+#dqQualityLayerV6 h3{margin:0 0 8px;font-size:15px;}
+.dqv6-row{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px;margin:8px 0;cursor:pointer;}
+.dqv6-row.active{outline:3px solid #2563eb;}
+.dqv6-pass{color:#047857;font-weight:900}.dqv6-hold{color:#b45309;font-weight:900}.dqv6-fail{color:#b91c1c;font-weight:900}
+.dqv6-mini{font-size:11px;color:#475569;white-space:pre-wrap;margin-top:6px;}
+</style>
+<script id="dq-quality-layer-v6-left-text-engine">
+(function(){
+  var ENGINE='DQ_QUALITY_LAYER_V6_LEFT_TEXT_TO_PUBLIC_SCOPE_HOLD';
+  var VENDORS=[
+    {name:'MarketsandMarkets', domain:'marketsandmarkets.com', public:'title, summary, market size, toc partial', hold:'price/license often gated'},
+    {name:'Mordor Intelligence', domain:'mordorintelligence.com', public:'title, summary, market size, toc partial', hold:'price full report gated'},
+    {name:'Grand View Research', domain:'grandviewresearch.com', public:'title, summary, market size, toc partial', hold:'price/toc full may be gated'},
+    {name:'Technavio', domain:'technavio.com', public:'title, forecast, CAGR, sample guide', hold:'price/full toc gated'},
+    {name:'BCC Research', domain:'bccresearch.com', public:'title, date/month, code, summary, toc partial', hold:'license/price variable'}
+  ];
+  function $(id,doc){return (doc||document).getElementById(id)}
+  function q(sel,doc){return (doc||document).querySelector(sel)}
+  function val(id){var e=$(id); return e ? String(e.value||e.textContent||'').trim() : ''}
+  function setVal(id,v){var e=$(id); if(e){e.value=v||''; e.dispatchEvent(new Event('input',{bubbles:true}))}}
+  function esc(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function rightDoc(){var f=$('rightFrame'); return f ? (f.contentDocument||f.contentWindow.document) : null}
+  function setRight(id,text){var d=rightDoc(), e=d&&$(id,d); if(e){e.textContent=text||''}}
+  function norm(s){return String(s||'').replace(/\s+/g,' ').trim()}
+  function keywords(){
+    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty'),val('publisherMemo')].join(' ');
+    raw=norm(raw)||'market report';
+    return raw.replace(/[\n\r]/g,' ').slice(0,120);
+  }
+  function sectorKo(){return norm(val('researchField')||val('interestField')||val('duty')||'관련 시장')}
+  function sectorEn(){
+    var s=sectorKo().toLowerCase();
+    if(/멤브레인|membrane/.test(s)) return 'Membrane';
+    if(/탄소|carbon/.test(s)) return 'Carbon';
+    if(/ai|인공지능/.test(s)) return 'Artificial Intelligence';
+    if(/반도체|semiconductor/.test(s)) return 'Semiconductor';
+    if(/배터리|전지|battery/.test(s)) return 'Battery';
+    return sectorKo();
+  }
+  function searchUrl(v){return 'https://www.google.com/search?q='+encodeURIComponent('site:'+v.domain+' '+keywords()+' market report')}
+  function makeCards(){
+    var y=new Date().getFullYear();
+    var ko=sectorKo(), en=sectorEn();
+    return VENDORS.map(function(v,i){
+      return {
+        idx:i+1,
+        title:'HOLD: '+en+' market report public source check required',
+        titleKo:'HOLD: '+ko+' 공개 원문 확인 필요',
+        publisher:v.name,
+        date:'HOLD: 공개 페이지 확인 전',
+        pages:'',
+        listPrice:'HOLD: 가격 공개 여부 확인 전',
+        supplyPrice:'HOLD',
+        link:searchUrl(v),
+        toc:'HOLD: '+v.name+' 공개 페이지에서 목차 공개 범위 확인 필요\n공개 가능 범위 후보: '+v.public+'\nHOLD 사유: '+v.hold,
+        status:'HOLD_SOURCE_REQUIRED',
+        reason:'단독 HTML은 온라인 페이지를 직접 긁지 못함(CORS/동적페이지/로그인 가능성). 이 단계는 왼쪽 텍스트로 발행사별 공개 후보 경로를 만들고, 실제 원문 확인 전에는 PASS 금지.'
+      }
+    })
+  }
+  function ensurePanel(){
+    var left=q('.left'); if(!left) return null;
+    var old=$('P6_DQ3_ONLINE_PANEL'); if(old) old.style.display='none';
+    var p=$('dqQualityLayerV6'); if(p) return p;
+    p=document.createElement('div'); p.id='dqQualityLayerV6';
+    p.innerHTML='<h3>DATA_QUALITY 판단 레이어 V6</h3><div><b>입력 방식:</b> 왼쪽 텍스트만 사용 / URL 직접 입력 아님</div><div><b>판정:</b> 공개 원문 확인 전 PASS 금지, 부족값은 HOLD 유지</div><div id="dqv6Status" class="dqv6-mini">대기</div><div id="dqv6Cards"></div>';
+    var btn=$('generateBtn');
+    if(btn && btn.parentNode) btn.parentNode.parentNode.insertBefore(p,btn.parentNode.nextSibling); else left.appendChild(p);
+    return p;
+  }
+  function applyCard(c){
+    setVal('midTitleEn',c.title); setVal('midTitleKo',c.titleKo); setVal('bookPub',c.publisher); setVal('bookDate',c.date); setVal('bookPage',c.pages); setVal('bookListPrice',c.listPrice); setVal('bookSupplyPrice',c.supplyPrice); setVal('midLink',c.link); setVal('midToc',c.toc);
+    setRight('guideTitleEn',c.title); setRight('guideTitleKo',c.titleKo); setRight('guidePub',c.publisher); setRight('guideDate',c.date); setRight('guidePage',c.pages); setRight('guideListPrice',c.listPrice); setRight('guideSupplyPrice',c.supplyPrice); setRight('guideLinkText',c.link); setRight('guideTocLeft',c.toc); setRight('guideTocBox',c.toc);
+    var a=rightDoc()&&$('guideLinkAnchor',rightDoc()); if(a){a.href=c.link; a.textContent='공개 후보 확인';}
+    var b=$('bridgeStatus'); if(b)b.textContent='DATA_QUALITY V6 반영: '+c.publisher+' / '+c.status;
+  }
+  function run(){
+    ensurePanel();
+    var cards=makeCards();
+    var box=$('dqv6Cards'); if(!box)return;
+    box.innerHTML='';
+    cards.forEach(function(c,i){
+      var row=document.createElement('div'); row.className='dqv6-row'+(i===0?' active':'');
+      row.innerHTML='<b>'+c.idx+'. '+esc(c.publisher)+'</b> <span class="dqv6-hold">'+c.status+'</span><br>'+esc(c.titleKo)+'<br><span class="dqv6-mini">공개범위 후보: '+esc(VENDORS[i].public)+'\nHOLD: '+esc(c.reason)+'\n검색경로: '+esc(c.link)+'</span>';
+      row.addEventListener('click',function(){Array.prototype.forEach.call(box.querySelectorAll('.dqv6-row'),function(x){x.classList.remove('active')}); row.classList.add('active'); applyCard(c);});
+      box.appendChild(row);
+    });
+    applyCard(cards[0]);
+    var st=$('dqv6Status'); if(st) st.textContent='RUN: '+ENGINE+' / 고객원문+연구분야+관심분야+담당업무 기반 5개 공개 후보 생성 / 모든 값은 원문 확인 전 HOLD';
+    var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n'+ENGINE+'\nLEFT_TEXT_TO_VENDOR_SEARCH: PASS\nPUBLIC_DATA_CONFIRMED: HOLD\nRIGHT_GUIDE_SYNC: HOLD_VALUES_VISIBLE\nRULE: 실제 공개 원문 확인 전 PASS 금지';
+    var diag=$('diagPacket'); if(diag) diag.value='[DATA_QUALITY_V6_PACKET]\nENGINE='+ENGINE+'\nINPUT=LEFT_TEXT_ONLY\nURL_MANUAL_REQUIRED=NO\nPUBLIC_FETCH_DIRECT=HOLD_IN_STATIC_HTML\nCARDS=5\nPASS_RULE=SOURCE_CONFIRMED_ONLY\nHOLD_RULE=NO_SOURCE_NO_VALUE\nNEXT=SERVER_OR_API_CONNECTOR_FOR_REAL_PUBLIC_FETCH';
+  }
+  function install(){
+    ensurePanel();
+    var btn=$('generateBtn');
+    if(btn && btn.dataset.dqv6Bound!=='1'){
+      var clone=btn.cloneNode(true); clone.dataset.dqv6Bound='1'; clone.textContent='안내서 5개 생성';
+      clone.addEventListener('click',function(e){setTimeout(run,80); setTimeout(run,600);},true);
+      btn.parentNode.replaceChild(clone,btn);
+    }
+    var title=q('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - DATA_QUALITY_LAYER_V6 / 왼쪽 텍스트 기반 품질판단';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){[50,400,1200,3000].forEach(function(t){setTimeout(install,t)})}); else [50,400,1200,3000].forEach(function(t){setTimeout(install,t)});
 })();
 </script>
