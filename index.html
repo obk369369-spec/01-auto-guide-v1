@@ -5860,6 +5860,402 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
 })();
 </script>
 
+
+<!-- P6_DATA_QUALITY_STEP2_ONLY_LOCK_APPLIED: 34번 기준 강제 / 흐름 재검증 중단 / 데이터 품질 전용 -->
+<style id="P6_DATA_QUALITY_STEP2_ONLY_LOCK_STYLE">
+  /* 상단·중간 진단 패널은 도구 사용을 막지 않게 숨기고, JS가 하단 접이식 보관함으로 이동한다. */
+  #topDiagToolbar,
+  #topDiagLogs,
+  #realEngineBanner,
+  #p6ShellRiskPanel,
+  #legacyStatusPanel,
+  #fixedErrorPanel,
+  #rawJsonBox,
+  #mappingBox,
+  #targetProbeBox,
+  #flowTrace {
+    display:none !important;
+  }
+
+  #P6_DQ2_ACTIVE_BANNER {
+    margin:8px 12px;
+    padding:10px 12px;
+    border:2px solid #0f172a;
+    border-radius:10px;
+    background:#ecfeff;
+    font-size:12px;
+    line-height:1.5;
+  }
+  #P6_DQ2_ACTIVE_BANNER b {font-size:14px;}
+  #P6_DQ2_ACTIVE_BANNER .hold {color:#b45309;font-weight:800;}
+  #P6_DQ2_ACTIVE_BANNER .ok {color:#047857;font-weight:800;}
+
+  #P6_DQ2_CARD_PANEL {
+    border:2px solid #0f172a;
+    border-radius:12px;
+    background:#fff;
+    margin:10px 0;
+    padding:10px;
+    font-size:12px;
+    line-height:1.45;
+  }
+  #P6_DQ2_CARD_PANEL h3 {margin:0 0 8px;font-size:15px;}
+  #P6_DQ2_CARD_PANEL .dq2-card {
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    background:#f9fafb;
+    margin:8px 0;
+    padding:10px;
+    cursor:pointer;
+  }
+  #P6_DQ2_CARD_PANEL .dq2-card.active {
+    border:2px solid #2563eb;
+    background:#eff6ff;
+  }
+  #P6_DQ2_CARD_PANEL .dq2-title {font-weight:900;margin-bottom:4px;}
+  #P6_DQ2_CARD_PANEL .dq2-meta {color:#4b5563;font-size:11px;white-space:pre-wrap;}
+  #P6_DQ2_CARD_PANEL .dq2-hold {color:#b45309;font-weight:800;}
+  #P6_DQ2_CARD_PANEL .dq2-ok {color:#047857;font-weight:800;}
+  #P6_DQ2_CARD_PANEL .dq2-empty {color:#6b7280;}
+
+  #P6_DQ2_ARCHIVE {
+    margin:12px;
+    border:1px solid #cbd5e1;
+    border-radius:12px;
+    background:#fff;
+    overflow:hidden;
+  }
+  #P6_DQ2_ARCHIVE summary {
+    padding:10px 12px;
+    background:#111827;
+    color:#fff;
+    cursor:pointer;
+    font-weight:800;
+    font-size:13px;
+  }
+  #P6_DQ2_ARCHIVE .archive-body {
+    padding:10px;
+    display:grid;
+    gap:10px;
+  }
+
+  @media (max-width: 760px) {
+    .wrap {
+      height:auto !important;
+      min-height:calc(100vh - 58px);
+      flex-direction:column !important;
+      padding:8px !important;
+    }
+    .left,.middle,.right {
+      width:100% !important;
+      max-width:100% !important;
+    }
+    .right {
+      min-height:680px !important;
+      overflow:auto !important;
+    }
+    iframe#rightFrame {
+      min-height:900px !important;
+      height:900px !important;
+    }
+    .top {
+      flex-wrap:wrap !important;
+      align-items:flex-start !important;
+    }
+    .title {
+      font-size:17px !important;
+      line-height:1.3 !important;
+    }
+  }
+</style>
+
+<script id="P6_DATA_QUALITY_STEP2_ONLY_LOCK_SCRIPT">
+(function(){
+  if (window.__P6_DATA_QUALITY_STEP2_ONLY_LOCK__) return;
+  window.__P6_DATA_QUALITY_STEP2_ONLY_LOCK__ = true;
+
+  var ENGINE = 'P6_DATA_QUALITY_STEP2_ONLY_LOCK_APPLIED';
+  var RUN_ID = 'DQ2-' + new Date().toISOString().replace(/[-:.TZ]/g,'').slice(0,14);
+
+  function $(id, root){ return (root || document).getElementById(id); }
+  function q(sel, root){ return (root || document).querySelector(sel); }
+  function qa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function text(v){ return String(v == null ? '' : v).trim(); }
+  function val(id){ var e=$(id); return e ? text(e.value || e.textContent) : ''; }
+  function setVal(id, v){
+    var e=$(id);
+    if(!e) return;
+    if('value' in e) e.value = v || '';
+    else e.textContent = v || '';
+    try { e.dispatchEvent(new Event('input', {bubbles:true})); } catch(_) {}
+    try { e.dispatchEvent(new Event('change', {bubbles:true})); } catch(_) {}
+  }
+  function frameDoc(){
+    var f=$('rightFrame');
+    try { return f && (f.contentDocument || f.contentWindow.document); } catch(e){ return null; }
+  }
+  function setRight(id, v){
+    var d=frameDoc(), e=d && $(id,d);
+    if(!e) return;
+    if(id === 'guideLinkAnchor'){
+      e.setAttribute('href', v || '#');
+      e.textContent = v ? '바로가기' : '';
+    } else {
+      e.textContent = v || '';
+    }
+  }
+  function writeLog(msg){
+    ['diagPacket','clickedTraceView','mutationLogView'].forEach(function(id){
+      var e=$(id);
+      if(e && 'value' in e){
+        e.value += (e.value ? '\n' : '') + msg;
+        e.scrollTop = e.scrollHeight;
+      }
+    });
+  }
+  function hash(s){
+    var h=0, i, c;
+    s=String(s||'');
+    for(i=0;i<s.length;i++){ c=s.charCodeAt(i); h=((h<<5)-h)+c; h|=0; }
+    return 'DQ2H-' + Math.abs(h);
+  }
+
+  function installBanner(){
+    if($('P6_DQ2_ACTIVE_BANNER')) return;
+    var top=q('.top');
+    var div=document.createElement('div');
+    div.id='P6_DQ2_ACTIVE_BANNER';
+    div.innerHTML='<b>데이터 품질 STEP2 전용 잠금</b><br>'
+      +'<span class="ok">왼쪽→가운데→오른쪽 흐름 재검증 중단</span> · '
+      +'<span class="hold">샘플/fallback/근거 없는 자동완성 금지</span><br>'
+      +'이번 단계는 5개 카드의 제목·발행사·발행일·가격·링크·목차 품질만 다룬다. 못 찾는 값은 빈칸/HOLD/원문 링크로 둔다.';
+    if(top && top.parentNode) top.parentNode.insertBefore(div, top.nextSibling);
+  }
+
+  function movePanelsToArchive(){
+    var archive=$('P6_DQ2_ARCHIVE');
+    if(!archive){
+      archive=document.createElement('details');
+      archive.id='P6_DQ2_ARCHIVE';
+      archive.innerHTML='<summary>하단 보관함: 진단/시뮬레이션 패널 보기</summary><div class="archive-body" id="P6_DQ2_ARCHIVE_BODY"></div>';
+      document.body.appendChild(archive);
+    }
+    var body=$('P6_DQ2_ARCHIVE_BODY');
+    [
+      'topDiagToolbar','topDiagLogs','realEngineBanner','p6ShellRiskPanel','legacyStatusPanel',
+      'fixedErrorPanel','rawJsonBox','mappingBox','targetProbeBox','flowTrace'
+    ].forEach(function(id){
+      var el=$(id);
+      if(el && body && !body.contains(el)){
+        el.style.display='';
+        body.appendChild(el);
+      }
+    });
+  }
+
+  function disableSampleButton(){
+    var btn=$('fillSampleBtn');
+    if(!btn) return;
+    var clone=btn.cloneNode(true);
+    clone.textContent='샘플 입력 차단';
+    clone.disabled=true;
+    clone.style.opacity='0.55';
+    clone.title='34번 기준: 샘플/fallback 데이터로 PASS 금지';
+    btn.parentNode.replaceChild(clone, btn);
+  }
+
+  function parseRows(raw){
+    raw = String(raw || '');
+    var lines = raw.split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+    var rows = [];
+    var urlRe = /(https?:\/\/[^\s|,，]+)[\)]?/i;
+    var dateRe = /(20[2-9][0-9][.\-년\/ ]{0,3}(?:0?[1-9]|1[0-2])?)/;
+    var priceRe = /((?:￦|₩)?\s?[0-9][0-9,\.]*\s?(?:원|만원|USD|달러|KRW)?)/i;
+    var knownPubs = ['Gartner','IDC','Frost & Sullivan','MarketsandMarkets','GlobalData','Omdia','TrendForce','SNE Research','Yole','BIS Research','ResearchAndMarkets','IMARC','Mordor Intelligence','Grand View Research','Fortune Business Insights','Markets & Markets'];
+
+    lines.forEach(function(line){
+      var urlMatch = line.match(urlRe);
+      var url = urlMatch ? urlMatch[1] : '';
+      var beforeUrl = url ? line.slice(0, line.indexOf(url)).replace(/[|,，]+$/,'').trim() : line;
+      var parts = beforeUrl.split('|').map(function(x){return x.trim();}).filter(Boolean);
+      var title = parts[0] || beforeUrl || '';
+      var pub = parts[1] || '';
+      if(!pub){
+        var hit = knownPubs.find(function(p){return line.toLowerCase().indexOf(p.toLowerCase()) >= 0;});
+        pub = hit || '';
+      }
+      var date = (line.match(dateRe) || [,''])[1];
+      var price = (line.match(priceRe) || [,''])[1];
+      if(url || parts.length >= 2 || /보고서|report|market|시장|전망|분석/i.test(line)){
+        rows.push({title:title, titleKo:'', publisher:pub, date:date, page:'', listPrice:price, supplyPrice:'', link:url, toc:'', sourceLine:line});
+      }
+    });
+    return rows;
+  }
+
+  function inferCards(){
+    var raw = val('customerRaw');
+    var rows = parseRows(raw);
+    var cards = [];
+    for(var i=0;i<5;i++){
+      var r = rows[i] || {};
+      var hasEvidence = !!(r.link || r.publisher || r.date || r.listPrice || r.title);
+      cards.push({
+        index:i+1,
+        title: r.title || '',
+        titleKo: r.titleKo || '',
+        publisher: r.publisher || '',
+        date: r.date || '',
+        page: r.page || '',
+        listPrice: r.listPrice || '',
+        supplyPrice: r.supplyPrice || '',
+        link: r.link || '',
+        toc: r.toc || '',
+        sourceLine: r.sourceLine || '',
+        status: hasEvidence ? (r.link ? 'SOURCE_PARTIAL' : 'HOLD_NO_LINK') : 'HOLD_EMPTY',
+        holdReason: hasEvidence ? (r.link ? '원문 일부 추출. 빈칸은 근거 부족으로 유지.' : '원문 링크 없음. 링크 검증 전 자동완성 금지.') : '실제 보고서 원문/링크 없음. 자동완성 금지.'
+      });
+    }
+    return cards;
+  }
+
+  function ensureCardPanel(){
+    var mid=q('.middle');
+    if(!mid) return null;
+    var panel=$('P6_DQ2_CARD_PANEL');
+    if(panel) return panel;
+    panel=document.createElement('div');
+    panel.id='P6_DQ2_CARD_PANEL';
+    panel.innerHTML='<h3>데이터 품질 카드 5개 <span id="P6_DQ2_CARD_COUNT">0/5</span></h3>'
+      +'<div class="dq2-meta">실제 근거가 있는 값만 가운데 9칸으로 보낸다. 없는 값은 빈칸/HOLD로 둔다.</div>'
+      +'<div id="P6_DQ2_CARDS"></div>'
+      +'<div class="dq2-meta" id="P6_DQ2_PACKET"></div>';
+    var title=mid.querySelector('.panel-title');
+    if(title && title.nextSibling) mid.insertBefore(panel, title.nextSibling);
+    else mid.insertBefore(panel, mid.firstChild);
+    return panel;
+  }
+
+  function renderCards(cards){
+    ensureCardPanel();
+    var box=$('P6_DQ2_CARDS');
+    if(!box) return;
+    box.innerHTML='';
+    cards.forEach(function(c, idx){
+      var div=document.createElement('div');
+      div.className='dq2-card';
+      div.setAttribute('data-dq2-index', idx);
+      var statusClass = c.status === 'SOURCE_PARTIAL' ? 'dq2-ok' : 'dq2-hold';
+      div.innerHTML='<div class="dq2-title">'+c.index+'. '+(c.title || '<span class="dq2-empty">제목 빈칸</span>')+'</div>'
+        +'<div class="dq2-meta">'
+        +'상태: <span class="'+statusClass+'">'+c.status+'</span><br>'
+        +'발행사: '+(c.publisher || '<span class="dq2-empty">빈칸</span>')+' / 발행일: '+(c.date || '<span class="dq2-empty">빈칸</span>')+' / 가격: '+(c.listPrice || '<span class="dq2-empty">빈칸</span>')+'<br>'
+        +'링크: '+(c.link || '<span class="dq2-hold">HOLD: 원문 링크 없음</span>')+'<br>'
+        +'HOLD: '+c.holdReason
+        +'</div>';
+      div.addEventListener('click', function(){ applyCard(c, idx); });
+      box.appendChild(div);
+    });
+    var count=$('P6_DQ2_CARD_COUNT');
+    if(count) count.textContent=cards.length+'/5';
+    var packet=$('P6_DQ2_PACKET');
+    var filled = cards.filter(function(c){return c.status === 'SOURCE_PARTIAL';}).length;
+    var h = hash(JSON.stringify(cards));
+    if(packet) packet.textContent='RUN_ID='+RUN_ID+' / SOURCE_PARTIAL='+filled+'/5 / HOLD='+(5-filled)+'/5 / HASH='+h;
+    writeLog('[DQ2_CARD_RENDER] RUN_ID='+RUN_ID+' cards=5 source_partial='+filled+' hold='+(5-filled)+' hash='+h);
+  }
+
+  function applyCard(c, idx){
+    qa('#P6_DQ2_CARD_PANEL .dq2-card').forEach(function(el){el.classList.remove('active');});
+    var active=q('#P6_DQ2_CARD_PANEL .dq2-card[data-dq2-index="'+idx+'"]');
+    if(active) active.classList.add('active');
+
+    // 근거 있는 값만 입력한다. 없는 값은 빈칸으로 둔다. HOLD 문구를 안내서 본문값으로 넣지 않는다.
+    setVal('midTitleEn', c.title || '');
+    setVal('midTitleKo', c.titleKo || '');
+    setVal('bookPub', c.publisher || '');
+    setVal('bookDate', c.date || '');
+    setVal('bookPage', c.page || '');
+    setVal('bookListPrice', c.listPrice || '');
+    setVal('bookSupplyPrice', c.supplyPrice || '');
+    setVal('midLink', c.link || '');
+    setVal('midToc', c.toc || '');
+
+    setRight('guideTitleEn', c.title || '');
+    setRight('guideTitleKo', c.titleKo || '');
+    setRight('guidePub', c.publisher || '');
+    setRight('guideDate', c.date || '');
+    setRight('guidePage', c.page || '');
+    setRight('guideListPrice', c.listPrice || '');
+    setRight('guideSupplyPrice', c.supplyPrice || '');
+    setRight('guideLinkText', c.link || '');
+    setRight('guideLinkAnchor', c.link || '');
+    setRight('guideTocLeft', c.toc || '');
+    setRight('guideTocBox', c.toc || '');
+
+    var bridge=$('bridgeStatus');
+    if(bridge){
+      bridge.textContent = 'DQ2 카드 '+(idx+1)+' 선택 / 근거값만 반영 / 빈칸은 HOLD';
+    }
+    writeLog('[DQ2_APPLY_CARD] RUN_ID='+RUN_ID+' card='+(idx+1)+' status='+c.status+' title='+(!!c.title)+' link='+(!!c.link));
+  }
+
+  function runQualityStep(){
+    var cards=inferCards();
+    renderCards(cards);
+    if(cards.length) applyCard(cards[0], 0);
+    var badge=$('diagModeBadge');
+    if(badge) badge.textContent='DQ2 데이터 품질 전용 / 흐름 재검증 중단';
+    var state=$('stateBadge');
+    if(state) state.textContent='STATE: DQ2_ONLY';
+    var gate=$('gateBadge');
+    if(gate) gate.textContent='GATE: DATA_QUALITY';
+    var diag=$('diagPacket');
+    if(diag){
+      var sourcePartial = cards.filter(function(c){return c.status === 'SOURCE_PARTIAL';}).length;
+      diag.value='[P6_DATA_QUALITY_STEP2_PACKET]\n'
+        +'ENGINE='+ENGINE+'\n'
+        +'RUN_ID='+RUN_ID+'\n'
+        +'FLOW_RETEST=BLOCKED\n'
+        +'SAMPLE_FALLBACK=BLOCKED\n'
+        +'DATA_SOURCE=LEFT_RAW_EVIDENCE_OR_EMPTY_HOLD\n'
+        +'CARDS=5\n'
+        +'SOURCE_PARTIAL='+sourcePartial+'/5\n'
+        +'HOLD='+(5-sourcePartial)+'/5\n'
+        +'RULE=근거 없는 제목/발행사/발행일/가격/링크/목차 자동생성 금지\n'
+        +'NEXT=플랫폼/공개원문 연결 후 실제 링크 기반 품질상승';
+    }
+  }
+
+  function bindFinalGenerate(){
+    var old=$('generateBtn');
+    if(!old) return;
+    var btn=old.cloneNode(true);
+    btn.textContent='데이터 품질 카드 5개 생성';
+    btn.title='흐름 재검증이 아니라 실제 근거 기반 데이터 품질만 확인';
+    old.parentNode.replaceChild(btn, old);
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      runQualityStep();
+      return false;
+    }, true);
+  }
+
+  function install(){
+    installBanner();
+    movePanelsToArchive();
+    disableSampleButton();
+    bindFinalGenerate();
+    ensureCardPanel();
+    runQualityStep();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
+  else install();
+})();
+</script>
+
 </body>
 
 </html>
@@ -6071,258 +6467,5 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
     setTimeout(judge,600); setTimeout(judge,1600);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
-})();
-</script>
-
-
-<!-- P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2: 샘플/fallback 차단 + 가운데 9칸만 실제 오른쪽 5개 안내서에 반영 -->
-<style id="P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_STYLE_V2">
-#p6MiddleOnlyFinalLockV2{border:3px solid #111827;border-radius:12px;background:#f8fafc;margin:10px 0;padding:10px;font-size:12px;line-height:1.5}
-#p6MiddleOnlyFinalLockV2 b{font-size:14px}
-#p6MiddleOnlyFinalLockV2 .pass{color:#047857;font-weight:900}
-#p6MiddleOnlyFinalLockV2 .hold{color:#b45309;font-weight:900}
-#p6MiddleOnlyFinalLockV2 .fail{color:#b91c1c;font-weight:900}
-#P6_ACTUAL_5_GUIDE_IFRAMES_STYLE_V1 ~ * .p6-guide-set iframe,
-#p6ActualFiveGuideSetV1 iframe{background:#fff}
-</style>
-<script id="P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_SCRIPT_V2">
-(function(){
-  if(window.__P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2__) return;
-  window.__P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2__ = true;
-
-  var MID_IDS = ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
-  var RIGHT_MAP = [
-    ['guideTitleEn','midTitleEn'],
-    ['guideTitleKo','midTitleKo'],
-    ['guidePub','bookPub'],
-    ['guideDate','bookDate'],
-    ['guidePage','bookPage'],
-    ['guideListPrice','bookListPrice'],
-    ['guideSupplyPrice','bookSupplyPrice'],
-    ['guideLinkText','midLink'],
-    ['guideTocLeft','midToc'],
-    ['guideTocBox','midToc']
-  ];
-  var FORBIDDEN_PATTERNS = [
-    /AI Infrastructure Market/i,
-    /GPU Server and Accelerator/i,
-    /AI Data Center Network/i,
-    /Edge AI Server/i,
-    /AI Compute Supply Chain/i,
-    /AI 서버, GPU, 네트워크 장비/i,
-    /한국전자통신연구원/i,
-    /홍길동/i,
-    /HOLD:/i,
-    /^HOLD$/i
-  ];
-
-  function $(id, root){ return (root || document).getElementById(id); }
-  function val(id){ var e=$(id); return e ? String(('value' in e ? e.value : e.textContent) || '') : ''; }
-  function setVal(id,v){
-    var e=$(id); if(!e) return;
-    if('value' in e) e.value = v || '';
-    else e.textContent = v || '';
-  }
-  function log(s){
-    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6','mutationLogView','targetProbeView'].forEach(function(id){
-      var e=$(id);
-      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
-    });
-  }
-  function containsForbidden(v){
-    return FORBIDDEN_PATTERNS.some(function(rx){ return rx.test(String(v || '')); });
-  }
-  function cleanForbiddenMiddle(){
-    var changed = false;
-    MID_IDS.forEach(function(id){
-      var v = val(id);
-      if(containsForbidden(v)){
-        setVal(id, '');
-        changed = true;
-      }
-    });
-    ['customerRaw','researchField','interestField','org','dept','name','title','duty','yearRange','priceRange','publisherMemo'].forEach(function(id){
-      var v=val(id);
-      if(containsForbidden(v)){ setVal(id,''); changed=true; }
-    });
-    if(changed) log('P6_FINAL_LOCK_V2 | 샘플/HOLD/fallback 값 감지 → 빈칸 처리');
-    return changed;
-  }
-  function cloneAndDisable(id, label){
-    var old=$(id);
-    if(!old) return null;
-    var neu=old.cloneNode(true);
-    old.parentNode.replaceChild(neu, old);
-    neu.textContent = label || neu.textContent;
-    return neu;
-  }
-  function blockOldButtons(){
-    var gen = cloneAndDisable('generateBtn', '오른쪽 5개 안내서 동기화');
-    if(gen) gen.addEventListener('click', function(ev){
-      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
-      cleanForbiddenMiddle();
-      syncAllGuides('button');
-      return false;
-    }, true);
-
-    var sample = cloneAndDisable('fillSampleBtn', '샘플 입력 차단됨');
-    if(sample){
-      sample.disabled = true;
-      sample.style.opacity = '.45';
-      sample.style.cursor = 'not-allowed';
-      sample.title = '샘플/fallback 사용 금지';
-      sample.addEventListener('click', function(ev){
-        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
-        log('P6_FINAL_LOCK_V2 | fillSampleBtn 차단');
-        return false;
-      }, true);
-    }
-  }
-  function getFirstTemplateSrc(){
-    var f = document.querySelector('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]') || $('rightFrame');
-    if(!f) return '';
-    var src = f.getAttribute('srcdoc') || '';
-    if(!src){
-      try{ src='<!doctype html><html>'+f.contentDocument.documentElement.innerHTML+'</html>'; }catch(e){}
-    }
-    return src;
-  }
-  function ensureActualFive(){
-    var right = document.querySelector('.right');
-    if(!right) return [];
-    var frames = Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
-    if(frames.length === 5) return frames;
-
-    var srcdoc = getFirstTemplateSrc();
-    var old = $('p6ActualFiveGuideSetV1');
-    if(old) old.remove();
-
-    var box = document.createElement('div');
-    box.id = 'p6ActualFiveGuideSetV1';
-    box.innerHTML = '<h3>실제 오른쪽 안내서 5세트 <span class="p6-pass" id="p6ActualGuideCountV1">5/5</span></h3>';
-    for(var i=1;i<=5;i++){
-      var set=document.createElement('div');
-      set.className='p6-guide-set';
-      set.setAttribute('data-actual-guide-wrapper','1');
-      var label=document.createElement('div');
-      label.className='p6-guide-label';
-      label.textContent='안내서 '+i+' / 5 · 가운데 9칸 기준';
-      var frame=document.createElement('iframe');
-      frame.setAttribute('data-actual-guide-set','1');
-      frame.setAttribute('data-guide-index',String(i));
-      frame.srcdoc = srcdoc;
-      set.appendChild(label);
-      set.appendChild(frame);
-      box.appendChild(set);
-    }
-    right.insertBefore(box, right.firstChild);
-    var original=$('rightFrame');
-    if(original) original.remove();
-    log('P6_FINAL_LOCK_V2 | 실제 오른쪽 안내서 5세트 보정 생성 | original=removed');
-    return Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
-  }
-  function midData(){
-    return {
-      midTitleEn: val('midTitleEn'),
-      midTitleKo: val('midTitleKo'),
-      bookPub: val('bookPub'),
-      bookDate: val('bookDate'),
-      bookPage: val('bookPage'),
-      bookListPrice: val('bookListPrice'),
-      bookSupplyPrice: val('bookSupplyPrice'),
-      midLink: val('midLink'),
-      midToc: val('midToc')
-    };
-  }
-  function setDocText(doc, id, v){
-    var e = doc && $(id, doc);
-    if(!e) return;
-    e.textContent = v || '';
-    if(id === 'guideTocLeft' || id === 'guideTocBox'){
-      e.style.whiteSpace = 'pre-wrap';
-      e.style.wordBreak = 'keep-all';
-      e.style.overflowWrap = 'break-word';
-      e.setAttribute('data-toc-source','midToc-pre-wrap');
-    }
-  }
-  function syncFrame(frame, d, idx){
-    var doc = null;
-    try{ doc = frame.contentDocument || frame.contentWindow.document; }catch(e){}
-    if(!doc) return false;
-    var aux = doc.getElementById('guideTocRight');
-    if(aux) aux.remove();
-
-    RIGHT_MAP.forEach(function(pair){ setDocText(doc, pair[0], d[pair[1]]); });
-    var a = doc.querySelector('#guideLinkAnchor') || doc.querySelector('a[href]');
-    if(a){
-      a.href = d.midLink || '#';
-      a.textContent = d.midLink ? '바로가기' : '';
-    }
-    var label = frame.parentElement && frame.parentElement.querySelector('.p6-guide-label');
-    if(label) label.textContent = '안내서 ' + (idx + 1) + ' / 5 · 가운데 9칸 기준';
-    return true;
-  }
-  function hashText(s){
-    var h=0; s=String(s||'');
-    for(var i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; }
-    return 'P6MID-'+String(Math.abs(h)).padStart(8,'0');
-  }
-  function updatePanels(reason, frames, d){
-    var filled = MID_IDS.filter(function(id){ return String(d[id] || '').trim(); }).length;
-    var tocLines = String(d.midToc || '').split(/\r?\n/).length;
-    var hash = hashText(JSON.stringify({d:d,frames:frames.length,reason:reason}));
-    var msg = 'P6_FINAL_LOCK_V2 | reason='+reason+' | SOURCE=MID_9_ONLY | RIGHT='+frames.length+'/5 | MIDDLE='+filled+'/9 | TOC=pre-wrap lines='+tocLines+' | SAMPLE_FALLBACK=BLOCKED | HASH='+hash;
-    var bridge=$('bridgeStatus'); if(bridge) bridge.textContent = 'MIDDLE '+filled+'/9 / RIGHT '+frames.length+'/5 / 목차 pre-wrap / 샘플 차단 / '+hash;
-    var diag=$('diagPacket'); if(diag && 'value' in diag){
-      diag.value = '[P6_MIDDLE_ONLY_DATA_SOURCE_FINAL_LOCK_V2]\n'
-        +'SOURCE=MID_9_ONLY\n'
-        +'RIGHT_GUIDES='+frames.length+'/5\n'
-        +'MIDDLE_FILLED='+filled+'/9\n'
-        +'EMPTY_MIDDLE_EMPTY_RIGHT=TRUE\n'
-        +'SAMPLE_FALLBACK=BLOCKED\n'
-        +'TOC_WHITE_SPACE=pre-wrap\n'
-        +'RESULT_HASH='+hash+'\n'
-        +'REASON='+reason+'\n'
-        +'PASS_SCOPE=화면 5개 안내서 + 가운데 9칸 직접 반영 + 목차 줄바꿈 유지';
-    }
-    var t=$('p6DataQualityTextV1'); if(t){ t.textContent = '최종 잠금: 가운데 9칸만 오른쪽 5개 안내서에 반영 / '+hash; t.className='ok'; }
-    var c=$('p6ActualGuideCountV1'); if(c)c.textContent=frames.length+'/5';
-    var shell=$('shellActualCards'); if(shell)shell.textContent=frames.length+'개 안내서 / middle-only';
-    log(msg);
-  }
-  function syncAllGuides(reason){
-    var frames = ensureActualFive();
-    var d = midData();
-    frames.forEach(function(f,i){ syncFrame(f,d,i); });
-    updatePanels(reason || 'sync', frames, d);
-  }
-  function bindMiddleInputs(){
-    MID_IDS.forEach(function(id){
-      var e=$(id);
-      if(e) e.addEventListener('input', function(){ cleanForbiddenMiddle(); syncAllGuides('middle-input'); }, true);
-    });
-  }
-  function addStatusPanel(){
-    var left = document.querySelector('.left') || document.body;
-    if($('p6MiddleOnlyFinalLockV2')) return;
-    var box=document.createElement('div');
-    box.id='p6MiddleOnlyFinalLockV2';
-    box.innerHTML='<b>P6 최종 데이터 소스 잠금 V2</b><br><span class="pass">샘플/fallback 차단</span> · <span class="pass">가운데 9칸만 사용</span> · <span class="pass">오른쪽 실제 5개 안내서</span> · <span class="pass">목차 pre-wrap 유지</span>';
-    left.insertBefore(box,left.firstChild);
-  }
-
-  function boot(){
-    addStatusPanel();
-    blockOldButtons();
-    bindMiddleInputs();
-    cleanForbiddenMiddle();
-    syncAllGuides('boot');
-    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-1'); }, 1600);
-    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-2'); }, 3200);
-    setTimeout(function(){ cleanForbiddenMiddle(); syncAllGuides('post-timeout-override-3'); }, 5200);
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
 })();
 </script>
