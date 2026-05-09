@@ -2065,7 +2065,7 @@ function ensureInteractiveTagging(){
       '수소·연료전지':'Hydrogen and Fuel Cell',
       '원자력':'Nuclear Energy',
       '탄소중립':'Carbon Neutrality',
-      'AI 인프라':'
+      'AI 인프라':'AI Infrastructure',
       '미래차':'Future Mobility',
       '바이오·헬스케어':'Bio and Healthcare'
     };
@@ -2167,7 +2167,7 @@ function ensureInteractiveTagging(){
     document.getElementById('midTitleEn').value = g.guideTitleEn || '';
     document.getElementById('midTitleKo').value = g.guideTitleKo || '';
     document.getElementById('bookPub').value = g.report?.publisher || '';
-    document.getElementById('bookDate').value = String(g.report?.year || '');
+    document.getElementById('bookDate').value = String(g.report?.date || g.report?.year || '');
     document.getElementById('bookPage').value = String(g.report?.pages || '');
     document.getElementById('bookListPrice').value = g.report?.listPrice || '';
     document.getElementById('bookSupplyPrice').value = g.report?.supplyPrice || '';
@@ -3550,7 +3550,7 @@ endpoint: ${endpoint}`
       key:'hydrogen', ko:'수소·연료전지', en:'Hydrogen and Fuel Cell', link:'https://example.com/hydrogen-fuel-cell'
     };
     if (/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw)) return {
-      key:'ai', ko:'AI 인프라', en:'
+      key:'ai', ko:'AI 인프라', en:'AI Infrastructure', link:'https://www.marketsandmarkets.com/search.asp?search=AI+infrastructure'
     };
     var fallback = safeText(readInput('keyword') || readInput('researchField') || readInput('interestField') || '산업');
     return {
@@ -4318,7 +4318,7 @@ endpoint: ${endpoint}`
   function parsePrice(){var raw=txt($('priceRange')&&$('priceRange').value).replace(/\s/g,''); var m=raw.match(/([0-9,]+)\s*만원/); if(m)return +m[1].replace(/,/g,''); var w=raw.match(/([0-9,]+)\s*원/); if(w)return Math.round(+w[1].replace(/,/g,'')/10000); return null;}
   function inferSector(){var raw=[txt($('customerRaw')&&$('customerRaw').value),txt($('keyword')&&$('keyword').value),txt($('researchField')&&$('researchField').value),txt($('interestField')&&$('interestField').value)].join(' ').toLowerCase();
     if(/태양|solar|pv/.test(raw))return {ko:'태양에너지',en:'Solar Energy',link:'https://example.com/solar-energy'};
-    if(/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw))return {ko:'AI 인프라',en:'
+    if(/ai|인공지능|gpu|서버|데이터센터|인프라/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure',link:'https://www.marketsandmarkets.com/search.asp?search=AI+infrastructure'};
     if(/고분자|레진|수지|polymer|resin/.test(raw))return {ko:'고분자',en:'Polymer and Resin',link:'https://example.com/polymer-resin'};
     var fallback=txt($('researchField')&&$('researchField').value)||txt($('interestField')&&$('interestField').value)||'산업';
     return {ko:fallback,en:fallback+' Market',link:'https://example.com/custom-market'};
@@ -4521,7 +4521,7 @@ endpoint: ${endpoint}`
     if(/반도체|semiconductor/.test(raw))return{ko:'반도체',en:'Semiconductor',link:'https://example.com/semiconductor'};
     if(/배터리|이차전지/.test(raw))return{ko:'이차전지',en:'Battery',link:'https://example.com/battery'};
     if(/수소|hydrogen|fuel/.test(raw))return{ko:'수소·연료전지',en:'Hydrogen and Fuel Cell',link:'https://example.com/hydrogen-fuel-cell'};
-    if(/ai|인공지능|gpu|서버|데이터센터|인프라|네트워크/.test(raw))return{ko:'AI 인프라',en:'
+    if(/ai|인공지능|gpu|서버|데이터센터|인프라|네트워크/.test(raw))return{ko:'AI 인프라',en:'AI Infrastructure',link:'https://www.marketsandmarkets.com/search.asp?search=AI+infrastructure'};
     var fallback=txt(($('researchField')&&$('researchField').value)||($('interestField')&&$('interestField').value)||'산업');
     return{ko:fallback,en:fallback+' Market',link:'https://example.com/custom-market'};
   }
@@ -4968,7 +4968,7 @@ endpoint: ${endpoint}`
     if(/반도체|semiconductor/.test(raw))return {ko:'반도체',en:'Semiconductor',slug:'semiconductor'};
     if(/배터리|이차전지|battery/.test(raw))return {ko:'이차전지',en:'Battery',slug:'battery'};
     if(/수소|hydrogen|fuel/.test(raw))return {ko:'수소·연료전지',en:'Hydrogen and Fuel Cell',slug:'hydrogen-fuel-cell'};
-    if(/ai|인공지능|gpu|서버|데이터센터|네트워크|infra/.test(raw))return {ko:'AI 인프라',en:'
+    if(/ai|인공지능|gpu|서버|데이터센터|네트워크|infra/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure',slug:'ai-infrastructure'};
     var fallback=val('researchField')||val('interestField')||'산업 시장'; return {ko:fallback,en:fallback+' Market',slug:'custom-market'};
   }
   function norm(s){return txt(s).toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9가-힣]+/g,'');}
@@ -6082,6 +6082,99 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     setTimeout(function(){removeBottomPanels();clearSlots();scrubIframe();status()},2500);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+
+
+<script id="DATA_QUALITY_ONLY_V4_SCREEN_ENGINE_LOCK">
+(function(){
+  function $(id){return document.getElementById(id)}
+  function txt(v){return String(v||'').replace(/\s+/g,' ').trim()}
+  function val(id){var e=$(id); return txt(e&&e.value)}
+  var VENDORS=[
+    'Allied Market Research','QY Research','MarketsandMarkets','BCC Research','Research in China','Technavio','Future Markets','RNCOS','Transparency Market Research','GlobalData','INKWOOD Research','Accuray Research','GlobalInfo Research','KBV Research','Coherent Market Insights','Grand View Research','Kuick Research','Prismane Consulting','Mordor Intelligence','Lucintel','Prof Research','AnalystView Market Insights','Bizwit Research & Consulting','Blueweave Consulting','Vantage Market Research','DataM Intelligence','Zion Market Research','Koncept Analytics','LP Information','Market Monitor Global','WishTree Insight','99Strategy','Maia Research','The Insight Partners','Hny Research','MultiMarket Insight','Introspective Market Research','Stratview Research','360iResearch','P&S Intelligence','Stats Market Research','Data Bridge Market Research','Fortune Business Insights','Reports And Data','Rethink Technology Research','Azoth Analytics','Global Market Insights','Orion Market Research','Global Industry Analysts','Next Move Strategy Consulting','Persistence Market Research','Stratistics MRC','Verified Market Research','Cognitive Market Research','Credence Research','ReAnIn Research','IndustryARC','Market Research Future','BIS Research','SkyQuest Technology','MIReports','LogisticsIQ','M14 Intelligence','Wharry Sharpe Research','Straits Research','Asia Pacific InfoServ','Reports and Insights','InsightAce Analytic','VPA Research','n-tech Research','Evolve Business Intelligence','Zhar Research','Industry Experts','market.us','Cervicorn Consulting','Acumen Research','MarkNtel Advisors','UnivDatos Market Insights'
+  ];
+  var URLS={
+    'MarketsandMarkets':'https://www.marketsandmarkets.com/search.asp?search=',
+    'BCC Research':'https://www.bccresearch.com/search?q=',
+    'Technavio':'https://www.technavio.com/search?query=',
+    'Allied Market Research':'https://www.alliedmarketresearch.com/search-results?search=',
+    'Grand View Research':'https://www.grandviewresearch.com/search?query=',
+    'Mordor Intelligence':'https://www.mordorintelligence.com/search?q=',
+    'GlobalData':'https://www.globaldata.com/store/search/?q=',
+    'Transparency Market Research':'https://www.transparencymarketresearch.com/search.html?keyword=',
+    'Fortune Business Insights':'https://www.fortunebusinessinsights.com/search?q=',
+    'BIS Research':'https://bisresearch.com/search?q=',
+    'QY Research':'https://www.qyresearch.com/search?q='
+  };
+  function sector(){
+    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty'),val('org'),val('dept')].join(' ').toLowerCase();
+    if(/반도체|semiconductor|패키징|웨이퍼|칩/.test(raw))return {ko:'반도체',en:'Semiconductor'};
+    if(/ai|인공지능|gpu|서버|데이터센터|네트워크/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure'};
+    if(/배터리|이차전지|전고체|양극재|음극재/.test(raw))return {ko:'이차전지',en:'Battery'};
+    if(/수소|연료전지|hydrogen|fuel/.test(raw))return {ko:'수소·연료전지',en:'Hydrogen and Fuel Cell'};
+    if(/탄소|ccus|carbon/.test(raw))return {ko:'탄소중립',en:'Carbon Neutrality'};
+    if(/고분자|polymer|수지|resin/.test(raw))return {ko:'고분자·소재',en:'Polymer Materials'};
+    if(/바이오|의약|헬스케어|bio/.test(raw))return {ko:'바이오·헬스케어',en:'Bio Healthcare'};
+    var f=val('interestField')||val('researchField')||val('customerRaw')||'Industry Market';
+    return {ko:f,en:f};
+  }
+  function pickVendors(){
+    var prefer=[val('pub1'),val('pub2')].filter(Boolean);
+    var exclude=(val('exclude')||'').split(/[,，;；\n]+/).map(function(x){return txt(x).toLowerCase();}).filter(Boolean);
+    var base=prefer.concat(['MarketsandMarkets','BCC Research','Technavio','Allied Market Research','Grand View Research','Mordor Intelligence','GlobalData','QY Research','Fortune Business Insights','BIS Research']).concat(VENDORS);
+    var seen={},out=[];
+    base.forEach(function(v){var k=v.toLowerCase(); if(!v||seen[k])return; seen[k]=1; if(exclude.some(function(e){return k.indexOf(e)>=0||e.indexOf(k)>=0;}))return; out.push(v);});
+    return out;
+  }
+  function vendorLink(v,q){var base=URLS[v]; return base ? base+encodeURIComponent(q) : 'HOLD: 공개 검색 URL 구조 미확인 / 발행사명='+v+' / query='+q;}
+  function setVal(id,v){var e=$(id); if(e)e.value=v;}
+  function setText(id,v){var e=$(id); if(e)e.textContent=v;}
+  function writeGuide(){
+    var s=sector(), q=s.en+' market report '+(val('yearRange')||'2025 2026');
+    var vendors=pickVendors();
+    var top=vendors[0]||'MarketsandMarkets';
+    var link=vendorLink(top,q);
+    var titleHold='HOLD: 실제 공개 보고서 제목 검증 전 / 검색식: '+q;
+    var info=[
+      '발행사: '+top+' / 상태: HOLD',
+      '발행일: HOLD - 실제 보고서 상세페이지 확인 전',
+      '정가: HOLD - 공개 가격 확인 전',
+      '페이지: HOLD - 공개 페이지 수 확인 전',
+      '품질판정: URL 후보 생성 완료, 실제 상세페이지 제목 일치 전 PASS 금지'
+    ].join('\n');
+    var toc=[
+      'HOLD: 실제 목차 공개 범위 확인 전',
+      '1. '+s.en+' Market Overview - 공개 목차 검증 필요',
+      '2. Technology Trends - 공개 목차 검증 필요',
+      '3. Competitive Landscape - 공개 목차 검증 필요',
+      '4. Forecast and Segmentation - 공개 목차 검증 필요',
+      '5. Appendix / Methodology - 공개 목차 검증 필요'
+    ].join('\n');
+    setVal('midTitleEn',titleHold);
+    setVal('midTitleKo','HOLD: '+s.ko+' 관련 실제 보고서 제목 검증 전');
+    setVal('bookPub',top);
+    setVal('bookDate','HOLD');
+    setVal('bookPage','HOLD');
+    setVal('bookListPrice','HOLD');
+    setVal('bookSupplyPrice','HOLD');
+    setVal('midLink',link);
+    setVal('midToc',toc);
+    if(typeof window.syncInputsToPreview==='function')window.syncInputsToPreview();
+    var flow='[DATA_QUALITY_ONLY_V4]\nMODE: LEFT_TEXT_TO_VENDOR_PUBLIC_CANDIDATE\nPASS 금지: 실제 상세 URL 제목 일치 전\nQUERY: '+q+'\n대표 발행사: '+top+'\n후보 발행사 수: '+vendors.length+'\n다음: 서버/API 커넥터가 실제 상세페이지를 읽으면 제목/발행일/가격/목차를 PASS 또는 PARTIAL로 승격';
+    setText('flowTrace',flow);
+    setText('rawJsonBox','[DATA_QUALITY_JSON]\n'+JSON.stringify({sector:s,query:q,top_vendor:top,candidate_link:link,verdict:'HOLD_UNTIL_PUBLIC_DETAIL_URL_VERIFIED'},null,2));
+    setText('mappingBox','[안내서 매핑]\n타이틀=HOLD 제목\n도서정보=HOLD 사유\n링크=발행사 공개 검색 후보\n목차=공개 목차 확인 전 HOLD\n가격/발행일=상세페이지 확인 전 HOLD');
+    setText('targetProbeBox','[발행사 공개범위 누적]\n'+vendors.slice(0,20).map(function(v,i){return (i+1)+'. '+v+' | '+(URLS[v]?'SEARCH_URL_ACTIVE':'URL_STRUCTURE_HOLD');}).join('\n'));
+    var badge=$('realEngineState'); if(badge){badge.textContent='DATA_QUALITY HOLD 반영'; badge.className='warn';}
+    var diag=$('diagPacket'); if(diag)diag.value='[DATA_QUALITY_ONLY_V4_PACKET]\nSCREEN=기준화면 유지\nINPUT=왼쪽 텍스트\nOUTPUT=가운데/오른쪽 안내서 HOLD 반영\nNO_DIRECT_URL_INPUT=PASS\nNO_FAKE_AUTOFILL=PASS\nPUBLIC_DETAIL_VERIFICATION=HOLD\nFINAL=DATA_QUALITY_READY_BUT_FETCH_CONNECTOR_REQUIRED';
+  }
+  function bind(){
+    var b=$('generateBtn');
+    if(b){b.addEventListener('click',function(ev){ev.preventDefault();ev.stopImmediatePropagation();writeGuide();},true);}
+    setTimeout(function(){setText('flowTrace','[DATA_QUALITY_ONLY_V4]\n대기: 왼쪽 텍스트 입력 후 안내서 5개 생성 클릭\n주의: 공개 URL 직접 입력 방식 없음 / 실제 상세페이지 검증 전 PASS 금지');},500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind); else bind();
 })();
 </script>
 
