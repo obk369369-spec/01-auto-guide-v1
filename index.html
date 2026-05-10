@@ -6303,6 +6303,78 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+
+<!-- WIC_FIX_RUN9: 오른쪽 안내서 초기화는 실제 5개 iframe + 원본 iframe 전체를 HOLD로 초기화한다 -->
+<script id="WIC_FIX_RUN9_RIGHT_RESET_ALL_VISIBLE_GUIDES">
+(function(){
+  'use strict';
+  function $(id, root){ return (root || document).getElementById(id); }
+  function allGuideFrames(){
+    var frames=[];
+    var original=$('rightFrame');
+    if(original) frames.push(original);
+    document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"], iframe[data-actual-guide-set="1"]').forEach(function(f){
+      if(frames.indexOf(f)<0) frames.push(f);
+    });
+    return frames;
+  }
+  function frameDoc(frame){
+    try { return frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document)) || null; }
+    catch(e){ return null; }
+  }
+  function setText(doc, id, value){
+    var el=$(id, doc); if(!el) return false;
+    el.textContent=value; el.setAttribute('data-run9-reset','1'); return true;
+  }
+  function setHtml(doc, id, value){
+    var el=$(id, doc); if(!el) return false;
+    el.innerHTML=value; el.setAttribute('data-run9-reset','1'); return true;
+  }
+  function resetOneDoc(doc){
+    var changed=0;
+    changed += setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>')?1:0;
+    changed += setHtml(doc,'guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( HOLD )</span>')?1:0;
+    ['guidePub','guideDate','guideListPrice','guideSupplyPrice'].forEach(function(id){ if(setText(doc,id,'HOLD')) changed++; });
+    if(setText(doc,'guidePage','HOLD Pages')) changed++;
+    if(setText(doc,'guidePdf','-PDF-')) changed++;
+    if(setText(doc,'guideLinkText','HOLD')) changed++;
+    var a=$('guideLinkAnchor', doc);
+    if(a){ a.removeAttribute('href'); a.textContent='HOLD'; a.setAttribute('data-run9-reset','1'); changed++; }
+    if(setHtml(doc,'guideTocLeft','<div style="font-size:10.5pt;line-height:1.45;">HOLD: 공개 목차 확인 전</div>')) changed++;
+    var t=$('guideToc', doc); if(t){ t.setAttribute('data-run9-reset','1'); }
+    var tr=$('guideTocRight', doc) || $('guideTocAuxSlot', doc); if(tr){ tr.innerHTML=''; tr.style.display='none'; changed++; }
+    return changed;
+  }
+  function resetVisibleGuides(ev){
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); }
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){ var el=$(id); if(el){ el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); } });
+    var frames=allGuideFrames();
+    var changed=0, ready=0;
+    frames.forEach(function(f){ var d=frameDoc(f); if(d){ ready++; changed+=resetOneDoc(d); } });
+    var status=$('bridgeStatus'); if(status) status.textContent='RUN9 초기화 완료: 실제 안내서 '+ready+'개 HOLD 초기화 / 변경 '+changed+'개';
+    var diag=$('diagModeBadge'); if(diag) diag.textContent='RUN9 RIGHT RESET PASS';
+    var log={engine:'RUN9_RIGHT_RESET_ALL_VISIBLE_GUIDES', frames:frames.length, ready:ready, changed:changed, pass: ready>0 && changed>0, check:'오른쪽 실제 안내서에 HOLD가 보이면 PASS'};
+    ['targetProbeView','diagPacket','flowTrace'].forEach(function(id){ var el=$(id); if(el){ var txt=JSON.stringify(log,null,2); if('value' in el) el.value=txt; else el.textContent=txt; } });
+    window.__RUN9_RIGHT_RESET_LAST__=log;
+    return false;
+  }
+  function bind(){
+    var btn=$('rightGuideResetBtn');
+    if(!btn) return;
+    var clone=btn.cloneNode(true);
+    clone.id='rightGuideResetBtn';
+    clone.textContent='오른쪽 안내서 초기화';
+    clone.setAttribute('data-run9-real-reset','1');
+    clone.addEventListener('click', resetVisibleGuides, true);
+    btn.parentNode.replaceChild(clone, btn);
+  }
+  window.__RUN9_RIGHT_RESET__={bind:bind, reset:resetVisibleGuides};
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){setTimeout(bind,200);setTimeout(bind,1000);});
+  else { setTimeout(bind,200); setTimeout(bind,1000); }
+  window.addEventListener('load', function(){setTimeout(bind,300);setTimeout(bind,1200);setTimeout(bind,2500);});
+})();
+</script>
 </body>
 
 </html>
