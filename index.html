@@ -7016,3 +7016,63 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.__RUN14_DETAIL_URL_SOURCE_LINK_ONLY__={bind:bind,run:run};
 })();
 </script>
+
+
+<!-- RUN15_NO_URL_TEXT_QUALITY_LOCK: 34번 기준 / URL 기능 HOLD / 왼쪽 텍스트 품질판단만 진행 -->
+<style id="RUN15_NO_URL_TEXT_QUALITY_STYLE">
+  #RUN15_TEXT_QUALITY_PANEL{border:2px solid #0f172a;border-radius:12px;background:#fff;margin:10px 0;padding:10px;font-size:12px;line-height:1.45;}
+  #RUN15_TEXT_QUALITY_PANEL h3{margin:0 0 8px;font-size:15px;}
+  #RUN15_TEXT_QUALITY_PANEL .ok{color:#047857;font-weight:800;}
+  #RUN15_TEXT_QUALITY_PANEL .hold{color:#b45309;font-weight:800;}
+  #RUN15_TEXT_QUALITY_PANEL .bad{color:#b91c1c;font-weight:800;}
+  #RUN15_TEXT_QUALITY_PANEL .row{border-top:1px dashed #d1d5db;padding:5px 0;}
+</style>
+<script id="RUN15_NO_URL_TEXT_QUALITY_SCRIPT">
+(function(){
+  if(window.__RUN15_NO_URL_TEXT_QUALITY_LOCK__) return;
+  window.__RUN15_NO_URL_TEXT_QUALITY_LOCK__=true;
+  var ENGINE='RUN15_NO_URL_TEXT_QUALITY_LOCK';
+  function $(id,root){return (root||document).getElementById(id)}
+  function q(s,root){return (root||document).querySelector(s)}
+  function val(id){var e=$(id);return e?String(e.value||e.textContent||'').trim():''}
+  function setVal(id,v){var e=$(id);if(!e)return;if('value'in e)e.value=v||'';else e.textContent=v||'';try{e.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){}}
+  function fdoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
+  function setRight(id,v){var d=fdoc(),e=d&&$(id,d);if(!e)return;if(id==='guideLinkAnchor'){e.setAttribute('href',v?'#':'#');e.textContent=v?'바로가기':''}else e.textContent=v||''}
+  function removeUrlPanel(){var p=$('P6_DQ3_ONLINE_PANEL');if(p){p.innerHTML='<h3>URL 기능 HOLD</h3><div class="hold">새 URL 칸 추가 금지. 기존 엔진 조합 시뮬레이션 전까지 URL 기능은 보류.</div>';}}
+  function ensurePanel(){var mid=q('.middle');if(!mid)return null;var p=$('RUN15_TEXT_QUALITY_PANEL');if(p)return p;p=document.createElement('div');p.id='RUN15_TEXT_QUALITY_PANEL';p.innerHTML='<h3>RUN15 텍스트 품질판단</h3><div id="RUN15_TQ_STATUS" class="hold">대기</div><div id="RUN15_TQ_ROWS"></div>';var anchor=$('P6_DQ2_CARD_PANEL')||mid.firstElementChild;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(p,anchor.nextSibling);else mid.insertBefore(p,mid.firstChild);return p}
+  function splitKeywords(){
+    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty')].join(' ');
+    var toks=raw.replace(/[.,;:()\[\]{}]/g,' ').split(/\s+/).map(function(x){return x.trim()}).filter(function(x){return x.length>=2});
+    var stop={'고객이':1,'말한':1,'찾고':1,'있습니다':1,'보고서':1,'시장':1,'관련':1,'검토':1,'예':1};
+    var seen={},out=[]; toks.forEach(function(t){if(!stop[t]&&!seen[t]){seen[t]=1;out.push(t)}});
+    return out.slice(0,12);
+  }
+  function score(){
+    var fields=[['고객 원문',val('customerRaw')],['연구분야',val('researchField')],['관심분야',val('interestField')],['담당업무',val('duty')]];
+    var filled=fields.filter(function(x){return x[1]}).length;
+    var kws=splitKeywords();
+    var status=filled>=3&&kws.length>=3?'TEXT_READY':(filled>=1?'TEXT_PARTIAL':'HOLD_EMPTY');
+    var rows=$('RUN15_TQ_ROWS'); if(rows){rows.innerHTML=fields.map(function(x){return '<div class="row">'+x[0]+': '+(x[1]?'<span class="ok">입력됨</span>':'<span class="hold">빈칸</span>')+'</div>'}).join('')+'<div class="row">추출 키워드: '+(kws.length?kws.join(', '):'<span class="hold">없음</span>')+'</div>';}
+    var st=$('RUN15_TQ_STATUS'); if(st){st.className=status==='TEXT_READY'?'ok':'hold';st.textContent=status+' / URL 기능 HOLD / 근거 없는 자동완성 금지';}
+    return {status:status,keywords:kws,filled:filled};
+  }
+  function applyHoldIfNoRealSource(){
+    var s=score();
+    // 상세 URL/공개 원문 근거가 없으면 오른쪽은 실제 데이터로 채우지 않는다.
+    if(s.status==='HOLD_EMPTY'){
+      ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){setVal(id,'')});
+      ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox','guideTocAuxSlot'].forEach(function(id){setRight(id,'')});
+      setRight('guideLinkAnchor','');
+    }
+    var bs=$('bridgeStatus'); if(bs)bs.textContent='RUN15: 텍스트 품질 '+s.status+' / 상세 원문 없으면 REAL 반영 금지';
+    var diag=$('diagPacket'); if(diag&&'value'in diag)diag.value='[RUN15_TEXT_QUALITY]\nENGINE='+ENGINE+'\nTEXT_STATUS='+s.status+'\nKEYWORDS='+s.keywords.join('|')+'\nURL_FEATURE=HOLD\nREAL_APPLY=BLOCK_UNTIL_PUBLIC_SOURCE';
+  }
+  function install(){
+    removeUrlPanel(); ensurePanel(); score();
+    var t=q('.title'); if(t)t.textContent='1번 고객 자동화 안내서 - RUN15 / URL HOLD + 왼쪽 텍스트 품질판단';
+    var g=$('generateBtn'); if(g&&!g.dataset.run15TextQuality){g.dataset.run15TextQuality='1';g.addEventListener('click',function(){setTimeout(applyHoldIfNoRealSource,60);setTimeout(applyHoldIfNoRealSource,500)},true)}
+    ['customerRaw','researchField','interestField','duty'].forEach(function(id){var e=$(id);if(e)e.addEventListener('input',score,true)});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
