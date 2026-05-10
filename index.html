@@ -6930,3 +6930,89 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.addEventListener('load',boot);
 })();
 </script>
+
+<!-- RUN14_DETAIL_URL_SOURCE_LINK_ONLY: 상세 보고서 URL이 있을 때만 링크 보존, 나머지는 HOLD / 반복 단계 재수행 금지 -->
+<script id="RUN14_DETAIL_URL_SOURCE_LINK_ONLY">
+(function(){
+  'use strict';
+  var ENGINE='RUN14_DETAIL_URL_SOURCE_LINK_ONLY';
+  function $(id,root){return (root||document).getElementById(id)}
+  function rightDocs(){
+    var docs=[];
+    try{document.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)docs.push(f.contentDocument)}catch(e){}})}catch(e){}
+    docs.push(document);
+    return docs;
+  }
+  function setText(doc,id,val){var e=$(id,doc); if(!e)return 0; e.textContent=val; e.setAttribute('data-run14','1'); return 1;}
+  function setHtml(doc,id,val){var e=$(id,doc); if(!e)return 0; e.innerHTML=val; e.setAttribute('data-run14','1'); return 1;}
+  function allInputs(){
+    return Array.prototype.slice.call(document.querySelectorAll('input,textarea,select')).map(function(e){return e.value||''}).join('\n');
+  }
+  function getUrls(){return (allInputs().match(/https?:\/\/[^\s"'<>]+/gi)||[]).map(function(u){return u.replace(/[),.;\]]+$/,'')})}
+  function classify(raw){
+    try{
+      var u=new URL(raw), path=u.pathname.replace(/\/+$/,'').toLowerCase();
+      var full=(u.hostname+' '+path+' '+u.search).toLowerCase();
+      var homepage=(!path||path==='/'||path==='/en'||path==='/ko'||path==='/kr'||path==='/home'||path==='/index.html');
+      var detail=/(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight|technology|competitive|intelligence|study|reports)/i.test(full) && !homepage;
+      return {url:u.href,host:u.hostname.replace(/^www\./,''),detail:detail,homepage:homepage};
+    }catch(e){return {url:raw,host:'HOLD',detail:false,homepage:false}}
+  }
+  function blankOrHold(doc,msg,linkObj){
+    var c=0;
+    c+=setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>');
+    c+=setText(doc,'guideTitleKo','( HOLD )');
+    c+=setText(doc,'guidePub',linkObj&&linkObj.detail?linkObj.host:'HOLD');
+    c+=setText(doc,'guideDate','HOLD');
+    c+=setText(doc,'guidePage','HOLD Pages');
+    c+=setText(doc,'guideListPrice','HOLD');
+    c+=setText(doc,'guideSupplyPrice','HOLD');
+    c+=setText(doc,'guidePdf','-PDF-');
+    if(linkObj&&linkObj.detail){
+      c+=setText(doc,'guideLinkText',linkObj.url);
+      var a=$('guideLinkAnchor',doc); if(a){a.href=linkObj.url; a.textContent=linkObj.url; a.setAttribute('data-run14','1'); c++;}
+    }else{
+      c+=setText(doc,'guideLinkText','HOLD');
+      var a2=$('guideLinkAnchor',doc); if(a2){a2.removeAttribute('href'); a2.textContent='HOLD'; a2.setAttribute('data-run14','1'); c++;}
+    }
+    c+=setHtml(doc,'guideTocLeft','<div style="font-size:10.5pt;line-height:1.45;">'+msg+'</div>');
+    var tr=$('guideTocRight',doc)||$('guideTocAuxSlot',doc); if(tr){tr.innerHTML=''; tr.style.display='none'; c++;}
+    return c;
+  }
+  function updateMiddle(linkObj,msg){
+    var b=$('bridgeStatus'); if(b)b.textContent='RUN14: '+msg;
+    var fields={midTitleEn:'HOLD: source title check needed',midTitleKo:'HOLD: 공개 원문 확인 전',bookPub:(linkObj&&linkObj.detail?linkObj.host:'HOLD'),bookDate:'HOLD',bookPage:'HOLD',bookListPrice:'HOLD',bookSupplyPrice:'HOLD',midLink:(linkObj&&linkObj.detail?linkObj.url:'HOLD'),midToc:msg};
+    Object.keys(fields).forEach(function(id){var e=$(id); if(e){e.value=fields[id]; e.textContent=fields[id];}});
+    var cards=document.querySelectorAll('.middle .card');
+    cards.forEach(function(card,idx){
+      if(idx<5 || /HOLD|복제|기존/.test(card.textContent||'')){
+        card.innerHTML='<b>'+(idx+1)+'. '+(linkObj&&linkObj.detail?'SOURCE LINK HOLD':'HOLD')+'</b><br>'+msg+'<br>제목·발행일·가격·목차는 원문 확인 전 자동생성 금지';
+      }
+    });
+  }
+  function run(ev){
+    if(ev){ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();}
+    var urls=getUrls().map(classify);
+    var detail=urls.find(function(x){return x.detail});
+    var home=urls.find(function(x){return x.homepage});
+    var msg=detail?'상세 보고서 URL 감지: 링크만 보존, 제목·발행일·가격·목차는 HOLD':'상세 보고서 URL 없음: 생성 차단 / HOLD 유지';
+    if(!detail && home) msg='발행사 메인 홈페이지 URL 감지: 상세 보고서 URL 아님 / HOLD 유지';
+    var changed=0; rightDocs().forEach(function(d){changed+=blankOrHold(d,msg,detail)});
+    updateMiddle(detail,msg);
+    var log={engine:ENGINE,status:detail?'SOURCE_LINK_ONLY':'HOLD_LOCK',detail_url:detail?detail.url:'',url_count:urls.length,changed:changed,rule:'상세 URL 없으면 생성 금지 / 상세 URL 있어도 링크만 보존하고 나머지는 HOLD',next:'원문 읽기 커넥터 연결 전 PASS 금지'};
+    ['flowTrace','diagPacket','targetProbeView'].forEach(function(id){var e=$(id); if(e){var t=JSON.stringify(log,null,2); if('value' in e)e.value=t; else e.textContent=t;}});
+    window.__RUN14_LAST__=log;
+    return false;
+  }
+  function bind(){
+    var old=$('generateBtn'); if(!old||old.dataset.run14==='1')return;
+    var b=old.cloneNode(true); b.id='generateBtn'; b.dataset.run14='1'; b.textContent='안내서 5개 생성';
+    b.addEventListener('click',run,true);
+    old.parentNode.replaceChild(b,old);
+    var p=$('leftSummary'); if(p)p.innerHTML='RUN14: 상세 보고서 URL이 있을 때만 링크를 보존합니다. 메인 홈페이지/빈 입력은 HOLD 유지.';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,500);setTimeout(bind,1800);}); else {setTimeout(bind,500);setTimeout(bind,1800);}
+  window.addEventListener('load',function(){setTimeout(bind,800);setTimeout(bind,2500);setTimeout(bind,4500);});
+  window.__RUN14_DETAIL_URL_SOURCE_LINK_ONLY__={bind:bind,run:run};
+})();
+</script>
