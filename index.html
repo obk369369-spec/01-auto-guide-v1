@@ -6446,6 +6446,46 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+
+<script id="dq11-no-sample-repeat-detail-url-gate">
+(function(){
+  'use strict';
+  function d(){var f=document.getElementById('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
+  function set(id,v,doc){var e=(doc||document).getElementById(id); if(e){ if('value' in e && /^(INPUT|TEXTAREA)$/i.test(e.tagName)) e.value=v; else e.textContent=v; }}
+  function norm(s){return String(s||'').replace(/\s+/g,' ').trim();}
+  function realReportUrl(s){
+    s=norm(s); if(!/^https?:\/\//i.test(s)) return false;
+    try{var u=new URL(s); var p=u.pathname.replace(/\/+$/,'').toLowerCase();
+      if(!p || p==='/' || p==='/en' || p==='/ko' || p==='/kr' || p==='/home' || p==='/index.html') return false;
+      if(/google\.com\/search/i.test(u.href)) return false;
+      if(p.split('/').filter(Boolean).length<2 && !/(goods|view|report|market|research|industry|analysis|forecast|product|shop|insight)/i.test(p+u.search)) return false;
+      return /(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight)/i.test(p+' '+u.search);
+    }catch(e){return false;}
+  }
+  function hold(reason){
+    var doc=d(); if(!doc) return;
+    set('guideTitleEn','HOLD: 공개 원문 확인 전',doc); set('guideTitleKo','( HOLD )',doc);
+    ['guidePub','guideDate','guideListPrice','guideSupplyPrice'].forEach(function(id){set(id,'HOLD',doc)});
+    set('guidePage','HOLD Pages',doc); set('guidePdf','-PDF-',doc);
+    set('guideLinkText','HOLD: '+reason,doc);
+    var a=doc.getElementById('guideLinkAnchor'); if(a){a.removeAttribute('href');a.textContent='HOLD';}
+    set('guideTocLeft','HOLD: 실제 보고서 상세 URL 확인 전 / 공개 목차 확인 전',doc);
+    set('guideTocBox','HOLD: 실제 보고서 상세 URL 확인 전 / 공개 목차 확인 전',doc);
+    var b=document.getElementById('bridgeStatus'); if(b)b.textContent='DQ11: 상세 URL 미확인 → 오른쪽 HOLD 유지';
+    var f=document.getElementById('flowTrace'); if(f)f.textContent='[DQ11]\n샘플 제거 반복 아님\n상세 URL 검증 1개 기능만 적용\n발행사 홈/검색URL/미검증 URL은 HOLD';
+  }
+  function check(){
+    var doc=d(); if(!doc) return;
+    var link=norm((doc.getElementById('guideLinkText')||{}).textContent||'');
+    if(!realReportUrl(link)) hold('상세 보고서 URL 미확인');
+  }
+  function bind(){var btn=document.getElementById('generateBtn'); if(btn && !btn.dataset.dq11){btn.dataset.dq11='1';btn.addEventListener('click',function(){[80,300,800,1600,2600].forEach(function(t){setTimeout(check,t)});},true);}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind); else bind();
+  window.addEventListener('load',function(){setTimeout(bind,300);setTimeout(bind,1200);});
+})();
+</script>
+
 </body>
 
 </html>
