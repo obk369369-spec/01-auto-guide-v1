@@ -6208,6 +6208,101 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+
+<script id="WIC_RIGHT_RESET_REAL_DOM_FIX_V1">
+(function(){
+  "use strict";
+  const ENGINE_ID = "WIC_RIGHT_RESET_REAL_DOM_FIX_V1";
+  function $(id, root){ return (root || document).getElementById(id); }
+  function previewDoc(){
+    const frame = $("rightFrame");
+    if(!frame) return null;
+    return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document) || null;
+  }
+  function setText(doc, id, value){
+    const el = $(id, doc);
+    if(!el) return false;
+    el.textContent = value;
+    el.setAttribute("data-dq-reset", "true");
+    return true;
+  }
+  function setHtml(doc, id, value){
+    const el = $(id, doc);
+    if(!el) return false;
+    el.innerHTML = value;
+    el.setAttribute("data-dq-reset", "true");
+    return true;
+  }
+  function setInput(id, value){
+    const el = $(id);
+    if(!el) return false;
+    el.value = value;
+    el.dispatchEvent(new Event("input", {bubbles:true}));
+    el.dispatchEvent(new Event("change", {bubbles:true}));
+    return true;
+  }
+  function writeLog(obj){
+    const text = JSON.stringify(obj, null, 2);
+    ["targetProbeView","diagPacket","flowTrace"].forEach(function(id){
+      const el = $(id);
+      if(el) el.value !== undefined ? el.value = text : el.textContent = text;
+    });
+    const badge = $("diagModeBadge");
+    if(badge) badge.textContent = "오른쪽 안내서 초기화 DOM 연결 PASS";
+    const status = $("bridgeStatus");
+    if(status) status.textContent = "RIGHT_RESET_REAL_DOM_FIX_V1: 오른쪽 안내서 HOLD 초기화 완료";
+  }
+  function resetRightGuideOnly(ev){
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); }
+    const doc = previewDoc();
+    const result = {engine: ENGINE_ID, at: new Date().toISOString(), status: "FAIL", changed: [], missing: []};
+    if(!doc){ result.reason = "rightFrame document not ready"; writeLog(result); return false; }
+
+    const midIds = ["midTitleEn","midTitleKo","bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink","midToc"];
+    midIds.forEach(function(id){ if(setInput(id, "")) result.changed.push("middle:" + id); });
+
+    const titleOk = setHtml(doc, "guideTitleEn", '<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>');
+    result.changed.push(titleOk ? "right:guideTitleEn" : "MISS:guideTitleEn");
+    setHtml(doc, "guideTitleKo", '<span style="font-size:15pt;font-family:굴림;">( HOLD )</span>') ? result.changed.push("right:guideTitleKo") : result.missing.push("guideTitleKo");
+    ["guidePub","guideDate","guideListPrice","guideSupplyPrice","guideLinkText"].forEach(function(id){
+      setText(doc, id, "HOLD") ? result.changed.push("right:" + id) : result.missing.push(id);
+    });
+    setText(doc, "guidePage", "( HOLD )") ? result.changed.push("right:guidePage") : result.missing.push("guidePage");
+    const a = $("guideLinkAnchor", doc);
+    if(a){ a.href = "#"; a.textContent = "HOLD"; a.setAttribute("data-dq-reset", "true"); result.changed.push("right:guideLinkAnchor"); }
+    else result.missing.push("guideLinkAnchor");
+    const tocLeft = $("guideTocLeft", doc);
+    if(tocLeft){ tocLeft.innerHTML = '<div style="font-size:10.5pt;line-height:1.45;">HOLD: 공개 목차 확인 전</div>'; tocLeft.setAttribute("data-dq-reset", "true"); result.changed.push("right:guideTocLeft"); }
+    else result.missing.push("guideTocLeft");
+    const tocRight = $("guideTocRight", doc) || $("guideToc" + "Right", doc);
+    if(tocRight){ tocRight.innerHTML = ""; tocRight.style.display = "none"; tocRight.setAttribute("data-disabled", "true"); result.changed.push("right:guideTocRight-disabled"); }
+
+    result.status = result.missing.length ? "PARTIAL" : "PASS";
+    result.check = "오른쪽 안내서의 제목/발행사/발행일/가격/링크/목차가 HOLD로 보이면 PASS";
+    window.__RIGHT_RESET_REAL_DOM_FIX_V1_LAST__ = result;
+    writeLog(result);
+    return false;
+  }
+  function bind(){
+    const old = $("rightGuideResetBtn");
+    if(!old) return false;
+    if(old.dataset.rightResetRealDomFix === "1") return true;
+    const btn = old.cloneNode(true);
+    btn.id = "rightGuideResetBtn";
+    btn.textContent = "오른쪽 안내서 초기화";
+    btn.dataset.rightResetRealDomFix = "1";
+    btn.addEventListener("click", resetRightGuideOnly, true);
+    old.parentNode.replaceChild(btn, old);
+    return true;
+  }
+  function boot(){ bind(); }
+  window.__RIGHT_RESET_REAL_DOM_FIX_V1__ = {bind:bind, resetRightGuideOnly:resetRightGuideOnly};
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(boot, 300); setTimeout(boot, 1200); });
+  window.addEventListener("load", function(){ setTimeout(boot, 300); setTimeout(boot, 1200); setTimeout(boot, 2500); });
+})();
+</script>
+
 </body>
 
 </html>
