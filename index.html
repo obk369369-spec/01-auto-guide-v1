@@ -6889,3 +6889,44 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.addEventListener('load',()=>{setTimeout(bind,300);setTimeout(bind,1500);setTimeout(bind,3000)});
 })();
 </script>
+
+<script id="WIC_RUN13_INITIAL_RIGHT_BLANK_LOCK">
+(function(){
+  var ENGINE='RUN13_INITIAL_RIGHT_BLANK_LOCK';
+  function rightDocs(){
+    var docs=[];
+    try{document.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)docs.push(f.contentDocument);}catch(e){}});}catch(e){}
+    docs.push(document);
+    return docs;
+  }
+  function byId(doc,id){try{return doc.getElementById(id);}catch(e){return null;}}
+  function blankDoc(doc){
+    var changed=0;
+    function text(id,v){var el=byId(doc,id); if(el){el.textContent=v||''; changed++;}}
+    function html(id,v){var el=byId(doc,id); if(el){el.innerHTML=v||''; changed++;}}
+    html('guideTitleEn','');
+    text('guideTitleKo','');
+    text('guidePub','');
+    text('guideDate','');
+    text('guidePage','');
+    text('guideListPrice','');
+    text('guideSupplyPrice','');
+    text('guideLinkText','');
+    var a=byId(doc,'guideLinkAnchor'); if(a){a.removeAttribute('href'); a.textContent=''; changed++;}
+    html('guideTocLeft','');
+    html('guideTocRight','');
+    var tocRight=byId(doc,'guideTocRight'); if(tocRight){tocRight.style.display='none';}
+    return changed;
+  }
+  function initialBlank(){
+    var changed=0;
+    rightDocs().forEach(function(doc){changed+=blankDoc(doc);});
+    window.__RUN13_INITIAL_BLANK_LAST__={engine:ENGINE,changed:changed,check:'첫 화면 샘플 데이터 제거 / 안내서 빈 상태'};
+    var panel=document.getElementById('P6_DQ3_STATUS')||document.getElementById('bridgeStatus');
+    if(panel)panel.textContent='RUN13: 첫 화면 안내서 빈 상태 / 실제 원문 전 HOLD 생성 대기';
+  }
+  function boot(){[50,250,700,1500,3000,5500].forEach(function(t){setTimeout(initialBlank,t);});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+})();
+</script>
