@@ -6375,6 +6375,77 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.addEventListener('load', function(){setTimeout(bind,300);setTimeout(bind,1200);setTimeout(bind,2500);});
 })();
 </script>
+
+
+<script id="dq-real-report-url-gate-v10">
+(function(){
+  'use strict';
+  function frameDoc(){
+    const f=document.getElementById('rightFrame');
+    return f && f.contentDocument;
+  }
+  function txt(id, doc){
+    const el=(doc||document).getElementById(id);
+    return el ? (el.textContent || el.innerText || el.value || '').trim() : '';
+  }
+  function setText(id, value, doc){
+    const el=(doc||document).getElementById(id);
+    if(!el) return;
+    if('value' in el && el.tagName !== 'SPAN' && el.tagName !== 'DIV' && el.tagName !== 'P') el.value=value;
+    else el.textContent=value;
+  }
+  function looksLikeActualReportUrl(raw){
+    const s=String(raw||'').trim();
+    if(!/^https?:\/\//i.test(s)) return false;
+    try{
+      const u=new URL(s);
+      const p=u.pathname.replace(/\/+$/,'');
+      if(!p || p === '') return false;
+      if(['/','/en','/kr','/ko','/home','/index.html'].includes(p.toLowerCase())) return false;
+      if(p.split('/').filter(Boolean).length < 1) return false;
+      return /(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight)/i.test(p + ' ' + u.search);
+    }catch(e){ return false; }
+  }
+  function setRightHold(reason){
+    const doc=frameDoc(); if(!doc) return false;
+    setText('guideTitleEn','HOLD: 실제 보고서 URL 확인 전',doc);
+    setText('guideTitleKo','( HOLD )',doc);
+    setText('guidePub','HOLD',doc);
+    setText('guideDate','HOLD',doc);
+    setText('guidePage','HOLD Pages',doc);
+    setText('guideListPrice','HOLD',doc);
+    setText('guideSupplyPrice','HOLD',doc);
+    setText('guideLinkText','HOLD: '+reason,doc);
+    const a=doc.getElementById('guideLinkAnchor');
+    if(a){ a.setAttribute('href','#'); a.textContent='HOLD'; }
+    const toc=doc.getElementById('guideTocLeft');
+    if(toc) toc.textContent='HOLD: 실제 보고서 원문 URL 확인 전 / 공개 목차 확인 전';
+    return true;
+  }
+  function validateRightAfterGenerate(){
+    const doc=frameDoc(); if(!doc) return;
+    const link=txt('guideLinkText',doc);
+    if(!looksLikeActualReportUrl(link)){
+      setRightHold('발행사 홈페이지 또는 미검증 링크');
+      const panel=document.querySelector('#leftSummary');
+      if(panel){
+        panel.innerHTML='DATA_QUALITY V10: 실제 보고서 URL 아님 → 오른쪽 안내서 HOLD 유지<br>다음 기준: 발행사 홈페이지 링크는 PASS 금지 / 실제 보고서 상세 URL만 반영';
+      }
+    }
+  }
+  window.__DQ10_VALIDATE_RIGHT__=validateRightAfterGenerate;
+  window.addEventListener('load',function(){
+    const btn=document.getElementById('generateBtn');
+    if(btn){
+      btn.addEventListener('click',function(){
+        setTimeout(validateRightAfterGenerate,1200);
+        setTimeout(validateRightAfterGenerate,2500);
+      },true);
+    }
+  });
+})();
+</script>
+
 </body>
 
 </html>
