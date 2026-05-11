@@ -117,7 +117,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - P4_EXCLUDE_FILTER_FINAL_V6 / 제외 발행사 반복 차단 최종 연결</div>
+    <div class="title">1번 고객 자동화 안내서 - RUN17 / 공개 구조 우선 + HOLD 링크 규칙</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -242,6 +242,17 @@
             <tr><td style="border:1px solid #ddd;padding:5px;">Mordor Intelligence</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.mordorintelligence.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">industry-reports 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">가격/목차 HOLD</td></tr>
           </tbody>
         </table>
+      </div>
+
+
+      <div class="checkpanel" id="manualHoldLinkRulePanel">
+        <h3>RUN17 수동 확인 링크 규칙 / 온라인 구조 우선</h3>
+        <div class="mini-log">34_LOCK: 서버/API 중계는 후순위. 공개 웹 구조와 확인 링크를 먼저 고정한다. 자동 수집 실패값은 HOLD+확인링크로 남긴다.</div>
+        <div class="checkrow"><span>상세 URL 자동완성</span><span class="state-warn">금지 / HOLD</span></div>
+        <div class="checkrow"><span>발행사 메인 링크</span><span class="state-warn">확인링크만 표시</span></div>
+        <div class="checkrow"><span>보고서 상세 링크</span><span class="state-ok">발견 시 후보 링크로 보존</span></div>
+        <div class="checkrow"><span>제목·발행일·가격·목차</span><span class="state-warn">공개 확인 전 자동입력 금지</span></div>
+        <div class="checkrow"><span>수동 확인 대상</span><span class="state-ok">HOLD 사유 + 링크 표시</span></div>
       </div>
 
       <div class="checkpanel" id="engineCheckPanel">
