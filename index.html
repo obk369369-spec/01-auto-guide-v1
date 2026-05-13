@@ -117,7 +117,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역</div>
+    <div class="title">1번 고객 자동화 안내서 - RUN21 / 패턴 누적 + 샘플 회귀 차단</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -2210,18 +2210,8 @@ function ensureInteractiveTagging(){
     setStatus('왼쪽 → 가운데 → 오른쪽 반영 완료');
   }
   function fillSampleLeft(){
-    document.getElementById('customerRaw').value = 'AI 서버, GPU, 네트워크 장비 쪽 최근 흐름과 공급망 자료를 보고 싶다.';
-    document.getElementById('researchField').value = 'AI 서버';
-    document.getElementById('interestField').value = 'GPU, 네트워크 장비';
-    document.getElementById('org').value = '한국전자통신연구원';
-    document.getElementById('dept').value = 'AI컴퓨팅연구본부';
-    document.getElementById('name').value = '홍길동';
-    document.getElementById('title').value = '선임연구원';
-    document.getElementById('duty').value = 'AI 서버 및 가속기 검토';
-    document.getElementById('yearRange').value = '2023~2026';
-    document.getElementById('priceRange').value = '300만원 이하';
-    document.getElementById('publisherMemo').value = '거래 발행사 우선, 너무 비싼 자료 제외';
-    generateLeftSets();
+    /* RUN21: sample input disabled by 34 regression guard. */
+    var ls=document.getElementById('leftSummary'); if(ls) ls.innerHTML='RUN21: 샘플 입력 차단 / 실제 고객 원문 입력 전 HOLD 유지';
   }
   function resetLeftMenu(){
     ['customerRaw','researchField','interestField','org','dept','name','title','duty','exclude','yearRange','priceRange','publisherMemo'].forEach(id=>{
@@ -3408,7 +3398,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN21 / 패턴 누적 + 샘플 회귀 차단';
     return true;
   }
 
@@ -5403,170 +5393,80 @@ PASS='+pass+' / HOLD='+hold+' / FAIL='+fail+'
 #p6DataQualityStatusV1 .ok{color:#047857;font-weight:900}
 #p6DataQualityStatusV1 .hold{color:#b45309;font-weight:900}
 </style>
-<script id="P6_FILL_DATA_IN_ACTUAL_5_GUIDES_SCRIPT_V1">
+<script id="RUN21_REGRESSION_GUARD_NO_SAMPLE_WRITE_V1">
 (function(){
-  if(window.__P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1__) return;
-  window.__P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1__ = true;
-
-  function $(id, root){ return (root || document).getElementById(id); }
-  function log(s){
-    ['clickedTraceView','diagPacket','p6oLog500','obsEvidencePacketV6'].forEach(function(id){
-      var e=$(id);
-      if(e && 'value' in e){ e.value += '\n' + s; e.scrollTop = e.scrollHeight; }
+  if(window.__RUN21_REGRESSION_GUARD_NO_SAMPLE_WRITE_V1__) return;
+  window.__RUN21_REGRESSION_GUARD_NO_SAMPLE_WRITE_V1__=true;
+  var ENGINE='RUN21_REGRESSION_GUARD_NO_SAMPLE_WRITE_V1';
+  function $(id,root){return (root||document).getElementById(id);}
+  function val(el){return String((el && (el.value!==undefined?el.value:el.textContent))||'').trim();}
+  function setText(el,v){ if(el) el.textContent=v; }
+  function setVal(el,v){ if(el && el.value!==undefined) el.value=v; }
+  var SAMPLE_RE=/(AI\s*서버|AI\s*컴퓨트|AI\s*데이터센터|GPU\s*Server|AI\s*Data\s*Center|Edge\s*AI|IDC|Omdia|example\.com|idc\.com|omdia\.tech|260만원|250만원|240만원|280만원|216만원|252만원|공급망\s*구조|네트워크\s*구조|전력·냉각|자동완성|샘플)/i;
+  var SAMPLE_INPUT_RE=/(AI\s*서버|GPU|네트워크\s*장비|한국전자통신연구원|홍길동|선임연구원|AI컴퓨팅연구본부|300만원\s*이하|거래\s*발행사\s*우선)/i;
+  var GUIDE_IDS=['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox'];
+  var MID_IDS=['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'];
+  var INPUT_IDS=['customerRaw','researchField','interestField','org','dept','name','title','duty','yearRange','priceRange','publisherMemo'];
+  function docs(){
+    var out=[];
+    Array.prototype.slice.call(document.querySelectorAll('iframe')).forEach(function(frame){
+      try{ var d=frame.contentDocument || (frame.contentWindow&&frame.contentWindow.document); if(d) out.push(d); }catch(e){}
     });
+    return out;
   }
-  function setText(doc,id,v){
-    var e = doc && $(id, doc);
-    if(e) e.textContent = v;
-  }
-  function setAnchor(doc,v){
-    var a = doc && (doc.querySelector('#guideLinkAnchor') || doc.querySelector('a[href]'));
-    if(a){
-      a.href = v;
-      a.textContent = '바로가기';
-    }
-    setText(doc,'guideLinkText',v);
-  }
-  function countFilled(doc){
-    var ids = ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'];
-    var n = 0;
-    ids.forEach(function(id){
-      var e = doc && $(id, doc);
-      if(e && String(e.textContent || '').trim()) n++;
+  function cleanDoc(d){
+    var changed=0;
+    GUIDE_IDS.forEach(function(id){
+      var el=$(id,d); if(el && SAMPLE_RE.test(val(el))){ setText(el,''); changed++; }
     });
-    return n;
-  }
-
-  var data = [
-    {
-      en:'',
-      ko:'·',
-      pub:'',
-      date:'',
-      page:'',
-      list:'',
-      supply:'',
-      link:'',
-      toc:'I. \n1.  개요\n2. \n3. 정책·규제 및 표준 동향\n\nII. \n1. \n2. '
-    },
-    {
-      en:'GPU Server and Accelerator Infrastructure Market Report 2026',
-
-      pub:'IDC',
-      date:'2026년 3월',
-      page:'105 Pages',
-      list:'240만원',
-      supply:'216만원',
-      link:'https://www.idc.com/',
-      toc:'I. GPU 서버 시장 개요\n1. 서버 수요 변화\n2. 가속기 적용 분야\n\nII. Technology Trends\n1. GPU/AI 가속기 구조\n2. 데이터센터 적용 동향'
-    },
-    {
-      en:'AI Data Center Network and Power Infrastructure Report 2026',
-      ko:'AI 데이터센터 네트워크 및 전력 인프라 보고서 2026',
-      pub:'Omdia',
-      date:'2026년 2월',
-      page:'130 Pages',
-      list:'280만원',
-      supply:'252만원',
-      link:'https://omdia.tech.informa.com/',
-      toc:'I. AI 데이터센터 개요\n1. 네트워크 구조\n2. 전력·냉각 인프라\n\nII. Competitive Landscape\n1. 주요 기업\n2. 공급망 구조'
-    },
-    {
-      en:'Edge AI Server and Inference Infrastructure Market Report 2026',
-
-      pub:'MarketsandMarkets',
-      date:'2026년 1월',
-      page:'98 Pages',
-      list:'220만원',
-      supply:'198만원',
-      link:'https://www.marketsandmarkets.com/',
-      toc:'I. Edge AI 시장 개요\n1. 추론 인프라 수요\n2. 산업별 적용\n\nII. Market Forecast\n1. 지역별 전망\n2. 응용 분야별 전망'
-    },
-    {
-      en:'',
-      ko:'AI 컴퓨트 공급망 및 ',
-      pub:'',
-      date:'',
-      page:'',
-      list:'',
-      supply:'',
-      link:'',
-      toc:'I. AI 컴퓨트 \n1. \n2. \n\nII. \n1. \n2. '
-    }
-  ];
-
-  function ensureStatus(){
-    var left = document.querySelector('.left') || document.body;
-    if(!$('#p6DataQualityStatusV1')){
-      var box = document.createElement('div');
-      box.id = 'p6DataQualityStatusV1';
-      box.innerHTML = '<b>5개 안내서 데이터 품질 단계</b><br><span id="p6DataQualityTextV1" class="hold">대기</span>';
-      left.insertBefore(box, left.firstChild);
-    }
-  }
-
-  function fillAll(){
-    ensureStatus();
-    var frames = Array.prototype.slice.call(document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"]'));
-    if(frames.length !== 5){
-      var msg = 'HOLD: 실제 안내서 iframe 수 '+frames.length+'/5';
-      var t = $('#p6DataQualityTextV1'); if(t){ t.textContent = msg; t.className = 'hold'; }
-      log('P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1 | '+msg);
-      return false;
-    }
-
-    var filledTotal = 0;
-    frames.forEach(function(frame, idx){
-      var doc = null;
-      try{ doc = frame.contentDocument || frame.contentWindow.document; }catch(e){}
-      var d = data[idx];
-
-      if(doc){
-        setText(doc,'guideTitleEn',d.en);
-        setText(doc,'guideTitleKo',d.ko);
-        setText(doc,'guidePub',d.pub);
-        setText(doc,'guideDate',d.date);
-        setText(doc,'guidePage',d.page);
-        setText(doc,'guideListPrice',d.list);
-        setText(doc,'guideSupplyPrice',d.supply);
-        setAnchor(doc,d.link);
-        setText(doc,'guideTocLeft',d.toc);
-        setText(doc,'guideTocBox',d.toc);
-        filledTotal += countFilled(doc);
-      }
-
-      var label = frame.parentElement && frame.parentElement.querySelector('.p6-guide-label');
-      if(label) label.textContent = '안내서 '+(idx+1)+' / 5 · 데이터 입력 완료';
+    Array.prototype.slice.call(d.querySelectorAll('a[href]')).forEach(function(a){
+      var h=String(a.getAttribute('href')||'');
+      if(SAMPLE_RE.test(h)){ a.setAttribute('href','#'); changed++; }
     });
-
-    var text = $('#p6DataQualityTextV1');
-    if(text){
-      text.textContent = '5개 안내서 데이터 입력 완료 / 채움값 '+filledTotal+'/45';
-      text.className = 'ok';
-    }
-    var middle = $('#p6oMiddle');
-    if(middle) middle.textContent = '45/45';
-    var cards = $('#p6oCards');
-    if(cards) cards.textContent = '5/5';
-    var judge = $('#p6oJudge');
-    if(judge){
-      judge.textContent = 'HOLD';
-      judge.className = 'hold';
-    }
-    log('P6_FILL_DATA_IN_ACTUAL_5_GUIDES_V1 | 5개 안내서 데이터 입력 완료 | filled='+filledTotal+'/45 | final=HOLD(온라인수집/실제링크검증 별도)');
-    return true;
+    return changed;
   }
-
-  setTimeout(fillAll, 1200);
-  setTimeout(fillAll, 2500);
-
-  var btn = $('generateBtn');
-  if(btn){
-    btn.addEventListener('click', function(){
-      setTimeout(fillAll, 1000);
-      setTimeout(fillAll, 2200);
-    }, true);
+  function cleanMiddle(){
+    var changed=0;
+    MID_IDS.forEach(function(id){ var el=$(id); if(el && SAMPLE_RE.test(val(el))){ setVal(el,''); changed++; }});
+    return changed;
   }
+  function cleanInputs(){
+    var changed=0;
+    INPUT_IDS.forEach(function(id){ var el=$(id); if(el && SAMPLE_INPUT_RE.test(val(el))){ setVal(el,''); changed++; }});
+    return changed;
+  }
+  function ensureBanner(changed){
+    var left=document.querySelector('.left')||document.body;
+    var box=$('run21RegressionGuardPanel');
+    if(!box){
+      box=document.createElement('div');
+      box.id='run21RegressionGuardPanel';
+      box.setAttribute('data-area-id','RUN21_REGRESSION_GUARD');
+      box.setAttribute('data-area-name-ko','RUN21 샘플 회귀 차단');
+      box.style.cssText='border:2px solid #b91c1c;border-radius:10px;background:#fff1f2;margin:8px 0;padding:10px;font-size:12px;line-height:1.45;';
+      var anchor=document.getElementById('run21PatternAccumulator')||left.firstChild;
+      if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(box, anchor.nextSibling);} else {left.insertBefore(box,left.firstChild);}
+    }
+    box.innerHTML='<b>RUN21 샘플 회귀 차단</b><br>패턴 누적 영역은 보조 로그만 담당 / 오른쪽 안내서 샘플 자동 채움 금지 / 샘플 발견 시 빈칸 또는 HOLD 유지<br><b>정리값:</b> '+changed+'개';
+    var diag=$('diagPacket');
+    if(diag) diag.value='[RUN21_REGRESSION_GUARD]\nENGINE='+ENGINE+'\nSAMPLE_WRITE=BLOCK\nRIGHT_SAMPLE_CLEAN='+changed+'\nPATTERN_ACCUMULATOR=LOG_ONLY\nDATA_QUALITY=HOLD_UNTIL_REAL_SOURCE';
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN21';
+    var state=$('stateBadge'); if(state) state.textContent='STATE: RUN21_REGRESSION_GUARD';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN21 / 패턴 누적 + 샘플 회귀 차단';
+  }
+  function run(){
+    var changed=0;
+    changed+=cleanInputs();
+    changed+=cleanMiddle();
+    docs().forEach(function(d){changed+=cleanDoc(d);});
+    ensureBanner(changed);
+  }
+  function bind(){
+    run();
+    setTimeout(run,700); setTimeout(run,1600); setTimeout(run,3000);
+    var btn=$('generateBtn'); if(btn){btn.addEventListener('click',function(){setTimeout(run,300);setTimeout(run,1000);setTimeout(run,2200);},true);}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
 })();
 </script>
 
@@ -6180,23 +6080,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-<script id="run20-visible-marker-lock-v2">
+<script id="run21-visible-marker-lock-v2">
 (function(){
   'use strict';
-  var LOCK_TITLE='1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역';
+  var LOCK_TITLE='1번 고객 자동화 안내서 - RUN21 / 패턴 누적 + 샘플 회귀 차단';
   function $(id){return document.getElementById(id);}
   function ensureTitle(){
     var title=document.querySelector('.title');
     if(title && title.textContent!==LOCK_TITLE) title.textContent=LOCK_TITLE;
-    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN20';
-    var diag=$('diagBadge'); if(diag) diag.textContent='DIAG: RUN20_VISIBLE_LOCK';
-    var state=$('stateBadge'); if(state) state.textContent='STATE: RUN20_KEEP_P6_SAFE';
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN21';
+    var diag=$('diagBadge'); if(diag) diag.textContent='DIAG: RUN21_VISIBLE_LOCK';
+    var state=$('stateBadge'); if(state) state.textContent='STATE: RUN21_KEEP_P6_SAFE';
   }
   function ensurePatternVisible(){
-    var box=$('run20PatternAccumulator');
+    var box=$('run21PatternAccumulator');
     var left=document.querySelector('.left');
     if(box && left){
-      box.setAttribute('data-run20-visible-lock','true');
+      box.setAttribute('data-run21-visible-lock','true');
       var anchor=left.querySelector('.panel-title');
       if(anchor && anchor.nextSibling!==box){anchor.parentNode.insertBefore(box, anchor.nextSibling);}
     }
@@ -6424,10 +6324,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-<style id="run20-forbidden-cleanup-style">
+<style id="run21-forbidden-cleanup-style">
 #P6_DQ3_ONLINE_PANEL{display:none !important;}
 </style>
-<script id="run20-forbidden-cleanup-v1">
+<script id="run21-forbidden-cleanup-v1">
 (function(){
   'use strict';
   function $(id){return document.getElementById(id);}
@@ -6436,8 +6336,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var k=$('keyword');
     if(k){var f=k.closest ? k.closest('.field') : null; if(f && f.parentNode) f.parentNode.removeChild(f);}
     var diag=$('diagPacket');
-    if(diag && !/RUN20_FORBIDDEN_CLEANUP/.test(diag.value||'')){
-      diag.value=(diag.value?diag.value+'\n\n':'')+'[RUN20_FORBIDDEN_CLEANUP]\nDIRECT_URL_PANEL=REMOVED\nAUTO_KEYWORD_FIELD=REMOVED_IF_FOUND\nSERVER_API=HOLD\nNEW_INPUT=BLOCK';
+    if(diag && !/RUN21_FORBIDDEN_CLEANUP/.test(diag.value||'')){
+      diag.value=(diag.value?diag.value+'\n\n':'')+'[RUN21_FORBIDDEN_CLEANUP]\nDIRECT_URL_PANEL=REMOVED\nAUTO_KEYWORD_FIELD=REMOVED_IF_FOUND\nSERVER_API=HOLD\nNEW_INPUT=BLOCK';
     }
   }
   function bind(){
@@ -6449,23 +6349,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<style id="run20-pattern-accumulator-style">
-#run20PatternAccumulator{margin-top:12px;border:3px solid #111827;border-radius:12px;background:#fff;padding:12px;font-size:12px;line-height:1.45;color:#111;}
-#run20PatternAccumulator h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
-#run20PatternAccumulator .run20-note{border:1px dashed #64748b;border-radius:8px;background:#f8fafc;padding:8px;margin:8px 0;white-space:pre-wrap;}
-#run20PatternAccumulator table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;}
-#run20PatternAccumulator th,#run20PatternAccumulator td{border:1px solid #cbd5e1;padding:6px;vertical-align:top;text-align:left;}
-#run20PatternAccumulator th{background:#f1f5f9;font-weight:800;}
-.run20-hold{color:#b45309;font-weight:900;}
-.run20-pass{color:#047857;font-weight:900;}
-.run20-lock{color:#1d4ed8;font-weight:900;}
+<style id="run21-pattern-accumulator-style">
+#run21PatternAccumulator{margin-top:12px;border:3px solid #111827;border-radius:12px;background:#fff;padding:12px;font-size:12px;line-height:1.45;color:#111;}
+#run21PatternAccumulator h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
+#run21PatternAccumulator .run21-note{border:1px dashed #64748b;border-radius:8px;background:#f8fafc;padding:8px;margin:8px 0;white-space:pre-wrap;}
+#run21PatternAccumulator table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;}
+#run21PatternAccumulator th,#run21PatternAccumulator td{border:1px solid #cbd5e1;padding:6px;vertical-align:top;text-align:left;}
+#run21PatternAccumulator th{background:#f1f5f9;font-weight:800;}
+.run21-hold{color:#b45309;font-weight:900;}
+.run21-pass{color:#047857;font-weight:900;}
+.run21-lock{color:#1d4ed8;font-weight:900;}
 </style>
 
 
-<script id="run20-pattern-accumulator-v1">
+<script id="run21-pattern-accumulator-v1">
 (function(){
   'use strict';
-  var ENGINE='RUN20_PATTERN_ACCUMULATOR_V1';
+  var ENGINE='RUN21_PATTERN_ACCUMULATOR_V1';
   function $(id){return document.getElementById(id);}
   function safeText(v){return String(v||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
   var patterns=[
@@ -6535,37 +6435,37 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   ];
   function panelHtml(){
     var rows=patterns.map(function(r){
-      return '<tr data-run20-vendor="'+safeText(r[0])+'"><td><b>'+safeText(r[0])+'</b></td><td>'+safeText(r[1])+'</td><td>'+safeText(r[2])+'</td><td>'+safeText(r[3])+'</td><td class="run20-hold">'+safeText(r[4])+'</td></tr>';
+      return '<tr data-run21-vendor="'+safeText(r[0])+'"><td><b>'+safeText(r[0])+'</b></td><td>'+safeText(r[1])+'</td><td>'+safeText(r[2])+'</td><td>'+safeText(r[3])+'</td><td class="run21-hold">'+safeText(r[4])+'</td></tr>';
     }).join('');
-    return '<h3>RUN20 공개 상세페이지 패턴 누적 영역</h3>'+
-      '<div class="run20-note"><b>34_LOCK:</b> 새 URL 입력칸 없음 / 새 버튼 없음 / 오른쪽 안내서 DOM 재구성 없음 / 공개 확인 전 자동완성 금지 / 실패값은 HOLD + 확인링크 후보로 보존 / 영문 발행사 후보 63개</div>'+
-      '<table aria-label="RUN20 공개 상세페이지 패턴 누적표"><thead><tr><th>발행사</th><th>공개 상세페이지 패턴</th><th>안내서 반영 후보</th><th>HOLD 항목</th><th>상태</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-      '<div id="run20PatternState" class="run20-note">상태: RUN20 패턴 누적 대기 / 영문 발행사 63개 후보 표시 / 기존 P1~P6 엔진 보호 / 공개 확인 전 자동완성 금지</div>';
+    return '<h3>RUN21 공개 상세페이지 패턴 누적 영역 / 샘플 회귀 차단</h3>'+
+      '<div class="run21-note"><b>34_LOCK:</b> 새 URL 입력칸 없음 / 새 버튼 없음 / 오른쪽 안내서 DOM 재구성 없음 / 공개 확인 전 자동완성 금지 / 실패값은 HOLD + 확인링크 후보로 보존 / 영문 발행사 후보 63개</div>'+
+      '<table aria-label="RUN21 공개 상세페이지 패턴 누적표"><thead><tr><th>발행사</th><th>공개 상세페이지 패턴</th><th>안내서 반영 후보</th><th>HOLD 항목</th><th>상태</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div id="run21PatternState" class="run21-note">상태: RUN21 패턴 누적 대기 / 영문 발행사 63개 후보 표시 / 기존 P1~P6 엔진 보호 / 공개 확인 전 자동완성 금지</div>';
   }
   function install(){
-    if($('run20PatternAccumulator')) return;
+    if($('run21PatternAccumulator')) return;
     var left=document.querySelector('.left') || document.body;
     var box=document.createElement('div');
-    box.id='run20PatternAccumulator';
-    box.setAttribute('data-area-id','RUN20_PATTERN_ACCUMULATOR');
-    box.setAttribute('data-area-name-ko','RUN20 공개 상세페이지 패턴 누적 영역');
+    box.id='run21PatternAccumulator';
+    box.setAttribute('data-area-id','RUN21_PATTERN_ACCUMULATOR');
+    box.setAttribute('data-area-name-ko','RUN21 공개 상세페이지 패턴 누적 영역 / 샘플 회귀 차단');
     box.innerHTML=panelHtml();
     var anchor=left.querySelector('.panel-title');
     if(anchor && anchor.parentNode){anchor.parentNode.insertBefore(box, anchor.nextSibling);} else {left.insertBefore(box, left.firstChild);}
-    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN20';
-    var bridge=$('bridgeStatus'); if(bridge){bridge.textContent=(bridge.textContent||'')+' / RUN20 패턴 누적 연결';}
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN21';
+    var bridge=$('bridgeStatus'); if(bridge){bridge.textContent=(bridge.textContent||'')+' / RUN21 패턴 누적 연결';}
   }
   function record(){
     install();
-    var state=$('run20PatternState');
+    var state=$('run21PatternState');
     var raw=$('customerRaw'), field=$('researchField'), interest=$('interestField');
     var input=[raw&&raw.value, field&&field.value, interest&&interest.value].filter(Boolean).join(' | ');
     var msg='상태: '+ENGINE+' 연결됨\n입력 기준: '+(input?input:'빈 입력 → HOLD 유지')+'\n판정: 공개 상세페이지 원문 확인 전 자동완성 금지 / 패턴은 HOLD 후보로만 누적';
     if(state) state.textContent=msg;
     var flow=$('flowTrace');
-    if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nRUN20_PATTERN_AREA: VISIBLE\nNEW_URL_INPUT: BLOCK\nRIGHT_DOM_REBUILD: BLOCK\nDATA_QUALITY: HOLD_PATTERN_ACCUMULATION';
+    if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nRUN21_PATTERN_AREA: VISIBLE\nNEW_URL_INPUT: BLOCK\nRIGHT_DOM_REBUILD: BLOCK\nDATA_QUALITY: HOLD_PATTERN_ACCUMULATION';
     var diag=$('diagPacket');
-    if(diag) diag.value='[RUN20_PATTERN_PACKET]\nENGINE='+ENGINE+'\nVISIBLE_AREA=RUN20 공개 상세페이지 패턴 누적 영역\nNEW_INPUT=NO\nNEW_BUTTON=NO\nRIGHT_DOM_REBUILD=NO\nONLINE_FETCH=HOLD\nPATTERN_ROWS='+patterns.length+'\nPASS_CHECK=기존 화면 유지 + RUN20 패턴 영역 표시';
+    if(diag) diag.value='[RUN21_PATTERN_PACKET]\nENGINE='+ENGINE+'\nVISIBLE_AREA=RUN21 공개 상세페이지 패턴 누적 영역 / 샘플 회귀 차단\nNEW_INPUT=NO\nNEW_BUTTON=NO\nRIGHT_DOM_REBUILD=NO\nONLINE_FETCH=HOLD\nPATTERN_ROWS='+patterns.length+'\nPASS_CHECK=기존 화면 유지 + RUN21 패턴 영역 표시';
   }
   function bind(){
     install();
