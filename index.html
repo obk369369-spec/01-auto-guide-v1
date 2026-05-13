@@ -117,7 +117,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - RUN17 / 공개 구조 우선 + HOLD 링크 규칙</div>
+    <div class="title">1번 고객 자동화 안내서 - RUN19 / 공개 상세페이지 패턴 누적 영역</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -209,7 +209,6 @@
       <div class="btnrow">
         <button class="btn primary" id="generateBtn">안내서 5개 생성</button>
         <button class="btn" id="leftResetBtn">왼쪽 초기화</button>
-        <button class="btn" id="rightGuideResetBtn" type="button">오른쪽 안내서 초기화</button>
       </div>
       <div id="flowTrace" style="margin-bottom:10px;padding:10px;border:2px solid #d9534f;border-radius:10px;background:#fff7f7;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:110px;">[TRACE]
 대기
@@ -220,41 +219,6 @@
       <div id="targetProbeBox" style="margin-bottom:10px;padding:10px;border:2px solid #198754;border-radius:10px;background:#f6fff8;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px;">[TARGET PROBE]\n대기</div>
       <!-- 중복 진단 버튼 삭제: 상단 3버튼만 사용 -->
       <div class="card" id="leftSummary">왼쪽 값을 넣고 <b>안내서 5개 생성</b>을 누르면 가운데 검증판과 오른쪽 안내서가 동기화된다.</div>
-      
-      <div class="checkpanel" id="publicVendorMap">
-        <h3>DATA_QUALITY 공개 발행사 구조표 / HOLD 링크</h3>
-        <div class="mini-log">34_LOCK: 새 URL 입력칸 추가 금지 / 기존 엔진 유지 / 공개 구조표만 표시 / 실패값은 HOLD+링크</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;line-height:1.35;">
-          <thead>
-            <tr style="background:#f1f5f9;">
-              <th style="border:1px solid #ddd;padding:5px;text-align:left;">발행사</th>
-              <th style="border:1px solid #ddd;padding:5px;text-align:left;">공개 경로</th>
-              <th style="border:1px solid #ddd;padding:5px;text-align:left;">상세 패턴</th>
-              <th style="border:1px solid #ddd;padding:5px;text-align:left;">HOLD</th>
-            </tr>
-          </thead>
-          <tbody id="vendorMapBody">
-            <tr><td style="border:1px solid #ddd;padding:5px;">MarketsandMarkets</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.marketsandmarkets.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">Market-Reports 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">가격/전체목차 HOLD</td></tr>
-            <tr><td style="border:1px solid #ddd;padding:5px;">Technavio</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.technavio.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">report 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">가격/전체목차 HOLD</td></tr>
-            <tr><td style="border:1px solid #ddd;padding:5px;">BCC Research</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.bccresearch.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">market-research 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">라이선스/일부목차 HOLD</td></tr>
-            <tr><td style="border:1px solid #ddd;padding:5px;">Allied Market Research</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.alliedmarketresearch.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">보고서 slug 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">발행일/가격 HOLD</td></tr>
-            <tr><td style="border:1px solid #ddd;padding:5px;">Grand View Research</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.grandviewresearch.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">industry-analysis 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">가격/전체목차 HOLD</td></tr>
-            <tr><td style="border:1px solid #ddd;padding:5px;">Mordor Intelligence</td><td style="border:1px solid #ddd;padding:5px;"><a href="https://www.mordorintelligence.com" target="_blank">확인링크</a></td><td style="border:1px solid #ddd;padding:5px;">industry-reports 상세페이지</td><td style="border:1px solid #ddd;padding:5px;">가격/목차 HOLD</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-
-      <div class="checkpanel" id="manualHoldLinkRulePanel">
-        <h3>RUN17 수동 확인 링크 규칙 / 온라인 구조 우선</h3>
-        <div class="mini-log">34_LOCK: 서버/API 중계는 후순위. 공개 웹 구조와 확인 링크를 먼저 고정한다. 자동 수집 실패값은 HOLD+확인링크로 남긴다.</div>
-        <div class="checkrow"><span>상세 URL 자동완성</span><span class="state-warn">금지 / HOLD</span></div>
-        <div class="checkrow"><span>발행사 메인 링크</span><span class="state-warn">확인링크만 표시</span></div>
-        <div class="checkrow"><span>보고서 상세 링크</span><span class="state-ok">발견 시 후보 링크로 보존</span></div>
-        <div class="checkrow"><span>제목·발행일·가격·목차</span><span class="state-warn">공개 확인 전 자동입력 금지</span></div>
-        <div class="checkrow"><span>수동 확인 대상</span><span class="state-ok">HOLD 사유 + 링크 표시</span></div>
-      </div>
-
       <div class="checkpanel" id="engineCheckPanel">
         <h3>엔진 점검표</h3>
         <div class="checkrow"><span>입력 정리 엔진</span><span id="checkInputEngine" class="state-bad">미작동</span></div>
@@ -3444,7 +3408,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - P4_EXCLUDE_FILTER_FINAL_V6 / 제외 발행사 반복 차단 최종 연결';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN19 / 공개 상세페이지 패턴 누적 영역';
     return true;
   }
 
@@ -6214,313 +6178,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-
-<script id="dq7-right-guide-reset">
-(function(){
-  function $(id, root){return (root||document).getElementById(id);}
-  function clearRightGuide(){
-    var frame = $('rightFrame');
-    var doc = null;
-    try { doc = frame && (frame.contentDocument || frame.contentWindow.document); } catch(e) {}
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){ var el=$(id); if(el) el.value=''; });
-    if(doc){
-      function text(id, val){ var el=$(id, doc); if(el) el.textContent=val||''; }
-      function html(id, val){ var el=$(id, doc); if(el) el.innerHTML=val||''; }
-      html('guideTitleEn',''); html('guideTitleKo','');
-      text('guidePub',''); text('guideDate',''); text('guidePage','');
-      text('guideListPrice',''); text('guideSupplyPrice','');
-      text('guideLinkText','');
-      var a=$('guideLinkAnchor', doc); if(a){ a.removeAttribute('href'); a.textContent='바로가기'; }
-      html('guideTocLeft','');
-      var rt=$('guideTocRight', doc); if(rt) html('guideTocRight','');
-    }
-    var bridge=$('bridgeStatus'); if(bridge) bridge.textContent='DATA_QUALITY 초기화 완료: 오른쪽 안내서 빈칸/HOLD 대기';
-    var cards=document.querySelectorAll('.card');
-    if(cards && cards.length){ cards.forEach(function(c){ if((c.textContent||'').indexOf('HOLD')>-1 && (c.textContent||'').indexOf('기존 한글 타이틀')>-1){ c.style.opacity='0.55'; }}); }
-  }
-  function bind(){ var b=$('rightGuideResetBtn'); if(b && !b.__dq7){ b.__dq7=true; b.addEventListener('click', clearRightGuide); } }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
-})();
-</script>
-
-
-
-<script id="WIC_RIGHT_RESET_REAL_DOM_FIX_V1">
-(function(){
-  "use strict";
-  const ENGINE_ID = "WIC_RIGHT_RESET_REAL_DOM_FIX_V1";
-  function $(id, root){ return (root || document).getElementById(id); }
-  function previewDoc(){
-    const frame = $("rightFrame");
-    if(!frame) return null;
-    return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document) || null;
-  }
-  function setText(doc, id, value){
-    const el = $(id, doc);
-    if(!el) return false;
-    el.textContent = value;
-    el.setAttribute("data-dq-reset", "true");
-    return true;
-  }
-  function setHtml(doc, id, value){
-    const el = $(id, doc);
-    if(!el) return false;
-    el.innerHTML = value;
-    el.setAttribute("data-dq-reset", "true");
-    return true;
-  }
-  function setInput(id, value){
-    const el = $(id);
-    if(!el) return false;
-    el.value = value;
-    el.dispatchEvent(new Event("input", {bubbles:true}));
-    el.dispatchEvent(new Event("change", {bubbles:true}));
-    return true;
-  }
-  function writeLog(obj){
-    const text = JSON.stringify(obj, null, 2);
-    ["targetProbeView","diagPacket","flowTrace"].forEach(function(id){
-      const el = $(id);
-      if(el) el.value !== undefined ? el.value = text : el.textContent = text;
-    });
-    const badge = $("diagModeBadge");
-    if(badge) badge.textContent = "오른쪽 안내서 초기화 DOM 연결 PASS";
-    const status = $("bridgeStatus");
-    if(status) status.textContent = "RIGHT_RESET_REAL_DOM_FIX_V1: 오른쪽 안내서 HOLD 초기화 완료";
-  }
-  function resetRightGuideOnly(ev){
-    if(ev){ ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); }
-    const doc = previewDoc();
-    const result = {engine: ENGINE_ID, at: new Date().toISOString(), status: "FAIL", changed: [], missing: []};
-    if(!doc){ result.reason = "rightFrame document not ready"; writeLog(result); return false; }
-
-    const midIds = ["midTitleEn","midTitleKo","bookPub","bookDate","bookPage","bookListPrice","bookSupplyPrice","midLink","midToc"];
-    midIds.forEach(function(id){ if(setInput(id, "")) result.changed.push("middle:" + id); });
-
-    const titleOk = setHtml(doc, "guideTitleEn", '<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>');
-    result.changed.push(titleOk ? "right:guideTitleEn" : "MISS:guideTitleEn");
-    setHtml(doc, "guideTitleKo", '<span style="font-size:15pt;font-family:굴림;">( HOLD )</span>') ? result.changed.push("right:guideTitleKo") : result.missing.push("guideTitleKo");
-    ["guidePub","guideDate","guideListPrice","guideSupplyPrice","guideLinkText"].forEach(function(id){
-      setText(doc, id, "HOLD") ? result.changed.push("right:" + id) : result.missing.push(id);
-    });
-    setText(doc, "guidePage", "( HOLD )") ? result.changed.push("right:guidePage") : result.missing.push("guidePage");
-    const a = $("guideLinkAnchor", doc);
-    if(a){ a.href = "#"; a.textContent = "HOLD"; a.setAttribute("data-dq-reset", "true"); result.changed.push("right:guideLinkAnchor"); }
-    else result.missing.push("guideLinkAnchor");
-    const tocLeft = $("guideTocLeft", doc);
-    if(tocLeft){ tocLeft.innerHTML = '<div style="font-size:10.5pt;line-height:1.45;">HOLD: 공개 목차 확인 전</div>'; tocLeft.setAttribute("data-dq-reset", "true"); result.changed.push("right:guideTocLeft"); }
-    else result.missing.push("guideTocLeft");
-    const tocRight = $("guideTocRight", doc) || $("guideToc" + "Right", doc);
-    if(tocRight){ tocRight.innerHTML = ""; tocRight.style.display = "none"; tocRight.setAttribute("data-disabled", "true"); result.changed.push("right:guideTocRight-disabled"); }
-
-    result.status = result.missing.length ? "PARTIAL" : "PASS";
-    result.check = "오른쪽 안내서의 제목/발행사/발행일/가격/링크/목차가 HOLD로 보이면 PASS";
-    window.__RIGHT_RESET_REAL_DOM_FIX_V1_LAST__ = result;
-    writeLog(result);
-    return false;
-  }
-  function bind(){
-    const old = $("rightGuideResetBtn");
-    if(!old) return false;
-    if(old.dataset.rightResetRealDomFix === "1") return true;
-    const btn = old.cloneNode(true);
-    btn.id = "rightGuideResetBtn";
-    btn.textContent = "오른쪽 안내서 초기화";
-    btn.dataset.rightResetRealDomFix = "1";
-    btn.addEventListener("click", resetRightGuideOnly, true);
-    old.parentNode.replaceChild(btn, old);
-    return true;
-  }
-  function boot(){ bind(); }
-  window.__RIGHT_RESET_REAL_DOM_FIX_V1__ = {bind:bind, resetRightGuideOnly:resetRightGuideOnly};
-  document.addEventListener("DOMContentLoaded", function(){ setTimeout(boot, 300); setTimeout(boot, 1200); });
-  window.addEventListener("load", function(){ setTimeout(boot, 300); setTimeout(boot, 1200); setTimeout(boot, 2500); });
-})();
-</script>
-
-
-
-<!-- WIC_FIX_RUN9: 오른쪽 안내서 초기화는 실제 5개 iframe + 원본 iframe 전체를 HOLD로 초기화한다 -->
-<script id="WIC_FIX_RUN9_RIGHT_RESET_ALL_VISIBLE_GUIDES">
-(function(){
-  'use strict';
-  function $(id, root){ return (root || document).getElementById(id); }
-  function allGuideFrames(){
-    var frames=[];
-    var original=$('rightFrame');
-    if(original) frames.push(original);
-    document.querySelectorAll('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"], iframe[data-actual-guide-set="1"]').forEach(function(f){
-      if(frames.indexOf(f)<0) frames.push(f);
-    });
-    return frames;
-  }
-  function frameDoc(frame){
-    try { return frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document)) || null; }
-    catch(e){ return null; }
-  }
-  function setText(doc, id, value){
-    var el=$(id, doc); if(!el) return false;
-    el.textContent=value; el.setAttribute('data-run9-reset','1'); return true;
-  }
-  function setHtml(doc, id, value){
-    var el=$(id, doc); if(!el) return false;
-    el.innerHTML=value; el.setAttribute('data-run9-reset','1'); return true;
-  }
-  function resetOneDoc(doc){
-    var changed=0;
-    changed += setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>')?1:0;
-    changed += setHtml(doc,'guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( HOLD )</span>')?1:0;
-    ['guidePub','guideDate','guideListPrice','guideSupplyPrice'].forEach(function(id){ if(setText(doc,id,'HOLD')) changed++; });
-    if(setText(doc,'guidePage','HOLD Pages')) changed++;
-    if(setText(doc,'guidePdf','-PDF-')) changed++;
-    if(setText(doc,'guideLinkText','HOLD')) changed++;
-    var a=$('guideLinkAnchor', doc);
-    if(a){ a.removeAttribute('href'); a.textContent='HOLD'; a.setAttribute('data-run9-reset','1'); changed++; }
-    if(setHtml(doc,'guideTocLeft','<div style="font-size:10.5pt;line-height:1.45;">HOLD: 공개 목차 확인 전</div>')) changed++;
-    var t=$('guideToc', doc); if(t){ t.setAttribute('data-run9-reset','1'); }
-    var tr=$('guideTocRight', doc) || $('guideTocAuxSlot', doc); if(tr){ tr.innerHTML=''; tr.style.display='none'; changed++; }
-    return changed;
-  }
-  function resetVisibleGuides(ev){
-    if(ev){ ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); }
-    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){ var el=$(id); if(el){ el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); } });
-    var frames=allGuideFrames();
-    var changed=0, ready=0;
-    frames.forEach(function(f){ var d=frameDoc(f); if(d){ ready++; changed+=resetOneDoc(d); } });
-    var status=$('bridgeStatus'); if(status) status.textContent='RUN9 초기화 완료: 실제 안내서 '+ready+'개 HOLD 초기화 / 변경 '+changed+'개';
-    var diag=$('diagModeBadge'); if(diag) diag.textContent='RUN9 RIGHT RESET PASS';
-    var log={engine:'RUN9_RIGHT_RESET_ALL_VISIBLE_GUIDES', frames:frames.length, ready:ready, changed:changed, pass: ready>0 && changed>0, check:'오른쪽 실제 안내서에 HOLD가 보이면 PASS'};
-    ['targetProbeView','diagPacket','flowTrace'].forEach(function(id){ var el=$(id); if(el){ var txt=JSON.stringify(log,null,2); if('value' in el) el.value=txt; else el.textContent=txt; } });
-    window.__RUN9_RIGHT_RESET_LAST__=log;
-    return false;
-  }
-  function bind(){
-    var btn=$('rightGuideResetBtn');
-    if(!btn) return;
-    var clone=btn.cloneNode(true);
-    clone.id='rightGuideResetBtn';
-    clone.textContent='오른쪽 안내서 초기화';
-    clone.setAttribute('data-run9-real-reset','1');
-    clone.addEventListener('click', resetVisibleGuides, true);
-    btn.parentNode.replaceChild(clone, btn);
-  }
-  window.__RUN9_RIGHT_RESET__={bind:bind, reset:resetVisibleGuides};
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){setTimeout(bind,200);setTimeout(bind,1000);});
-  else { setTimeout(bind,200); setTimeout(bind,1000); }
-  window.addEventListener('load', function(){setTimeout(bind,300);setTimeout(bind,1200);setTimeout(bind,2500);});
-})();
-</script>
-
-
-<script id="dq-real-report-url-gate-v10">
-(function(){
-  'use strict';
-  function frameDoc(){
-    const f=document.getElementById('rightFrame');
-    return f && f.contentDocument;
-  }
-  function txt(id, doc){
-    const el=(doc||document).getElementById(id);
-    return el ? (el.textContent || el.innerText || el.value || '').trim() : '';
-  }
-  function setText(id, value, doc){
-    const el=(doc||document).getElementById(id);
-    if(!el) return;
-    if('value' in el && el.tagName !== 'SPAN' && el.tagName !== 'DIV' && el.tagName !== 'P') el.value=value;
-    else el.textContent=value;
-  }
-  function looksLikeActualReportUrl(raw){
-    const s=String(raw||'').trim();
-    if(!/^https?:\/\//i.test(s)) return false;
-    try{
-      const u=new URL(s);
-      const p=u.pathname.replace(/\/+$/,'');
-      if(!p || p === '') return false;
-      if(['/','/en','/kr','/ko','/home','/index.html'].includes(p.toLowerCase())) return false;
-      if(p.split('/').filter(Boolean).length < 1) return false;
-      return /(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight)/i.test(p + ' ' + u.search);
-    }catch(e){ return false; }
-  }
-  function setRightHold(reason){
-    const doc=frameDoc(); if(!doc) return false;
-    setText('guideTitleEn','HOLD: 실제 보고서 URL 확인 전',doc);
-    setText('guideTitleKo','( HOLD )',doc);
-    setText('guidePub','HOLD',doc);
-    setText('guideDate','HOLD',doc);
-    setText('guidePage','HOLD Pages',doc);
-    setText('guideListPrice','HOLD',doc);
-    setText('guideSupplyPrice','HOLD',doc);
-    setText('guideLinkText','HOLD: '+reason,doc);
-    const a=doc.getElementById('guideLinkAnchor');
-    if(a){ a.setAttribute('href','#'); a.textContent='HOLD'; }
-    const toc=doc.getElementById('guideTocLeft');
-    if(toc) toc.textContent='HOLD: 실제 보고서 원문 URL 확인 전 / 공개 목차 확인 전';
-    return true;
-  }
-  function validateRightAfterGenerate(){
-    const doc=frameDoc(); if(!doc) return;
-    const link=txt('guideLinkText',doc);
-    if(!looksLikeActualReportUrl(link)){
-      setRightHold('발행사 홈페이지 또는 미검증 링크');
-      const panel=document.querySelector('#leftSummary');
-      if(panel){
-        panel.innerHTML='DATA_QUALITY V10: 실제 보고서 URL 아님 → 오른쪽 안내서 HOLD 유지<br>다음 기준: 발행사 홈페이지 링크는 PASS 금지 / 실제 보고서 상세 URL만 반영';
-      }
-    }
-  }
-  window.__DQ10_VALIDATE_RIGHT__=validateRightAfterGenerate;
-  window.addEventListener('load',function(){
-    const btn=document.getElementById('generateBtn');
-    if(btn){
-      btn.addEventListener('click',function(){
-        setTimeout(validateRightAfterGenerate,1200);
-        setTimeout(validateRightAfterGenerate,2500);
-      },true);
-    }
-  });
-})();
-</script>
-
-
-
-<script id="dq11-no-sample-repeat-detail-url-gate">
-(function(){
-  'use strict';
-  function d(){var f=document.getElementById('rightFrame'); try{return f&&(f.contentDocument||f.contentWindow.document);}catch(e){return null;}}
-  function set(id,v,doc){var e=(doc||document).getElementById(id); if(e){ if('value' in e && /^(INPUT|TEXTAREA)$/i.test(e.tagName)) e.value=v; else e.textContent=v; }}
-  function norm(s){return String(s||'').replace(/\s+/g,' ').trim();}
-  function realReportUrl(s){
-    s=norm(s); if(!/^https?:\/\//i.test(s)) return false;
-    try{var u=new URL(s); var p=u.pathname.replace(/\/+$/,'').toLowerCase();
-      if(!p || p==='/' || p==='/en' || p==='/ko' || p==='/kr' || p==='/home' || p==='/index.html') return false;
-      if(/google\.com\/search/i.test(u.href)) return false;
-      if(p.split('/').filter(Boolean).length<2 && !/(goods|view|report|market|research|industry|analysis|forecast|product|shop|insight)/i.test(p+u.search)) return false;
-      return /(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight)/i.test(p+' '+u.search);
-    }catch(e){return false;}
-  }
-  function hold(reason){
-    var doc=d(); if(!doc) return;
-    set('guideTitleEn','HOLD: 공개 원문 확인 전',doc); set('guideTitleKo','( HOLD )',doc);
-    ['guidePub','guideDate','guideListPrice','guideSupplyPrice'].forEach(function(id){set(id,'HOLD',doc)});
-    set('guidePage','HOLD Pages',doc); set('guidePdf','-PDF-',doc);
-    set('guideLinkText','HOLD: '+reason,doc);
-    var a=doc.getElementById('guideLinkAnchor'); if(a){a.removeAttribute('href');a.textContent='HOLD';}
-    set('guideTocLeft','HOLD: 실제 보고서 상세 URL 확인 전 / 공개 목차 확인 전',doc);
-    set('guideTocBox','HOLD: 실제 보고서 상세 URL 확인 전 / 공개 목차 확인 전',doc);
-    var b=document.getElementById('bridgeStatus'); if(b)b.textContent='DQ11: 상세 URL 미확인 → 오른쪽 HOLD 유지';
-    var f=document.getElementById('flowTrace'); if(f)f.textContent='[DQ11]\n샘플 제거 반복 아님\n상세 URL 검증 1개 기능만 적용\n발행사 홈/검색URL/미검증 URL은 HOLD';
-  }
-  function check(){
-    var doc=d(); if(!doc) return;
-    var link=norm((doc.getElementById('guideLinkText')||{}).textContent||'');
-    if(!realReportUrl(link)) hold('상세 보고서 URL 미확인');
-  }
-  function bind(){var btn=document.getElementById('generateBtn'); if(btn && !btn.dataset.dq11){btn.dataset.dq11='1';btn.addEventListener('click',function(){[80,300,800,1600,2600].forEach(function(t){setTimeout(check,t)});},true);}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind); else bind();
-  window.addEventListener('load',function(){setTimeout(bind,300);setTimeout(bind,1200);});
-})();
-</script>
-
 </body>
 
 </html>
@@ -6735,379 +6392,103 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<style id="dq-layer-v6-style">
-#P6_DQ3_ONLINE_PANEL{display:none!important;}
-#dqQualityLayerV6{border:3px solid #111827;border-radius:12px;background:#f8fafc;margin:12px 0;padding:12px;font-size:12px;line-height:1.5;color:#111827;}
-#dqQualityLayerV6 h3{margin:0 0 8px;font-size:15px;}
-.dqv6-row{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px;margin:8px 0;cursor:pointer;}
-.dqv6-row.active{outline:3px solid #2563eb;}
-.dqv6-pass{color:#047857;font-weight:900}.dqv6-hold{color:#b45309;font-weight:900}.dqv6-fail{color:#b91c1c;font-weight:900}
-.dqv6-mini{font-size:11px;color:#475569;white-space:pre-wrap;margin-top:6px;}
+
+
+<style id="run19-forbidden-cleanup-style">
+#P6_DQ3_ONLINE_PANEL{display:none !important;}
 </style>
-<script id="dq-quality-layer-v6-left-text-engine">
+<script id="run19-forbidden-cleanup-v1">
 (function(){
-  var ENGINE='DQ_QUALITY_LAYER_V6_LEFT_TEXT_TO_PUBLIC_SCOPE_HOLD';
-  var VENDORS=[
-    {name:'MarketsandMarkets', domain:'marketsandmarkets.com', public:'title, summary, market size, toc partial', hold:'price/license often gated'},
-    {name:'Mordor Intelligence', domain:'mordorintelligence.com', public:'title, summary, market size, toc partial', hold:'price full report gated'},
-    {name:'Grand View Research', domain:'grandviewresearch.com', public:'title, summary, market size, toc partial', hold:'price/toc full may be gated'},
-    {name:'Technavio', domain:'technavio.com', public:'title, forecast, CAGR, sample guide', hold:'price/full toc gated'},
-    {name:'BCC Research', domain:'bccresearch.com', public:'title, date/month, code, summary, toc partial', hold:'license/price variable'}
+  'use strict';
+  function $(id){return document.getElementById(id);}
+  function removeForbidden(){
+    var p=$('P6_DQ3_ONLINE_PANEL'); if(p && p.parentNode) p.parentNode.removeChild(p);
+    var k=$('keyword');
+    if(k){var f=k.closest ? k.closest('.field') : null; if(f && f.parentNode) f.parentNode.removeChild(f);}
+    var diag=$('diagPacket');
+    if(diag && !/RUN19_FORBIDDEN_CLEANUP/.test(diag.value||'')){
+      diag.value=(diag.value?diag.value+'\n\n':'')+'[RUN19_FORBIDDEN_CLEANUP]\nDIRECT_URL_PANEL=REMOVED\nAUTO_KEYWORD_FIELD=REMOVED_IF_FOUND\nSERVER_API=HOLD\nNEW_INPUT=BLOCK';
+    }
+  }
+  function bind(){
+    removeForbidden();
+    [200,800,1600,3000,6000].forEach(function(t){setTimeout(removeForbidden,t);});
+    try{new MutationObserver(function(){removeForbidden();}).observe(document.body,{childList:true,subtree:true});}catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+<style id="run19-pattern-accumulator-style">
+#run19PatternAccumulator{margin-top:12px;border:3px solid #111827;border-radius:12px;background:#fff;padding:12px;font-size:12px;line-height:1.45;color:#111;}
+#run19PatternAccumulator h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
+#run19PatternAccumulator .run19-note{border:1px dashed #64748b;border-radius:8px;background:#f8fafc;padding:8px;margin:8px 0;white-space:pre-wrap;}
+#run19PatternAccumulator table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;}
+#run19PatternAccumulator th,#run19PatternAccumulator td{border:1px solid #cbd5e1;padding:6px;vertical-align:top;text-align:left;}
+#run19PatternAccumulator th{background:#f1f5f9;font-weight:800;}
+.run19-hold{color:#b45309;font-weight:900;}
+.run19-pass{color:#047857;font-weight:900;}
+.run19-lock{color:#1d4ed8;font-weight:900;}
+</style>
+
+
+<script id="run19-pattern-accumulator-v1">
+(function(){
+  'use strict';
+  var ENGINE='RUN19_PATTERN_ACCUMULATOR_V1';
+  function $(id){return document.getElementById(id);}
+  function safeText(v){return String(v||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
+  var patterns=[
+    ['MarketsandMarkets','report 상세 slug 구조','제목/시장규모/일부 TOC 후보','가격/전체 목차','HOLD'],
+    ['Technavio','시장명 기반 상세페이지','제목/예측기간/시장증가액 후보','가격/전체 목차','HOLD'],
+    ['BCC Research','market-research 보고서 구조','제목/발행월/코드/요약 후보','가격/라이선스 조건','HOLD'],
+    ['Grand View Research','industry-analysis 구조','제목/개요/시장규모 후보','가격/전체 목차','HOLD'],
+    ['Allied Market Research','보고서 slug 구조','제목/시장규모/CAGR 후보','발행일/가격/전체 목차','HOLD'],
+    ['QY Research','product/report 상세 구조','제목/카테고리 후보','가격/목차 공개 범위','QUEUE'],
+    ['Mordor Intelligence','industry-reports 구조','제목/시장규모/CAGR 후보','가격/전체 목차','QUEUE'],
+    ['GlobalData','store/report 구조','제목/발행사 후보','가격/상세 목차','QUEUE']
   ];
-  function $(id,doc){return (doc||document).getElementById(id)}
-  function q(sel,doc){return (doc||document).querySelector(sel)}
-  function val(id){var e=$(id); return e ? String(e.value||e.textContent||'').trim() : ''}
-  function setVal(id,v){var e=$(id); if(e){e.value=v||''; e.dispatchEvent(new Event('input',{bubbles:true}))}}
-  function esc(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
-  function rightDoc(){var f=$('rightFrame'); return f ? (f.contentDocument||f.contentWindow.document) : null}
-  function setRight(id,text){var d=rightDoc(), e=d&&$(id,d); if(e){e.textContent=text||''}}
-  function norm(s){return String(s||'').replace(/\s+/g,' ').trim()}
-  function keywords(){
-    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty'),val('publisherMemo')].join(' ');
-    raw=norm(raw)||'market report';
-    return raw.replace(/[\n\r]/g,' ').slice(0,120);
-  }
-  function sectorKo(){return norm(val('researchField')||val('interestField')||val('duty')||'관련 시장')}
-  function sectorEn(){
-    var s=sectorKo().toLowerCase();
-    if(/멤브레인|membrane/.test(s)) return 'Membrane';
-    if(/탄소|carbon/.test(s)) return 'Carbon';
-    if(/ai|인공지능/.test(s)) return 'Artificial Intelligence';
-    if(/반도체|semiconductor/.test(s)) return 'Semiconductor';
-    if(/배터리|전지|battery/.test(s)) return 'Battery';
-    return sectorKo();
-  }
-  function searchUrl(v){return 'https://www.google.com/search?q='+encodeURIComponent('site:'+v.domain+' '+keywords()+' market report')}
-  function makeCards(){
-    var y=new Date().getFullYear();
-    var ko=sectorKo(), en=sectorEn();
-    return VENDORS.map(function(v,i){
-      return {
-        idx:i+1,
-        title:'HOLD: '+en+' market report public source check required',
-        titleKo:'HOLD: '+ko+' 공개 원문 확인 필요',
-        publisher:v.name,
-        date:'HOLD: 공개 페이지 확인 전',
-        pages:'',
-        listPrice:'HOLD: 가격 공개 여부 확인 전',
-        supplyPrice:'HOLD',
-        link:searchUrl(v),
-        toc:'HOLD: '+v.name+' 공개 페이지에서 목차 공개 범위 확인 필요\n공개 가능 범위 후보: '+v.public+'\nHOLD 사유: '+v.hold,
-        status:'HOLD_SOURCE_REQUIRED',
-        reason:'단독 HTML은 온라인 페이지를 직접 긁지 못함(CORS/동적페이지/로그인 가능성). 이 단계는 왼쪽 텍스트로 발행사별 공개 후보 경로를 만들고, 실제 원문 확인 전에는 PASS 금지.'
-      }
-    })
-  }
-  function ensurePanel(){
-    var left=q('.left'); if(!left) return null;
-    var old=$('P6_DQ3_ONLINE_PANEL'); if(old) old.style.display='none';
-    var p=$('dqQualityLayerV6'); if(p) return p;
-    p=document.createElement('div'); p.id='dqQualityLayerV6';
-    p.innerHTML='<h3>DATA_QUALITY 판단 레이어 V6</h3><div><b>입력 방식:</b> 왼쪽 텍스트만 사용 / URL 직접 입력 아님</div><div><b>판정:</b> 공개 원문 확인 전 PASS 금지, 부족값은 HOLD 유지</div><div id="dqv6Status" class="dqv6-mini">대기</div><div id="dqv6Cards"></div>';
-    var btn=$('generateBtn');
-    if(btn && btn.parentNode) btn.parentNode.parentNode.insertBefore(p,btn.parentNode.nextSibling); else left.appendChild(p);
-    return p;
-  }
-  function applyCard(c){
-    setVal('midTitleEn',c.title); setVal('midTitleKo',c.titleKo); setVal('bookPub',c.publisher); setVal('bookDate',c.date); setVal('bookPage',c.pages); setVal('bookListPrice',c.listPrice); setVal('bookSupplyPrice',c.supplyPrice); setVal('midLink',c.link); setVal('midToc',c.toc);
-    setRight('guideTitleEn',c.title); setRight('guideTitleKo',c.titleKo); setRight('guidePub',c.publisher); setRight('guideDate',c.date); setRight('guidePage',c.pages); setRight('guideListPrice',c.listPrice); setRight('guideSupplyPrice',c.supplyPrice); setRight('guideLinkText',c.link); setRight('guideTocLeft',c.toc); setRight('guideTocBox',c.toc);
-    var a=rightDoc()&&$('guideLinkAnchor',rightDoc()); if(a){a.href=c.link; a.textContent='공개 후보 확인';}
-    var b=$('bridgeStatus'); if(b)b.textContent='DATA_QUALITY V6 반영: '+c.publisher+' / '+c.status;
-  }
-  function run(){
-    ensurePanel();
-    var cards=makeCards();
-    var box=$('dqv6Cards'); if(!box)return;
-    box.innerHTML='';
-    cards.forEach(function(c,i){
-      var row=document.createElement('div'); row.className='dqv6-row'+(i===0?' active':'');
-      row.innerHTML='<b>'+c.idx+'. '+esc(c.publisher)+'</b> <span class="dqv6-hold">'+c.status+'</span><br>'+esc(c.titleKo)+'<br><span class="dqv6-mini">공개범위 후보: '+esc(VENDORS[i].public)+'\nHOLD: '+esc(c.reason)+'\n검색경로: '+esc(c.link)+'</span>';
-      row.addEventListener('click',function(){Array.prototype.forEach.call(box.querySelectorAll('.dqv6-row'),function(x){x.classList.remove('active')}); row.classList.add('active'); applyCard(c);});
-      box.appendChild(row);
-    });
-    applyCard(cards[0]);
-    var st=$('dqv6Status'); if(st) st.textContent='RUN: '+ENGINE+' / 고객원문+연구분야+관심분야+담당업무 기반 5개 공개 후보 생성 / 모든 값은 원문 확인 전 HOLD';
-    var flow=$('flowTrace'); if(flow) flow.textContent='[TRACE]\n'+ENGINE+'\nLEFT_TEXT_TO_VENDOR_SEARCH: PASS\nPUBLIC_DATA_CONFIRMED: HOLD\nRIGHT_GUIDE_SYNC: HOLD_VALUES_VISIBLE\nRULE: 실제 공개 원문 확인 전 PASS 금지';
-    var diag=$('diagPacket'); if(diag) diag.value='[DATA_QUALITY_V6_PACKET]\nENGINE='+ENGINE+'\nINPUT=LEFT_TEXT_ONLY\nURL_MANUAL_REQUIRED=NO\nPUBLIC_FETCH_DIRECT=HOLD_IN_STATIC_HTML\nCARDS=5\nPASS_RULE=SOURCE_CONFIRMED_ONLY\nHOLD_RULE=NO_SOURCE_NO_VALUE\nNEXT=SERVER_OR_API_CONNECTOR_FOR_REAL_PUBLIC_FETCH';
+  function panelHtml(){
+    var rows=patterns.map(function(r){
+      return '<tr data-run19-vendor="'+safeText(r[0])+'"><td><b>'+safeText(r[0])+'</b></td><td>'+safeText(r[1])+'</td><td>'+safeText(r[2])+'</td><td>'+safeText(r[3])+'</td><td class="run19-hold">'+safeText(r[4])+'</td></tr>';
+    }).join('');
+    return '<h3>RUN19 공개 상세페이지 패턴 누적 영역</h3>'+
+      '<div class="run19-note"><b>34_LOCK:</b> 새 URL 입력칸 없음 / 새 버튼 없음 / 오른쪽 안내서 DOM 재구성 없음 / 공개 확인 전 자동완성 금지 / 실패값은 HOLD + 확인링크 후보로 보존</div>'+
+      '<table aria-label="RUN19 공개 상세페이지 패턴 누적표"><thead><tr><th>발행사</th><th>공개 상세페이지 패턴</th><th>안내서 반영 후보</th><th>HOLD 항목</th><th>상태</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div id="run19PatternState" class="run19-note">상태: RUN19 패턴 누적 대기 / 기존 P1~P6 엔진 보호 / 데이터 품질 엔진 연결은 기존 생성 버튼 로그로만 확인</div>';
   }
   function install(){
-    ensurePanel();
-    var btn=$('generateBtn');
-    if(btn && btn.dataset.dqv6Bound!=='1'){
-      var clone=btn.cloneNode(true); clone.dataset.dqv6Bound='1'; clone.textContent='안내서 5개 생성';
-      clone.addEventListener('click',function(e){setTimeout(run,80); setTimeout(run,600);},true);
-      btn.parentNode.replaceChild(clone,btn);
-    }
-    var title=q('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - DATA_QUALITY_LAYER_V6 / 왼쪽 텍스트 기반 품질판단';
+    if($('run19PatternAccumulator')) return;
+    var left=document.querySelector('.left') || document.body;
+    var box=document.createElement('div');
+    box.id='run19PatternAccumulator';
+    box.setAttribute('data-area-id','RUN19_PATTERN_ACCUMULATOR');
+    box.setAttribute('data-area-name-ko','RUN19 공개 상세페이지 패턴 누적 영역');
+    box.innerHTML=panelHtml();
+    left.appendChild(box);
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN19';
+    var bridge=$('bridgeStatus'); if(bridge){bridge.textContent=(bridge.textContent||'')+' / RUN19 패턴 누적 연결';}
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){[50,400,1200,3000].forEach(function(t){setTimeout(install,t)})}); else [50,400,1200,3000].forEach(function(t){setTimeout(install,t)});
-})();
-</script>
-
-
-<script id="RUN12_GENERATE_BUTTON_REAL_SOURCE_ONLY_LOCK">
-(function(){
-  'use strict';
-  const ENGINE='RUN12_GENERATE_BUTTON_REAL_SOURCE_ONLY_LOCK';
-  function $(id,root){return (root||document).getElementById(id)}
-  function docs(){
-    const arr=[];
-    const f=$('rightFrame');
-    if(f){try{const d=f.contentDocument||(f.contentWindow&&f.contentWindow.document); if(d) arr.push(d);}catch(e){}}
-    document.querySelectorAll('iframe[data-actual-guide-set="1"]').forEach(function(fr){
-      try{const d=fr.contentDocument||(fr.contentWindow&&fr.contentWindow.document); if(d && arr.indexOf(d)<0) arr.push(d);}catch(e){}
-    });
-    return arr;
-  }
-  function setText(doc,id,val){const e=$(id,doc); if(!e) return 0; e.textContent=val; e.setAttribute('data-run12','hold'); return 1;}
-  function setHtml(doc,id,val){const e=$(id,doc); if(!e) return 0; e.innerHTML=val; e.setAttribute('data-run12','hold'); return 1;}
-  function holdOne(doc,reason){
-    let c=0;
-    c+=setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>');
-    c+=setHtml(doc,'guideTitleKo','<span style="font-size:15pt;font-family:굴림;">( HOLD )</span>');
-    ['guidePub','guideDate','guideListPrice','guideSupplyPrice'].forEach(id=>{c+=setText(doc,id,'HOLD')});
-    c+=setText(doc,'guidePage','HOLD Pages');
-    c+=setText(doc,'guidePdf','-PDF-');
-    c+=setText(doc,'guideLinkText','HOLD');
-    const a=$('guideLinkAnchor',doc); if(a){a.removeAttribute('href');a.textContent='HOLD';a.setAttribute('data-run12','hold');c++;}
-    c+=setHtml(doc,'guideTocLeft','<div style="font-size:10.5pt;line-height:1.45;">HOLD: '+reason+'</div>');
-    const tr=$('guideTocRight',doc)||$('guideTocAuxSlot',doc); if(tr){tr.innerHTML='';tr.style.display='none';c++;}
-    return c;
-  }
-  function allText(){
-    return Array.from(document.querySelectorAll('input,textarea,select')).map(e=>e.value||'').join('\n');
-  }
-  function realDetailUrlFound(){
-    const text=allText();
-    const urls=(text.match(/https?:\/\/[^\s"'<>]+/gi)||[]);
-    return urls.some(function(raw){
-      try{
-        const u=new URL(raw); const p=u.pathname.replace(/\/+$/,'').toLowerCase();
-        if(!p || p==='/' || ['/en','/ko','/kr','/home','/index.html'].includes(p)) return false;
-        if(/google\.com\/search/i.test(u.href)) return false;
-        return /(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight)/i.test(p+' '+u.search);
-      }catch(e){return false;}
-    });
-  }
-  function updateCards(reason){
-    const box=document.querySelector('.middle');
-    const cards=box?box.querySelectorAll('.card'):[];
-    cards.forEach(function(card,idx){
-      if(idx<5 || /HOLD|기존 1개 안내서|복제/.test(card.textContent||'')){
-        card.innerHTML='<b>'+(idx+1)+'. HOLD: 실제 보고서 상세 URL 확인 전</b><br>'+reason+'<br>샘플/추정 자동생성 차단';
-      }
-    });
-    const st=$('bridgeStatus'); if(st) st.textContent='RUN12: 상세 URL 미확인 → 생성 차단 / 오른쪽 HOLD 유지';
-  }
-  function log(obj){
-    const text=JSON.stringify(obj,null,2);
-    ['flowTrace','diagPacket','targetProbeView'].forEach(function(id){const e=$(id); if(e){ if('value' in e) e.value=text; else e.textContent=text; }});
-    const p=$('leftSummary'); if(p) p.innerHTML='RUN12: 상세 보고서 URL/공개 원문 근거 없으면 생성 차단. 샘플·추정값 자동생성 금지.';
-  }
-  function generateGuard(ev){
-    ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
-    const hasDetail=realDetailUrlFound();
-    const reason=hasDetail?'상세 URL 감지됨: 원문 확인 전까지 HOLD 유지':'상세 보고서 URL 없음 / 왼쪽 텍스트만으로 추정 생성 금지';
-    let changed=0; docs().forEach(d=>{changed+=holdOne(d,reason)});
-    updateCards(reason);
-    log({engine:ENGINE,status:'PASS_LOCK',action:'generate_guard',has_detail_url:hasDetail,changed:changed,rule:'실제 공개 원문 확인 전 PASS 금지 / 샘플·추정 자동생성 금지',check:'안내서 5개 생성 클릭 후 오른쪽이 HOLD 유지되면 PASS'});
-    return false;
+  function record(){
+    install();
+    var state=$('run19PatternState');
+    var raw=$('customerRaw'), field=$('researchField'), interest=$('interestField');
+    var input=[raw&&raw.value, field&&field.value, interest&&interest.value].filter(Boolean).join(' | ');
+    var msg='상태: '+ENGINE+' 연결됨\n입력 기준: '+(input?input:'빈 입력 → HOLD 유지')+'\n판정: 공개 상세페이지 원문 확인 전 자동완성 금지 / 패턴은 HOLD 후보로만 누적';
+    if(state) state.textContent=msg;
+    var flow=$('flowTrace');
+    if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nRUN19_PATTERN_AREA: VISIBLE\nNEW_URL_INPUT: BLOCK\nRIGHT_DOM_REBUILD: BLOCK\nDATA_QUALITY: HOLD_PATTERN_ACCUMULATION';
+    var diag=$('diagPacket');
+    if(diag) diag.value='[RUN19_PATTERN_PACKET]\nENGINE='+ENGINE+'\nVISIBLE_AREA=RUN19 공개 상세페이지 패턴 누적 영역\nNEW_INPUT=NO\nNEW_BUTTON=NO\nRIGHT_DOM_REBUILD=NO\nONLINE_FETCH=HOLD\nPATTERN_ROWS='+patterns.length+'\nPASS_CHECK=기존 화면 유지 + RUN19 패턴 영역 표시';
   }
   function bind(){
-    const old=$('generateBtn'); if(!old || old.dataset.run12==='1') return;
-    const b=old.cloneNode(true); b.id='generateBtn'; b.dataset.run12='1'; b.textContent='안내서 5개 생성';
-    b.addEventListener('click',generateGuard,true);
-    old.parentNode.replaceChild(b,old);
+    install();
+    var gen=$('generateBtn');
+    if(gen) gen.addEventListener('click',function(){setTimeout(record,350);setTimeout(record,1000);},true);
+    ['customerRaw','researchField','interestField','publisherMemo','exclude'].forEach(function(id){var el=$(id); if(el) el.addEventListener('input',function(){setTimeout(record,200);});});
+    setTimeout(record,700);
   }
-  window.__RUN12_GENERATE_LOCK__={bind:bind, generateGuard:generateGuard};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(bind,200);setTimeout(bind,1200)}); else {setTimeout(bind,200);setTimeout(bind,1200)}
-  window.addEventListener('load',()=>{setTimeout(bind,300);setTimeout(bind,1500);setTimeout(bind,3000)});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
 })();
 </script>
 
-<script id="WIC_RUN13_INITIAL_RIGHT_BLANK_LOCK">
-(function(){
-  var ENGINE='RUN13_INITIAL_RIGHT_BLANK_LOCK';
-  function rightDocs(){
-    var docs=[];
-    try{document.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)docs.push(f.contentDocument);}catch(e){}});}catch(e){}
-    docs.push(document);
-    return docs;
-  }
-  function byId(doc,id){try{return doc.getElementById(id);}catch(e){return null;}}
-  function blankDoc(doc){
-    var changed=0;
-    function text(id,v){var el=byId(doc,id); if(el){el.textContent=v||''; changed++;}}
-    function html(id,v){var el=byId(doc,id); if(el){el.innerHTML=v||''; changed++;}}
-    html('guideTitleEn','');
-    text('guideTitleKo','');
-    text('guidePub','');
-    text('guideDate','');
-    text('guidePage','');
-    text('guideListPrice','');
-    text('guideSupplyPrice','');
-    text('guideLinkText','');
-    var a=byId(doc,'guideLinkAnchor'); if(a){a.removeAttribute('href'); a.textContent=''; changed++;}
-    html('guideTocLeft','');
-    html('guideTocRight','');
-    var tocRight=byId(doc,'guideTocRight'); if(tocRight){tocRight.style.display='none';}
-    return changed;
-  }
-  function initialBlank(){
-    var changed=0;
-    rightDocs().forEach(function(doc){changed+=blankDoc(doc);});
-    window.__RUN13_INITIAL_BLANK_LAST__={engine:ENGINE,changed:changed,check:'첫 화면 샘플 데이터 제거 / 안내서 빈 상태'};
-    var panel=document.getElementById('P6_DQ3_STATUS')||document.getElementById('bridgeStatus');
-    if(panel)panel.textContent='RUN13: 첫 화면 안내서 빈 상태 / 실제 원문 전 HOLD 생성 대기';
-  }
-  function boot(){[50,250,700,1500,3000,5500].forEach(function(t){setTimeout(initialBlank,t);});}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
-  window.addEventListener('load',boot);
-})();
-</script>
-
-<!-- RUN14_DETAIL_URL_SOURCE_LINK_ONLY: 상세 보고서 URL이 있을 때만 링크 보존, 나머지는 HOLD / 반복 단계 재수행 금지 -->
-<script id="RUN14_DETAIL_URL_SOURCE_LINK_ONLY">
-(function(){
-  'use strict';
-  var ENGINE='RUN14_DETAIL_URL_SOURCE_LINK_ONLY';
-  function $(id,root){return (root||document).getElementById(id)}
-  function rightDocs(){
-    var docs=[];
-    try{document.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)docs.push(f.contentDocument)}catch(e){}})}catch(e){}
-    docs.push(document);
-    return docs;
-  }
-  function setText(doc,id,val){var e=$(id,doc); if(!e)return 0; e.textContent=val; e.setAttribute('data-run14','1'); return 1;}
-  function setHtml(doc,id,val){var e=$(id,doc); if(!e)return 0; e.innerHTML=val; e.setAttribute('data-run14','1'); return 1;}
-  function allInputs(){
-    return Array.prototype.slice.call(document.querySelectorAll('input,textarea,select')).map(function(e){return e.value||''}).join('\n');
-  }
-  function getUrls(){return (allInputs().match(/https?:\/\/[^\s"'<>]+/gi)||[]).map(function(u){return u.replace(/[),.;\]]+$/,'')})}
-  function classify(raw){
-    try{
-      var u=new URL(raw), path=u.pathname.replace(/\/+$/,'').toLowerCase();
-      var full=(u.hostname+' '+path+' '+u.search).toLowerCase();
-      var homepage=(!path||path==='/'||path==='/en'||path==='/ko'||path==='/kr'||path==='/home'||path==='/index.html');
-      var detail=/(report|market|research|industry|goods|view|analysis|forecast|shop|product|insight|technology|competitive|intelligence|study|reports)/i.test(full) && !homepage;
-      return {url:u.href,host:u.hostname.replace(/^www\./,''),detail:detail,homepage:homepage};
-    }catch(e){return {url:raw,host:'HOLD',detail:false,homepage:false}}
-  }
-  function blankOrHold(doc,msg,linkObj){
-    var c=0;
-    c+=setHtml(doc,'guideTitleEn','<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">HOLD: 공개 원문 확인 전</span></b>');
-    c+=setText(doc,'guideTitleKo','( HOLD )');
-    c+=setText(doc,'guidePub',linkObj&&linkObj.detail?linkObj.host:'HOLD');
-    c+=setText(doc,'guideDate','HOLD');
-    c+=setText(doc,'guidePage','HOLD Pages');
-    c+=setText(doc,'guideListPrice','HOLD');
-    c+=setText(doc,'guideSupplyPrice','HOLD');
-    c+=setText(doc,'guidePdf','-PDF-');
-    if(linkObj&&linkObj.detail){
-      c+=setText(doc,'guideLinkText',linkObj.url);
-      var a=$('guideLinkAnchor',doc); if(a){a.href=linkObj.url; a.textContent=linkObj.url; a.setAttribute('data-run14','1'); c++;}
-    }else{
-      c+=setText(doc,'guideLinkText','HOLD');
-      var a2=$('guideLinkAnchor',doc); if(a2){a2.removeAttribute('href'); a2.textContent='HOLD'; a2.setAttribute('data-run14','1'); c++;}
-    }
-    c+=setHtml(doc,'guideTocLeft','<div style="font-size:10.5pt;line-height:1.45;">'+msg+'</div>');
-    var tr=$('guideTocRight',doc)||$('guideTocAuxSlot',doc); if(tr){tr.innerHTML=''; tr.style.display='none'; c++;}
-    return c;
-  }
-  function updateMiddle(linkObj,msg){
-    var b=$('bridgeStatus'); if(b)b.textContent='RUN14: '+msg;
-    var fields={midTitleEn:'HOLD: source title check needed',midTitleKo:'HOLD: 공개 원문 확인 전',bookPub:(linkObj&&linkObj.detail?linkObj.host:'HOLD'),bookDate:'HOLD',bookPage:'HOLD',bookListPrice:'HOLD',bookSupplyPrice:'HOLD',midLink:(linkObj&&linkObj.detail?linkObj.url:'HOLD'),midToc:msg};
-    Object.keys(fields).forEach(function(id){var e=$(id); if(e){e.value=fields[id]; e.textContent=fields[id];}});
-    var cards=document.querySelectorAll('.middle .card');
-    cards.forEach(function(card,idx){
-      if(idx<5 || /HOLD|복제|기존/.test(card.textContent||'')){
-        card.innerHTML='<b>'+(idx+1)+'. '+(linkObj&&linkObj.detail?'SOURCE LINK HOLD':'HOLD')+'</b><br>'+msg+'<br>제목·발행일·가격·목차는 원문 확인 전 자동생성 금지';
-      }
-    });
-  }
-  function run(ev){
-    if(ev){ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();}
-    var urls=getUrls().map(classify);
-    var detail=urls.find(function(x){return x.detail});
-    var home=urls.find(function(x){return x.homepage});
-    var msg=detail?'상세 보고서 URL 감지: 링크만 보존, 제목·발행일·가격·목차는 HOLD':'상세 보고서 URL 없음: 생성 차단 / HOLD 유지';
-    if(!detail && home) msg='발행사 메인 홈페이지 URL 감지: 상세 보고서 URL 아님 / HOLD 유지';
-    var changed=0; rightDocs().forEach(function(d){changed+=blankOrHold(d,msg,detail)});
-    updateMiddle(detail,msg);
-    var log={engine:ENGINE,status:detail?'SOURCE_LINK_ONLY':'HOLD_LOCK',detail_url:detail?detail.url:'',url_count:urls.length,changed:changed,rule:'상세 URL 없으면 생성 금지 / 상세 URL 있어도 링크만 보존하고 나머지는 HOLD',next:'원문 읽기 커넥터 연결 전 PASS 금지'};
-    ['flowTrace','diagPacket','targetProbeView'].forEach(function(id){var e=$(id); if(e){var t=JSON.stringify(log,null,2); if('value' in e)e.value=t; else e.textContent=t;}});
-    window.__RUN14_LAST__=log;
-    return false;
-  }
-  function bind(){
-    var old=$('generateBtn'); if(!old||old.dataset.run14==='1')return;
-    var b=old.cloneNode(true); b.id='generateBtn'; b.dataset.run14='1'; b.textContent='안내서 5개 생성';
-    b.addEventListener('click',run,true);
-    old.parentNode.replaceChild(b,old);
-    var p=$('leftSummary'); if(p)p.innerHTML='RUN14: 상세 보고서 URL이 있을 때만 링크를 보존합니다. 메인 홈페이지/빈 입력은 HOLD 유지.';
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,500);setTimeout(bind,1800);}); else {setTimeout(bind,500);setTimeout(bind,1800);}
-  window.addEventListener('load',function(){setTimeout(bind,800);setTimeout(bind,2500);setTimeout(bind,4500);});
-  window.__RUN14_DETAIL_URL_SOURCE_LINK_ONLY__={bind:bind,run:run};
-})();
-</script>
-
-
-<!-- RUN16_NO_URL_TEXT_QUALITY_LOCK: 34번 기준 / URL 기능 HOLD / 왼쪽 공개 발행사 구조표만 진행 -->
-<style id="RUN16_NO_URL_TEXT_QUALITY_STYLE">
-  #RUN16_TEXT_QUALITY_PANEL{border:2px solid #0f172a;border-radius:12px;background:#fff;margin:10px 0;padding:10px;font-size:12px;line-height:1.45;}
-  #RUN16_TEXT_QUALITY_PANEL h3{margin:0 0 8px;font-size:15px;}
-  #RUN16_TEXT_QUALITY_PANEL .ok{color:#047857;font-weight:800;}
-  #RUN16_TEXT_QUALITY_PANEL .hold{color:#b45309;font-weight:800;}
-  #RUN16_TEXT_QUALITY_PANEL .bad{color:#b91c1c;font-weight:800;}
-  #RUN16_TEXT_QUALITY_PANEL .row{border-top:1px dashed #d1d5db;padding:5px 0;}
-</style>
-<script id="RUN16_NO_URL_TEXT_QUALITY_SCRIPT">
-(function(){
-  if(window.__RUN16_NO_URL_TEXT_QUALITY_LOCK__) return;
-  window.__RUN16_NO_URL_TEXT_QUALITY_LOCK__=true;
-  var ENGINE='RUN16_NO_URL_TEXT_QUALITY_LOCK';
-  function $(id,root){return (root||document).getElementById(id)}
-  function q(s,root){return (root||document).querySelector(s)}
-  function val(id){var e=$(id);return e?String(e.value||e.textContent||'').trim():''}
-  function setVal(id,v){var e=$(id);if(!e)return;if('value'in e)e.value=v||'';else e.textContent=v||'';try{e.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){}}
-  function fdoc(){var f=$('rightFrame');try{return f&&(f.contentDocument||f.contentWindow.document)}catch(e){return null}}
-  function setRight(id,v){var d=fdoc(),e=d&&$(id,d);if(!e)return;if(id==='guideLinkAnchor'){e.setAttribute('href',v?'#':'#');e.textContent=v?'바로가기':''}else e.textContent=v||''}
-  function removeUrlPanel(){var p=$('P6_DQ3_ONLINE_PANEL');if(p){p.innerHTML='<h3>URL 기능 HOLD</h3><div class="hold">새 URL 칸 추가 금지. 기존 엔진 조합 시뮬레이션 전까지 URL 기능은 보류.</div>';}}
-  function ensurePanel(){var mid=q('.middle');if(!mid)return null;var p=$('RUN16_TEXT_QUALITY_PANEL');if(p)return p;p=document.createElement('div');p.id='RUN16_TEXT_QUALITY_PANEL';p.innerHTML='<h3>RUN16 공개 발행사 구조표</h3><div id="RUN16_TQ_STATUS" class="hold">대기</div><div id="RUN16_TQ_ROWS"></div>';var anchor=$('P6_DQ2_CARD_PANEL')||mid.firstElementChild;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(p,anchor.nextSibling);else mid.insertBefore(p,mid.firstChild);return p}
-  function splitKeywords(){
-    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty')].join(' ');
-    var toks=raw.replace(/[.,;:()\[\]{}]/g,' ').split(/\s+/).map(function(x){return x.trim()}).filter(function(x){return x.length>=2});
-    var stop={'고객이':1,'말한':1,'찾고':1,'있습니다':1,'보고서':1,'시장':1,'관련':1,'검토':1,'예':1};
-    var seen={},out=[]; toks.forEach(function(t){if(!stop[t]&&!seen[t]){seen[t]=1;out.push(t)}});
-    return out.slice(0,12);
-  }
-  function score(){
-    var fields=[['고객 원문',val('customerRaw')],['연구분야',val('researchField')],['관심분야',val('interestField')],['담당업무',val('duty')]];
-    var filled=fields.filter(function(x){return x[1]}).length;
-    var kws=splitKeywords();
-    var status=filled>=3&&kws.length>=3?'TEXT_READY':(filled>=1?'TEXT_PARTIAL':'HOLD_EMPTY');
-    var rows=$('RUN16_TQ_ROWS'); if(rows){rows.innerHTML=fields.map(function(x){return '<div class="row">'+x[0]+': '+(x[1]?'<span class="ok">입력됨</span>':'<span class="hold">빈칸</span>')+'</div>'}).join('')+'<div class="row">추출 키워드: '+(kws.length?kws.join(', '):'<span class="hold">없음</span>')+'</div>';}
-    var st=$('RUN16_TQ_STATUS'); if(st){st.className=status==='TEXT_READY'?'ok':'hold';st.textContent=status+' / URL 기능 HOLD / 근거 없는 자동완성 금지';}
-    return {status:status,keywords:kws,filled:filled};
-  }
-  function applyHoldIfNoRealSource(){
-    var s=score();
-    // 상세 URL/공개 원문 근거가 없으면 오른쪽은 실제 데이터로 채우지 않는다.
-    if(s.status==='HOLD_EMPTY'){
-      ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(function(id){setVal(id,'')});
-      ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox','guideTocAuxSlot'].forEach(function(id){setRight(id,'')});
-      setRight('guideLinkAnchor','');
-    }
-    var bs=$('bridgeStatus'); if(bs)bs.textContent='RUN16: 텍스트 품질 '+s.status+' / 상세 원문 없으면 REAL 반영 금지';
-    var diag=$('diagPacket'); if(diag&&'value'in diag)diag.value='[RUN16_TEXT_QUALITY]\nENGINE='+ENGINE+'\nTEXT_STATUS='+s.status+'\nKEYWORDS='+s.keywords.join('|')+'\nURL_FEATURE=HOLD\nREAL_APPLY=BLOCK_UNTIL_PUBLIC_SOURCE';
-  }
-  function install(){
-    removeUrlPanel(); ensurePanel(); score();
-    var t=q('.title'); if(t)t.textContent='1번 고객 자동화 안내서 - RUN16 / URL HOLD + 왼쪽 공개 발행사 구조표';
-    var g=$('generateBtn'); if(g&&!g.dataset.run15TextQuality){g.dataset.run15TextQuality='1';g.addEventListener('click',function(){setTimeout(applyHoldIfNoRealSource,60);setTimeout(applyHoldIfNoRealSource,500)},true)}
-    ['customerRaw','researchField','interestField','duty'].forEach(function(id){var e=$(id);if(e)e.addEventListener('input',score,true)});
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
-})();
-</script>
