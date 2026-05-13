@@ -117,7 +117,7 @@
 </head>
 <body>
   <div class="top">
-    <div class="title">1번 고객 자동화 안내서 - RUN19 / 공개 상세페이지 패턴 누적 영역</div>
+    <div class="title">1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역</div>
     <div class="statebar">
       <span class="badge ok" id="stateBadge">STATE: READY</span>
       <span class="badge warn" id="gateBadge">GATE: G1</span>
@@ -3408,7 +3408,7 @@ endpoint: ${endpoint}`
     window.__TOC_SINGLE_FLOW_FINAL_LAST__={at:new Date().toISOString(),reason:reason||'single_flow_final',layout:'single guideTocLeft / section title full row / child items paired horizontally / top-down order',groups:groupToc(d.toc).length,lines:tocLines(d.toc).length};
     var state=$('stateBadge'); if(state) state.textContent='STATE: TOC_FULL_ORIGINAL_SINGLE_PATH_DELETE_V1';
     var diag=$('diagModeBadge'); if(diag) diag.textContent='단일 목차 흐름 적용';
-    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN19 / 공개 상세페이지 패턴 누적 영역';
+    var title=document.querySelector('.title'); if(title) title.textContent='1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역';
     return true;
   }
 
@@ -6178,6 +6178,36 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+
+<script id="run20-visible-marker-lock-v2">
+(function(){
+  'use strict';
+  var LOCK_TITLE='1번 고객 자동화 안내서 - RUN20 / 공개 상세페이지 패턴 누적 영역';
+  function $(id){return document.getElementById(id);}
+  function ensureTitle(){
+    var title=document.querySelector('.title');
+    if(title && title.textContent!==LOCK_TITLE) title.textContent=LOCK_TITLE;
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN20';
+    var diag=$('diagBadge'); if(diag) diag.textContent='DIAG: RUN20_VISIBLE_LOCK';
+    var state=$('stateBadge'); if(state) state.textContent='STATE: RUN20_KEEP_P6_SAFE';
+  }
+  function ensurePatternVisible(){
+    var box=$('run20PatternAccumulator');
+    var left=document.querySelector('.left');
+    if(box && left){
+      box.setAttribute('data-run20-visible-lock','true');
+      var anchor=left.querySelector('.panel-title');
+      if(anchor && anchor.nextSibling!==box){anchor.parentNode.insertBefore(box, anchor.nextSibling);}
+    }
+  }
+  function lock(){ensureTitle(); ensurePatternVisible();}
+  [0,100,500,1000,2000,4000,7000,10000,12000,15000].forEach(function(t){setTimeout(lock,t);});
+  document.addEventListener('DOMContentLoaded',lock);
+  window.addEventListener('load',lock);
+})();
+</script>
+
 </body>
 
 </html>
@@ -6394,10 +6424,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-<style id="run19-forbidden-cleanup-style">
+<style id="run20-forbidden-cleanup-style">
 #P6_DQ3_ONLINE_PANEL{display:none !important;}
 </style>
-<script id="run19-forbidden-cleanup-v1">
+<script id="run20-forbidden-cleanup-v1">
 (function(){
   'use strict';
   function $(id){return document.getElementById(id);}
@@ -6406,8 +6436,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var k=$('keyword');
     if(k){var f=k.closest ? k.closest('.field') : null; if(f && f.parentNode) f.parentNode.removeChild(f);}
     var diag=$('diagPacket');
-    if(diag && !/RUN19_FORBIDDEN_CLEANUP/.test(diag.value||'')){
-      diag.value=(diag.value?diag.value+'\n\n':'')+'[RUN19_FORBIDDEN_CLEANUP]\nDIRECT_URL_PANEL=REMOVED\nAUTO_KEYWORD_FIELD=REMOVED_IF_FOUND\nSERVER_API=HOLD\nNEW_INPUT=BLOCK';
+    if(diag && !/RUN20_FORBIDDEN_CLEANUP/.test(diag.value||'')){
+      diag.value=(diag.value?diag.value+'\n\n':'')+'[RUN20_FORBIDDEN_CLEANUP]\nDIRECT_URL_PANEL=REMOVED\nAUTO_KEYWORD_FIELD=REMOVED_IF_FOUND\nSERVER_API=HOLD\nNEW_INPUT=BLOCK';
     }
   }
   function bind(){
@@ -6419,67 +6449,123 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<style id="run19-pattern-accumulator-style">
-#run19PatternAccumulator{margin-top:12px;border:3px solid #111827;border-radius:12px;background:#fff;padding:12px;font-size:12px;line-height:1.45;color:#111;}
-#run19PatternAccumulator h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
-#run19PatternAccumulator .run19-note{border:1px dashed #64748b;border-radius:8px;background:#f8fafc;padding:8px;margin:8px 0;white-space:pre-wrap;}
-#run19PatternAccumulator table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;}
-#run19PatternAccumulator th,#run19PatternAccumulator td{border:1px solid #cbd5e1;padding:6px;vertical-align:top;text-align:left;}
-#run19PatternAccumulator th{background:#f1f5f9;font-weight:800;}
-.run19-hold{color:#b45309;font-weight:900;}
-.run19-pass{color:#047857;font-weight:900;}
-.run19-lock{color:#1d4ed8;font-weight:900;}
+<style id="run20-pattern-accumulator-style">
+#run20PatternAccumulator{margin-top:12px;border:3px solid #111827;border-radius:12px;background:#fff;padding:12px;font-size:12px;line-height:1.45;color:#111;}
+#run20PatternAccumulator h3{margin:0 0 8px 0;font-size:15px;color:#111827;}
+#run20PatternAccumulator .run20-note{border:1px dashed #64748b;border-radius:8px;background:#f8fafc;padding:8px;margin:8px 0;white-space:pre-wrap;}
+#run20PatternAccumulator table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;}
+#run20PatternAccumulator th,#run20PatternAccumulator td{border:1px solid #cbd5e1;padding:6px;vertical-align:top;text-align:left;}
+#run20PatternAccumulator th{background:#f1f5f9;font-weight:800;}
+.run20-hold{color:#b45309;font-weight:900;}
+.run20-pass{color:#047857;font-weight:900;}
+.run20-lock{color:#1d4ed8;font-weight:900;}
 </style>
 
 
-<script id="run19-pattern-accumulator-v1">
+<script id="run20-pattern-accumulator-v1">
 (function(){
   'use strict';
-  var ENGINE='RUN19_PATTERN_ACCUMULATOR_V1';
+  var ENGINE='RUN20_PATTERN_ACCUMULATOR_V1';
   function $(id){return document.getElementById(id);}
   function safeText(v){return String(v||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
   var patterns=[
-    ['MarketsandMarkets','report 상세 slug 구조','제목/시장규모/일부 TOC 후보','가격/전체 목차','HOLD'],
-    ['Technavio','시장명 기반 상세페이지','제목/예측기간/시장증가액 후보','가격/전체 목차','HOLD'],
-    ['BCC Research','market-research 보고서 구조','제목/발행월/코드/요약 후보','가격/라이선스 조건','HOLD'],
-    ['Grand View Research','industry-analysis 구조','제목/개요/시장규모 후보','가격/전체 목차','HOLD'],
-    ['Allied Market Research','보고서 slug 구조','제목/시장규모/CAGR 후보','발행일/가격/전체 목차','HOLD'],
-    ['QY Research','product/report 상세 구조','제목/카테고리 후보','가격/목차 공개 범위','QUEUE'],
-    ['Mordor Intelligence','industry-reports 구조','제목/시장규모/CAGR 후보','가격/전체 목차','QUEUE'],
-    ['GlobalData','store/report 구조','제목/발행사 후보','가격/상세 목차','QUEUE']
+    ["MarketsandMarkets","report 상세 slug 구조","제목/시장규모/일부 TOC 후보","가격/전체 목차","HOLD"],
+    ["Technavio","시장명 기반 상세페이지","제목/예측기간/시장증가액 후보","가격/전체 목차","HOLD"],
+    ["BCC Research","market-research 보고서 구조","제목/발행월/코드/요약 후보","가격/라이선스 조건","HOLD"],
+    ["Grand View Research","industry-analysis 구조","제목/개요/시장규모 후보","가격/전체 목차","HOLD"],
+    ["Allied Market Research","보고서 slug 구조","제목/시장규모/CAGR 후보","발행일/가격/전체 목차","HOLD"],
+    ["QY Research","product/report 상세 구조","제목/카테고리 후보","가격/목차 공개 범위","QUEUE"],
+    ["Mordor Intelligence","industry-reports 구조","제목/시장규모/CAGR 후보","가격/전체 목차","QUEUE"],
+    ["GlobalData","store/report 구조","제목/발행사 후보","가격/상세 목차","QUEUE"],
+    ["Fortune Business Insights","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["BIS Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["IMARC","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["ResearchAndMarkets","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Transparency Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Frost & Sullivan","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["IDC","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Omdia","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["TrendForce","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["SNE Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Yole","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Research in China","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Future Markets","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["RNCOS","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["INKWOOD Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Accuray Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["GlobalInfo Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["KBV Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Coherent Market Insights","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Kuick Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Prismane Consulting","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Lucintel","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Prof Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["AnalystView Market Insights","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Bizwit Research & Consulting","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Blueweave Consulting","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Vantage Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["DataM Intelligence","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Zion Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Koncept Analytics","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["LP Information","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Market Monitor Global","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["The Insight Partners","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Introspective Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Stratview Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["360iResearch","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["P&S Intelligence","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Stats Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Data Bridge Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Reports And Data","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Global Market Insights","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Orion Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Verified Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Cognitive Market Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Credence Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["IndustryARC","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Market Research Future","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["SkyQuest Technology","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["LogisticsIQ","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Straits Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Asia Pacific InfoServ","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["InsightAce Analytic","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["Acumen Research","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["MarkNtel Advisors","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"],
+    ["UnivDatos Market Insights","공개 구조 확인 전","자동완성 금지 / 후보만 유지","제목·가격·목차 원문 확인 필요","QUEUE"]
   ];
   function panelHtml(){
     var rows=patterns.map(function(r){
-      return '<tr data-run19-vendor="'+safeText(r[0])+'"><td><b>'+safeText(r[0])+'</b></td><td>'+safeText(r[1])+'</td><td>'+safeText(r[2])+'</td><td>'+safeText(r[3])+'</td><td class="run19-hold">'+safeText(r[4])+'</td></tr>';
+      return '<tr data-run20-vendor="'+safeText(r[0])+'"><td><b>'+safeText(r[0])+'</b></td><td>'+safeText(r[1])+'</td><td>'+safeText(r[2])+'</td><td>'+safeText(r[3])+'</td><td class="run20-hold">'+safeText(r[4])+'</td></tr>';
     }).join('');
-    return '<h3>RUN19 공개 상세페이지 패턴 누적 영역</h3>'+
-      '<div class="run19-note"><b>34_LOCK:</b> 새 URL 입력칸 없음 / 새 버튼 없음 / 오른쪽 안내서 DOM 재구성 없음 / 공개 확인 전 자동완성 금지 / 실패값은 HOLD + 확인링크 후보로 보존</div>'+
-      '<table aria-label="RUN19 공개 상세페이지 패턴 누적표"><thead><tr><th>발행사</th><th>공개 상세페이지 패턴</th><th>안내서 반영 후보</th><th>HOLD 항목</th><th>상태</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-      '<div id="run19PatternState" class="run19-note">상태: RUN19 패턴 누적 대기 / 기존 P1~P6 엔진 보호 / 데이터 품질 엔진 연결은 기존 생성 버튼 로그로만 확인</div>';
+    return '<h3>RUN20 공개 상세페이지 패턴 누적 영역</h3>'+
+      '<div class="run20-note"><b>34_LOCK:</b> 새 URL 입력칸 없음 / 새 버튼 없음 / 오른쪽 안내서 DOM 재구성 없음 / 공개 확인 전 자동완성 금지 / 실패값은 HOLD + 확인링크 후보로 보존 / 영문 발행사 후보 63개</div>'+
+      '<table aria-label="RUN20 공개 상세페이지 패턴 누적표"><thead><tr><th>발행사</th><th>공개 상세페이지 패턴</th><th>안내서 반영 후보</th><th>HOLD 항목</th><th>상태</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div id="run20PatternState" class="run20-note">상태: RUN20 패턴 누적 대기 / 영문 발행사 63개 후보 표시 / 기존 P1~P6 엔진 보호 / 공개 확인 전 자동완성 금지</div>';
   }
   function install(){
-    if($('run19PatternAccumulator')) return;
+    if($('run20PatternAccumulator')) return;
     var left=document.querySelector('.left') || document.body;
     var box=document.createElement('div');
-    box.id='run19PatternAccumulator';
-    box.setAttribute('data-area-id','RUN19_PATTERN_ACCUMULATOR');
-    box.setAttribute('data-area-name-ko','RUN19 공개 상세페이지 패턴 누적 영역');
+    box.id='run20PatternAccumulator';
+    box.setAttribute('data-area-id','RUN20_PATTERN_ACCUMULATOR');
+    box.setAttribute('data-area-name-ko','RUN20 공개 상세페이지 패턴 누적 영역');
     box.innerHTML=panelHtml();
-    left.appendChild(box);
-    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN19';
-    var bridge=$('bridgeStatus'); if(bridge){bridge.textContent=(bridge.textContent||'')+' / RUN19 패턴 누적 연결';}
+    var anchor=left.querySelector('.panel-title');
+    if(anchor && anchor.parentNode){anchor.parentNode.insertBefore(box, anchor.nextSibling);} else {left.insertBefore(box, left.firstChild);}
+    var tag=$('tagBadge'); if(tag) tag.textContent='TAG: RUN20';
+    var bridge=$('bridgeStatus'); if(bridge){bridge.textContent=(bridge.textContent||'')+' / RUN20 패턴 누적 연결';}
   }
   function record(){
     install();
-    var state=$('run19PatternState');
+    var state=$('run20PatternState');
     var raw=$('customerRaw'), field=$('researchField'), interest=$('interestField');
     var input=[raw&&raw.value, field&&field.value, interest&&interest.value].filter(Boolean).join(' | ');
     var msg='상태: '+ENGINE+' 연결됨\n입력 기준: '+(input?input:'빈 입력 → HOLD 유지')+'\n판정: 공개 상세페이지 원문 확인 전 자동완성 금지 / 패턴은 HOLD 후보로만 누적';
     if(state) state.textContent=msg;
     var flow=$('flowTrace');
-    if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nRUN19_PATTERN_AREA: VISIBLE\nNEW_URL_INPUT: BLOCK\nRIGHT_DOM_REBUILD: BLOCK\nDATA_QUALITY: HOLD_PATTERN_ACCUMULATION';
+    if(flow) flow.textContent='[TRACE]\n34_CALL: LOADED\nENGINE: '+ENGINE+'\nRUN20_PATTERN_AREA: VISIBLE\nNEW_URL_INPUT: BLOCK\nRIGHT_DOM_REBUILD: BLOCK\nDATA_QUALITY: HOLD_PATTERN_ACCUMULATION';
     var diag=$('diagPacket');
-    if(diag) diag.value='[RUN19_PATTERN_PACKET]\nENGINE='+ENGINE+'\nVISIBLE_AREA=RUN19 공개 상세페이지 패턴 누적 영역\nNEW_INPUT=NO\nNEW_BUTTON=NO\nRIGHT_DOM_REBUILD=NO\nONLINE_FETCH=HOLD\nPATTERN_ROWS='+patterns.length+'\nPASS_CHECK=기존 화면 유지 + RUN19 패턴 영역 표시';
+    if(diag) diag.value='[RUN20_PATTERN_PACKET]\nENGINE='+ENGINE+'\nVISIBLE_AREA=RUN20 공개 상세페이지 패턴 누적 영역\nNEW_INPUT=NO\nNEW_BUTTON=NO\nRIGHT_DOM_REBUILD=NO\nONLINE_FETCH=HOLD\nPATTERN_ROWS='+patterns.length+'\nPASS_CHECK=기존 화면 유지 + RUN20 패턴 영역 표시';
   }
   function bind(){
     install();
