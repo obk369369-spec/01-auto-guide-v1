@@ -6108,6 +6108,273 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<script id="RUN22_OBSERVER_MINCHANGE_INPUT_TO_HOLD_GUIDE_V1">
+(function(){
+  'use strict';
+  if(window.__RUN22_OBSERVER_MINCHANGE_INPUT_TO_HOLD_GUIDE_V1__) return;
+  window.__RUN22_OBSERVER_MINCHANGE_INPUT_TO_HOLD_GUIDE_V1__=true;
+
+  var RUN='RUN22_OBSERVER_MINCHANGE_V1';
+  var LOCK_TITLE='1번 고객 자동화 안내서 - RUN22 / 입력→후보5→HOLD 안내서 연결';
+  var VENDORS=['MarketsandMarkets','BCC Research','Technavio','Grand View Research','Mordor Intelligence','GlobalData','QY Research','Fortune Business Insights','BIS Research','Allied Market Research','Transparency Market Research','Frost & Sullivan','IDC','Omdia'];
+  var URLS={
+    'MarketsandMarkets':'https://www.marketsandmarkets.com/search.asp?search=',
+    'BCC Research':'https://www.bccresearch.com/search?q=',
+    'Technavio':'https://www.technavio.com/search?query=',
+    'Grand View Research':'https://www.grandviewresearch.com/search?query=',
+    'Mordor Intelligence':'https://www.mordorintelligence.com/search?q=',
+    'GlobalData':'https://www.globaldata.com/store/search/?q=',
+    'QY Research':'https://www.qyresearch.com/search?q=',
+    'Fortune Business Insights':'https://www.fortunebusinessinsights.com/search?q=',
+    'BIS Research':'https://bisresearch.com/search?q=',
+    'Allied Market Research':'https://www.alliedmarketresearch.com/search-results?search=',
+    'Transparency Market Research':'https://www.transparencymarketresearch.com/search.html?keyword='
+  };
+
+  function $(id,root){return (root||document).getElementById(id);}
+  function q(sel,root){return (root||document).querySelector(sel);}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
+  function txt(v){return String(v||'').replace(/\s+/g,' ').trim();}
+  function val(id){var e=$(id);return txt(e&&e.value);}
+  function setVal(id,v){var e=$(id);if(!e)return;if('value' in e)e.value=v;else e.textContent=v;}
+  function setText(id,v){var e=$(id);if(e)e.textContent=v;}
+  function safe(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function setClass(id,cls){var e=$(id);if(e)e.className=cls;}
+  function enc(s){try{return encodeURIComponent(s);}catch(_){return String(s||'');}}
+
+  function sector(){
+    var raw=[val('customerRaw'),val('researchField'),val('interestField'),val('duty'),val('org'),val('dept')].join(' ').toLowerCase();
+    if(/반도체|semiconductor|패키징|웨이퍼|칩/.test(raw))return {ko:'반도체',en:'Semiconductor'};
+    if(/ai|인공지능|gpu|서버|데이터센터|network|네트워크/.test(raw))return {ko:'AI 인프라',en:'AI Infrastructure'};
+    if(/배터리|이차전지|전고체|양극재|음극재|battery/.test(raw))return {ko:'이차전지',en:'Battery'};
+    if(/수소|연료전지|hydrogen|fuel/.test(raw))return {ko:'수소·연료전지',en:'Hydrogen and Fuel Cell'};
+    if(/탄소|ccus|carbon/.test(raw))return {ko:'탄소중립',en:'Carbon Neutrality'};
+    if(/고분자|polymer|수지|resin/.test(raw))return {ko:'고분자·소재',en:'Polymer Materials'};
+    if(/바이오|의약|헬스케어|bio/.test(raw))return {ko:'바이오·헬스케어',en:'Bio Healthcare'};
+    var f=val('interestField')||val('researchField')||val('customerRaw')||'입력 없음';
+    return {ko:f,en:f==='입력 없음'?'Industry Market':f};
+  }
+
+  function pickVendors(){
+    var prefer=[val('pub1'),val('pub2')].filter(Boolean);
+    var ex=(val('exclude')||'').split(/[,，;；\n]+/).map(function(x){return txt(x).toLowerCase();}).filter(Boolean);
+    var seen={},out=[];
+    prefer.concat(VENDORS).forEach(function(v){
+      var k=txt(v).toLowerCase();
+      if(!k||seen[k])return;
+      if(ex.some(function(e){return k.indexOf(e)>=0 || e.indexOf(k)>=0;}))return;
+      seen[k]=1; out.push(v);
+    });
+    return out.slice(0,5);
+  }
+
+  function candidateLink(v,query){
+    var base=URLS[v];
+    if(base) return base+enc(query);
+    return 'HOLD: 공개 검색 URL 구조 미확인 / 발행사명='+v+' / 검색식='+query;
+  }
+
+  function buildCandidates(){
+    var s=sector();
+    var inputEmpty=!(val('customerRaw')||val('researchField')||val('interestField')||val('duty'));
+    var year=val('yearRange')||'2025 2026';
+    var q=(s.en||'Industry Market')+' market report '+year;
+    var vendors=pickVendors();
+    if(vendors.length<5){['MarketsandMarkets','BCC Research','Technavio','Grand View Research','Mordor Intelligence'].forEach(function(v){if(vendors.indexOf(v)<0&&vendors.length<5)vendors.push(v);});}
+    return vendors.slice(0,5).map(function(v,i){
+      var baseKo=inputEmpty?'왼쪽 입력 없음':s.ko;
+      return {
+        idx:i+1,
+        vendor:v,
+        query:q,
+        en:'HOLD: '+(inputEmpty?'왼쪽 입력 후 생성 필요':s.en+' Market Report 후보')+' / '+v+' / 공개 상세페이지 확인 전',
+        ko:'HOLD: '+baseKo+' 관련 '+v+' 보고서 후보',
+        pub:v,
+        date:'HOLD: 공개 상세페이지 확인 전',
+        page:'HOLD',
+        list:'HOLD: 공개 가격 확인 전',
+        supply:'HOLD',
+        link:candidateLink(v,q),
+        toc:[
+          'HOLD: 실제 목차 공개 범위 확인 전',
+          '1. '+s.en+' Market Overview - 공개 목차 검증 필요',
+          '2. Technology Trends - 공개 목차 검증 필요',
+          '3. Competitive Landscape - 공개 목차 검증 필요',
+          '4. Forecast and Segmentation - 공개 목차 검증 필요',
+          '5. Appendix / Methodology - 공개 목차 검증 필요'
+        ].join('\n'),
+        verdict: inputEmpty?'INPUT_HOLD':'HOLD_UNTIL_PUBLIC_DETAIL_URL_VERIFIED'
+      };
+    });
+  }
+
+  function guideDocs(){
+    var docs=[];
+    var rf=$('rightFrame');
+    if(rf){
+      try{var d=rf.contentDocument||rf.contentWindow.document;if(d)docs.push({doc:d,index:0,label:'rightFrame'});}catch(_){}
+    }
+    qa('#p6ActualFiveGuideSetV1 iframe[data-actual-guide-set="1"], iframe[data-actual-guide-set="1"]').forEach(function(f,i){
+      try{var d=f.contentDocument||f.contentWindow.document;if(d)docs.push({doc:d,index:i,label:'guideSet'+(i+1)});}catch(_){}
+    });
+    return docs;
+  }
+
+  function setGuide(doc,c){
+    ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft','guideTocBox'].forEach(function(id){
+      var e=$(id,doc); if(!e)return;
+      var v='';
+      if(id==='guideTitleEn')v=c.en;
+      else if(id==='guideTitleKo')v=c.ko;
+      else if(id==='guidePub')v=c.pub;
+      else if(id==='guideDate')v=c.date;
+      else if(id==='guidePage')v=c.page;
+      else if(id==='guideListPrice')v=c.list;
+      else if(id==='guideSupplyPrice')v=c.supply;
+      else if(id==='guideLinkText')v=c.link;
+      else v=c.toc;
+      e.textContent=v;
+    });
+  }
+
+  function applyMiddle(c){
+    setVal('midTitleEn',c.en);
+    setVal('midTitleKo',c.ko);
+    setVal('bookPub',c.pub);
+    setVal('bookDate',c.date);
+    setVal('bookPage',c.page);
+    setVal('bookListPrice',c.list);
+    setVal('bookSupplyPrice',c.supply);
+    setVal('midLink',c.link);
+    setVal('midToc',c.toc);
+  }
+
+  function ensureCandidateSlot(cands){
+    var mid=q('.middle'); if(!mid)return;
+    var slot=$('p6KeepLogoClone5OnlyV1');
+    if(!slot){
+      slot=document.createElement('div');
+      slot.id='p6KeepLogoClone5OnlyV1';
+      var title=q('.panel-title',mid);
+      if(title&&title.nextSibling)mid.insertBefore(slot,title.nextSibling); else mid.insertBefore(slot,mid.firstChild);
+    }
+    slot.setAttribute('data-run22-reused-slot','true');
+    slot.innerHTML='<h3>RUN22 입력 기반 HOLD 후보 5개 <span id="p6CloneCountKeepLogoV1">5/5</span></h3><div id="p6CloneCardsKeepLogoV1"></div>';
+    var box=$('p6CloneCardsKeepLogoV1');
+    cands.forEach(function(c,i){
+      var div=document.createElement('div');
+      div.className='p6-clone-card result-card guide-card'+(i===0?' active':'');
+      div.setAttribute('data-guide-card','1');
+      div.setAttribute('data-guide-card-index',String(i));
+      div.innerHTML='<div class="p6-clone-title">'+c.idx+'. '+safe(c.ko)+'</div><div class="p6-clone-note">'+safe(c.pub)+' · 공개 확인 전 HOLD · 직접 URL 입력 없음</div>';
+      div.addEventListener('click',function(){selectCandidate(cands,i);});
+      box.appendChild(div);
+    });
+  }
+
+  function selectCandidate(cands,i){
+    var c=cands[i]||cands[0]; if(!c)return;
+    applyMiddle(c);
+    qa('#p6KeepLogoClone5OnlyV1 .p6-clone-card').forEach(function(el){el.classList.remove('active');});
+    var active=q('#p6KeepLogoClone5OnlyV1 .p6-clone-card[data-guide-card-index="'+i+'"]');
+    if(active)active.classList.add('active');
+    var docs=guideDocs();
+    if(docs.length){
+      docs.forEach(function(item,idx){setGuide(item.doc,cands[idx]||c);});
+    }
+    setText('bridgeStatus','RUN22: 왼쪽 입력 → 후보 5개 → 오른쪽 HOLD 안내서 반영 / 공개 확인 전 PASS 금지');
+  }
+
+  function updateLogs(cands){
+    var s=sector();
+    var input=[val('customerRaw'),val('researchField'),val('interestField')].filter(Boolean).join(' | ') || '빈 입력';
+    var docs=guideDocs().length;
+    setText('flowTrace','[RUN22]\nMODE: LEFT_TEXT_TO_5_HOLD_CANDIDATES\nINPUT: '+input+'\nCANDIDATES: 5\nRIGHT_GUIDE_DOCS: '+docs+'\nNO_NEW_URL_INPUT: PASS\nNO_NEW_BUTTON: PASS\nRIGHT_DOM_REBUILD: PASS(기존 iframe만 값 갱신)\nPUBLIC_AUTOFILL: BLOCK');
+    setText('rawJsonBox','[RUN22_JSON]\n'+JSON.stringify({run:'RUN22',sector:s,input:input,candidates:cands.map(function(c){return {vendor:c.vendor,verdict:c.verdict,link:c.link};})},null,2));
+    setText('mappingBox','[RUN22 안내서 매핑]\n타이틀=HOLD 후보 제목\n발행사=후보 발행사\n발행일/가격/페이지=HOLD\n링크=공개 검색 후보\n목차=공개 목차 확인 전 HOLD\n오른쪽 안내서=기존 DOM에 HOLD 값만 반영');
+    setText('targetProbeBox','[RUN22 체크]\n왼쪽 입력 수신=PASS\n가운데 후보 5개=PASS\n오른쪽 안내서 문서 수='+docs+'\n샘플 자동완성=BLOCK\n다음 단계=실제 상세페이지 공개값 매핑');
+    var diag=$('diagPacket');
+    if(diag)diag.value='[RUN22_PACKET]\nFILE=RUN22.html\nINPUT_TO_CANDIDATES=PASS\nCANDIDATE_COUNT=5\nRIGHT_HOLD_GUIDE_DOCS='+docs+'\nNO_DIRECT_URL_INPUT=PASS\nNO_NEW_BUTTON=PASS\nNO_RIGHT_DOM_REBUILD=PASS\nPUBLIC_DETAIL_VERIFICATION=HOLD\nNEXT=공개 상세페이지 원문 확인값 매핑';
+    setText('checkInputEngine','작동');
+    setClass('checkInputEngine','state-ok');
+    setText('checkFetchEngine','HOLD');
+    setClass('checkFetchEngine','state-warn');
+    setText('checkPublisher','후보 5개');
+    setClass('checkPublisher','state-ok');
+    setText('checkLinkMatch','HOLD');
+    setClass('checkLinkMatch','state-warn');
+    setText('checkFillRate','HOLD 5/5');
+    setClass('checkFillRate','state-warn');
+    setText('checkToc','HOLD');
+    setClass('checkToc','state-warn');
+    setText('checkGrade','B-HOLD');
+    setClass('checkGrade','state-warn');
+    setText('checkExplain','RUN22: 화면 연결은 통과 대상, 실제 공개 상세페이지 제목/가격/목차는 다음 단계까지 HOLD');
+    var badge=$('realEngineState');
+    if(badge){badge.textContent='RUN22 HOLD 안내서 반영'; badge.className='warn';}
+  }
+
+  function runBuild(){
+    var cands=buildCandidates();
+    ensureCandidateSlot(cands);
+    selectCandidate(cands,0);
+    updateLogs(cands);
+    window.__RUN22_LAST_CANDIDATES__=cands;
+  }
+
+  function replaceGenerateButton(){
+    var b=$('generateBtn');
+    if(!b||b.getAttribute('data-run22-bound')==='true')return;
+    var nb=b.cloneNode(true);
+    nb.setAttribute('data-run22-bound','true');
+    b.parentNode.replaceChild(nb,b);
+    nb.addEventListener('click',function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      runBuild();
+      setTimeout(runBuild,250);
+      setTimeout(runBuild,900);
+    },true);
+  }
+
+  function lockVisible(){
+    document.title=LOCK_TITLE;
+    var title=q('.title'); if(title)title.textContent=LOCK_TITLE;
+    setText('tagBadge','TAG: RUN22');
+    setText('diagBadge','DIAG: RUN22_MINCHANGE');
+    setText('stateBadge','STATE: RUN22_READY');
+    var pattern=$('run21PatternAccumulator');
+    if(pattern){
+      var h=pattern.querySelector('h3');
+      if(h)h.textContent='RUN22 공개 상세페이지 패턴 누적 영역 / 입력 후보 연결';
+      pattern.setAttribute('data-run22-kept','true');
+    }
+  }
+
+  function prepareIdle(){
+    lockVisible();
+    replaceGenerateButton();
+    var slot=$('p6KeepLogoClone5OnlyV1');
+    if(slot && !window.__RUN22_LAST_CANDIDATES__){
+      slot.setAttribute('data-run22-reused-slot','true');
+      slot.innerHTML='<h3>RUN22 입력 기반 HOLD 후보 5개 <span id="p6CloneCountKeepLogoV1">대기</span></h3><div id="p6CloneCardsKeepLogoV1"><div class="p6-clone-card result-card guide-card">왼쪽 입력 후 안내서 5개 생성을 누르면 후보 5개가 생성된다. 공개 확인 전 자동완성은 금지된다.</div></div>';
+    }
+    setText('bridgeStatus','RUN22 대기: 왼쪽 입력 → 안내서 5개 생성 → 후보 5개/HOLD 안내서 확인');
+    setText('flowTrace','[RUN22]\n대기: 왼쪽 입력 후 안내서 5개 생성 클릭\n교체 최소화: 이 파일에서 입력·후보5·오른쪽 HOLD·회귀 차단을 함께 확인');
+  }
+
+  function boot(){
+    prepareIdle();
+    setTimeout(prepareIdle,800);
+    setTimeout(prepareIdle,1700);
+    setTimeout(prepareIdle,2800);
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
+
 </body>
 
 </html>
