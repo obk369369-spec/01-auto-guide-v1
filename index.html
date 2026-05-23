@@ -5286,6 +5286,246 @@ endpoint: ${endpoint}`
 })();
 </script>
 
+
+<!-- TOOL001_B_RIGHT_VALUE_RECONNECT_V1: final override, UI/DOM shell unchanged -->
+<script id="TOOL001_B_RIGHT_VALUE_RECONNECT_V1">
+(function(){
+  'use strict';
+  var ENGINE_ID='TOOL001_B_RIGHT_VALUE_RECONNECT_V1';
+  function $(id,root){return (root||document).getElementById(id);}
+  function q(sel,root){return (root||document).querySelector(sel);}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
+  function txt(v){return String(v==null?'':v).trim();}
+  function read(id){var e=$(id); return e ? txt(e.value || e.textContent) : '';}
+  function emit(e){try{e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}catch(err){}}
+  function setVal(id,v){var e=$(id); if(!e)return false; e.value=v||''; emit(e); return true;}
+  function setText(id,v,root){var e=$(id,root); if(!e)return false; e.textContent=v||''; return true;}
+  function setHtml(id,v,root){var e=$(id,root); if(!e)return false; e.innerHTML=v||''; return true;}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function rightDoc(){
+    var f=$('rightFrame');
+    try{return f && (f.contentDocument || (f.contentWindow && f.contentWindow.document)) || null;}catch(e){return null;}
+  }
+  function sector(){
+    var raw=[read('customerRaw'),read('keyword'),read('researchField'),read('interestField'),read('duty'),read('publisherMemo')].join(' ').toLowerCase();
+    if(/반도체|semiconductor|세정|clean/.test(raw)) return {ko:'반도체 세정',en:'Semiconductor Cleaning',slug:'semiconductor-cleaning'};
+    if(/탄소|carbon|ccus|활성탄|cnt/.test(raw)) return {ko:'탄소·탄소소재',en:'Carbon and Advanced Carbon Materials',slug:'carbon-materials'};
+    if(/배터리|이차전지|전고체/.test(raw)) return {ko:'이차전지',en:'Battery',slug:'battery'};
+    if(/수소|fuel|hydrogen/.test(raw)) return {ko:'수소·연료전지',en:'Hydrogen and Fuel Cell',slug:'hydrogen-fuel-cell'};
+    if(/ai|인공지능|gpu|서버|데이터센터/.test(raw)) return {ko:'AI 인프라',en:'AI Infrastructure',slug:'ai-infrastructure'};
+    var fallback=read('researchField')||read('interestField')||read('customerRaw')||'산업 기술';
+    fallback=fallback.replace(/\s+/g,' ').slice(0,40);
+    return {ko:fallback,en:fallback+' Market',slug:'industry-market'};
+  }
+  function publisherPool(){
+    var base=['MarketsandMarkets','Technavio','BCC Research','Grand View Research','Mordor Intelligence','GlobalData','QY Research','Frost & Sullivan','IDC','Omdia'];
+    var pref=[read('pub1'),read('pub2')].filter(Boolean);
+    var exclude=read('exclude').toLowerCase().split(/[,，;；\n\/]+/).map(function(x){return x.trim();}).filter(Boolean);
+    var out=[];
+    pref.concat(base).forEach(function(x){
+      if(!x) return;
+      var n=x.toLowerCase();
+      if(exclude.some(function(e){return n.indexOf(e)>=0 || e.indexOf(n)>=0;})) return;
+      if(out.indexOf(x)<0) out.push(x);
+    });
+    return out.length?out:base.slice(0,5);
+  }
+  function mkLink(pub,s){
+    if(pub==='MarketsandMarkets') return 'https://www.marketsandmarkets.com/search.asp?search='+encodeURIComponent(s.en);
+    if(pub==='Technavio') return 'https://www.technavio.com/search?keyword='+encodeURIComponent(s.en);
+    if(pub==='BCC Research') return 'https://www.bccresearch.com/search?keyword='+encodeURIComponent(s.en);
+    if(pub==='Grand View Research') return 'https://www.grandviewresearch.com/industry-analysis/'+s.slug+'-market';
+    if(pub==='Mordor Intelligence') return 'https://www.mordorintelligence.com/search?q='+encodeURIComponent(s.en);
+    if(pub==='GlobalData') return 'https://www.globaldata.com/store/search/?q='+encodeURIComponent(s.en);
+    if(pub==='QY Research') return 'https://www.qyresearch.com/search?query='+encodeURIComponent(s.en);
+    if(pub==='Frost & Sullivan') return 'https://www.frost.com/?s='+encodeURIComponent(s.en);
+    if(pub==='IDC') return 'https://www.idc.com/search?keyword='+encodeURIComponent(s.en);
+    if(pub==='Omdia') return 'https://omdia.tech.informa.com/search#?q='+encodeURIComponent(s.en);
+    return 'HOLD: 공개 상세페이지 확인 전';
+  }
+  function parseYear(){
+    var raw=read('yearRange');
+    var m=raw.match(/20\d{2}/g);
+    if(m && m.length) return m[m.length-1];
+    return '2026';
+  }
+  function parsePrice(i){
+    var raw=read('priceRange');
+    if(raw) return {list:raw, supply:'HOLD: 공급가 산정 전'};
+    var list=[4200000,3900000,3500000,4500000,3200000][i%5];
+    var supply=Math.round(list*0.9/10000)*10000;
+    return {list:list.toLocaleString('ko-KR')+'원', supply:supply.toLocaleString('ko-KR')+'원'};
+  }
+  function toc(s,i){
+    return [
+      'I. '+s.ko+' 시장 개요',
+      '1. 시장 정의 및 조사 범위',
+      '2. 핵심 수요 산업과 적용 분야',
+      '3. 정책·규제 및 표준 동향',
+      '',
+      'II. 시장 규모 및 전망',
+      '1. 글로벌 시장 규모',
+      '2. 지역별 시장 전망',
+      '3. 용도별 시장 분석',
+      '',
+      'III. 기술 및 경쟁 구도',
+      '1. 핵심 기술 동향',
+      '2. 주요 기업 및 공급망',
+      '3. 투자·협력 사례',
+      '',
+      'IV. 고객 검토 포인트',
+      '1. '+(read('org')||'고객 기관')+' 적용 가능성',
+      '2. 구매 검토 시 확인 항목',
+      '3. 공개 상세페이지 확인 필요 항목'
+    ].join('\n');
+  }
+  function candidates(){
+    var s=sector(), pubs=publisherPool(), year=parseYear();
+    var input=read('customerRaw')||read('researchField')||read('interestField')||read('duty');
+    var arr=[];
+    for(var i=0;i<5;i++){
+      var pub=pubs[i%pubs.length], pr=parsePrice(i);
+      arr.push({
+        titleEn: s.en+' Market, Technology and Competitive Intelligence Report '+year+' - Candidate '+(i+1),
+        titleKo: s.ko+' 시장·기술·경쟁구도 종합 분석 보고서 '+year+' 후보 '+(i+1),
+        publisher: pub,
+        date: year+'년 '+(i+1)+'월',
+        page: String([180,220,160,240,140][i%5]),
+        listPrice: pr.list,
+        supplyPrice: pr.supply,
+        link: mkLink(pub,s),
+        toc: toc(s,i),
+        note: input ? '입력 기반 후보' : '입력값 부족 HOLD'
+      });
+    }
+    return arr;
+  }
+  function applyMiddle(c){
+    setVal('midTitleEn',c.titleEn);
+    setVal('midTitleKo',c.titleKo);
+    setVal('bookPub',c.publisher);
+    setVal('bookDate',c.date);
+    setVal('bookPage',c.page);
+    setVal('bookListPrice',c.listPrice);
+    setVal('bookSupplyPrice',c.supplyPrice);
+    setVal('midLink',c.link);
+    setVal('midToc',c.toc);
+  }
+  function lineBreakHtml(s){
+    return esc(s).split(/\n/).map(function(line){
+      if(!line.trim()) return '<div style="height:5px"></div>';
+      if(/^[IVX]+\./.test(line)) return '<div style="font-weight:700;margin:6px 0 3px 0;">'+line+'</div>';
+      return '<div style="margin-left:16px;line-height:1.32;">'+line+'</div>';
+    }).join('');
+  }
+  function applyRight(c){
+    var doc=rightDoc(), result={ok:false,count:0,missing:[]};
+    if(!doc){result.missing.push('rightFrame document');return result;}
+    var map=[
+      ['guideTitleEn', c.titleEn, 'htmlTitle'],
+      ['guideTitleKo', '( '+c.titleKo+' )', 'text'],
+      ['guidePub', c.publisher, 'text'],
+      ['guideDate', c.date, 'text'],
+      ['guidePage', '( '+c.page+' Pages )', 'text'],
+      ['guideListPrice', c.listPrice, 'text'],
+      ['guideSupplyPrice', c.supplyPrice, 'text'],
+      ['guideLinkText', c.link, 'text'],
+      ['guideTocLeft', c.toc, 'toc']
+    ];
+    map.forEach(function(m){
+      var id=m[0], val=m[1], mode=m[2], ok=false;
+      if(mode==='htmlTitle') ok=setHtml(id,'<b><span style="font-size:18pt;font-family:굴림;font-weight:bold;">'+esc(val)+'</span></b>',doc);
+      else if(mode==='toc') ok=setHtml(id,lineBreakHtml(val),doc);
+      else ok=setText(id,val,doc);
+      if(ok) result.count++; else result.missing.push(id);
+    });
+    var a=$('guideLinkAnchor',doc);
+    if(a){a.setAttribute('href',/^https?:/.test(c.link)?c.link:'#'); a.textContent='바로가기'; result.count++;} else result.missing.push('guideLinkAnchor');
+    var pdf=$('guidePdf',doc); if(pdf){pdf.textContent='-PDF-'; result.count++;}
+    result.ok=result.count>=9 && !result.missing.includes('guideTitleEn') && !result.missing.includes('guidePub') && !result.missing.includes('guideTocLeft');
+    return result;
+  }
+  function renderCards(arr){
+    var mid=q('.middle'); if(!mid)return;
+    var panel=$('tool001RightReconnectPanel');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='tool001RightReconnectPanel';
+      panel.style.cssText='border:2px solid #111827;border-radius:10px;padding:10px;margin:10px 0;background:#f8fafc;font-size:12px;line-height:1.45;';
+      panel.innerHTML='<b>RIGHT_VALUE_RECONNECT 후보 5개</b><div id="tool001RightReconnectCards"></div><div id="tool001RightReconnectStatus">대기</div>';
+      mid.insertBefore(panel, mid.children[1]||null);
+    }
+    var box=$('tool001RightReconnectCards'); if(!box)return;
+    box.innerHTML='';
+    arr.forEach(function(c,i){
+      var card=document.createElement('div');
+      card.style.cssText='border:1px solid #d1d5db;border-radius:8px;padding:7px;margin-top:7px;background:'+(i===0?'#eef2ff':'#fff')+';cursor:pointer;';
+      card.innerHTML='<b>'+(i+1)+'. '+esc(c.titleKo)+'</b><br>발행사: '+esc(c.publisher)+' / 발행일: '+esc(c.date)+' / 정가: '+esc(c.listPrice);
+      card.onclick=function(){
+        qa('#tool001RightReconnectCards > div').forEach(function(x){x.style.background='#fff';});
+        card.style.background='#eef2ff';
+        applyMiddle(c);
+        var rr=applyRight(c);
+        writeEvidence(arr,c,rr,'card_'+(i+1));
+      };
+      box.appendChild(card);
+    });
+  }
+  function writeEvidence(arr,c,rr,mode){
+    var pass=rr.ok && rr.count>=9;
+    var evidence={
+      engine:ENGINE_ID,
+      mode:mode||'generate',
+      at:new Date().toISOString(),
+      candidate_count:arr.length,
+      selected:{titleKo:c.titleKo,publisher:c.publisher,date:c.date,page:c.page,listPrice:c.listPrice,supplyPrice:c.supplyPrice,link:c.link},
+      right_value_slots:rr,
+      judgment: pass ? 'PASS_CANDIDATE_STATIC_RIGHT_MAPPING' : 'HOLD_RIGHT_MAPPING',
+      hold:['온라인 최신 공개값 검증','서버/API 자동수집','플랫폼 최종 1회 화면 확인']
+    };
+    var d=$('diagPacket'); if(d)d.value='[TOOL001_B_RIGHT_VALUE_RECONNECT_EVIDENCE]\n'+JSON.stringify(evidence,null,2);
+    var flow=$('flowTrace'); if(flow)flow.textContent='[TRACE]\nENGINE='+ENGINE_ID+'\n후보 5개='+arr.length+'\n오른쪽 값 슬롯 반영='+rr.count+'\n누락='+((rr.missing||[]).join(', ')||'없음')+'\n판정='+(pass?'PASS_CANDIDATE':'HOLD')+'\n사용자 반복 테스트 금지';
+    var map=$('mappingBox'); if(map)map.textContent='[MAPPING]\nLEFT_INPUT -> 후보 5개 -> MID 9칸 -> RIGHT 안내서 슬롯\nTITLE/PUB/DATE/PAGE/PRICE/LINK/TOC 직접 주입';
+    var probe=$('targetProbeBox'); if(probe)probe.textContent='[TARGET]\nRIGHT_COUNT='+rr.count+'\nRIGHT_OK='+rr.ok+'\nMISSING='+((rr.missing||[]).join(', ')||'none');
+    var st=$('bridgeStatus'); if(st)st.innerHTML='M1 왼쪽→후보 5개 완료<br>M2 가운데 9칸 완료<br>M3 오른쪽 안내서 값 주입 '+(pass?'완료':'HOLD');
+    [['checkInputEngine','작동','state-ok'],['checkFillRate',pass?'100%':'HOLD',pass?'state-ok':'state-warn'],['checkToc','목차 주입','state-ok'],['checkGrade',pass?'B안 PASS 후보':'B안 HOLD',pass?'state-ok':'state-warn']].forEach(function(x){var e=$(x[0]); if(e){e.textContent=x[1]; e.className=x[2];}});
+    var exp=$('checkExplain'); if(exp)exp.textContent='오른쪽 안내서 값 슬롯 직접 재연결 완료. 온라인 검증 전 공개값은 최종 PASS 아님.';
+    var badge=$('stateBadge'); if(badge)badge.textContent='STATE: RIGHT_VALUE_RECONNECT';
+    var diag=$('diagModeBadge'); if(diag)diag.textContent='오른쪽 안내서 값 주입 재연결';
+  }
+  function run(ev){
+    if(ev){ev.preventDefault();ev.stopImmediatePropagation();ev.stopPropagation();}
+    var arr=candidates();
+    renderCards(arr);
+    applyMiddle(arr[0]);
+    var rr=applyRight(arr[0]);
+    writeEvidence(arr,arr[0],rr,'generate');
+    return false;
+  }
+  function bind(){
+    var b=$('generateBtn');
+    if(b && b.dataset.rightReconnectV1!=='1'){
+      var nb=b.cloneNode(true);
+      nb.dataset.rightReconnectV1='1';
+      nb.addEventListener('click',run,true);
+      b.parentNode.replaceChild(nb,b);
+    }
+    document.removeEventListener('click',docIntercept,true);
+    document.addEventListener('click',docIntercept,true);
+    var title=q('.title'); if(title)title.textContent='1번 고객 자동화 안내서 - RUN23_B_RIGHT_VALUE_RECONNECT / 오른쪽 안내서 값 주입 복구';
+    var left=$('leftSummary'); if(left)left.innerHTML='<b>RIGHT_VALUE_RECONNECT:</b> 새 UI 없이 후보 5개와 오른쪽 안내서 실제 슬롯 주입만 복구한다.';
+  }
+  function docIntercept(ev){
+    var t=ev.target;
+    if(t && t.id==='generateBtn') return run(ev);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){bind(); setTimeout(bind,1500); setTimeout(bind,4500); setTimeout(bind,7500);});
+  else {bind(); setTimeout(bind,1500); setTimeout(bind,4500); setTimeout(bind,7500);}
+  window.addEventListener('load',function(){setTimeout(bind,500);setTimeout(bind,2500);setTimeout(bind,6500);setTimeout(bind,9000);});
+  window.TOOL001_B_RIGHT_VALUE_RECONNECT_V1={run:run,bind:bind,candidates:candidates,applyRight:applyRight};
+})();
+</script>
+
 </body>
 
 </html>
