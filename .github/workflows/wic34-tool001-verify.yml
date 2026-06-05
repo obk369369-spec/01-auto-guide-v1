@@ -1,0 +1,22 @@
+﻿name: WIC34 TOOL001 Verify
+
+on:
+  push:
+    branches:
+      - wic34-tool001-verify
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: List files
+        run: ls -la
+      - name: Upload TOOL001 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool001-current
+          path: |
+            index.html
+            **/*.html
+            **/*.md
