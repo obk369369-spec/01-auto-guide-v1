@@ -1,0 +1,1 @@
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "New-Item -ItemType Directory -Force -Path C:\WIC34_STATE | Out-Null; Write-Host 'WIC34 external resume ready'; Get-Content C:\WIC34_STATE\MASTER\EXTERNAL_3WAY_GATE_STATUS.md"

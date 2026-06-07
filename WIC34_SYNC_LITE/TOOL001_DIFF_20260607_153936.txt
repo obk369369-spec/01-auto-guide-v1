@@ -1,0 +1,12 @@
+﻿warning: in the working copy of 'C:\WIC34_STATE\repair_candidates\TOOL001_CANDIDATE_20260607_153200.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'C:\WIC34_STATE\repair_candidates\TOOL001_CANDIDATE_20260607_153936.html', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/C:\\WIC34_STATE\\repair_candidates\\TOOL001_CANDIDATE_20260607_153200.html" "b/C:\\WIC34_STATE\\repair_candidates\\TOOL001_CANDIDATE_20260607_153936.html"
+index 79645e5..60e22f4 100644
+--- "a/C:\\WIC34_STATE\\repair_candidates\\TOOL001_CANDIDATE_20260607_153200.html"
++++ "b/C:\\WIC34_STATE\\repair_candidates\\TOOL001_CANDIDATE_20260607_153936.html"
+@@ -6757,3 +6757,5 @@ ${toc}
+ <!-- WIC34_CANDIDATE_CREATED 2026-06-07 15:15:03 : candidate copy for validation, not final PASS -->
+ 
+ <!-- WIC34_CANDIDATE_CREATED 2026-06-07 15:32:00 : candidate copy for validation, not final PASS -->
++
++<!-- WIC34_CANDIDATE_CREATED 2026-06-07 15:39:36 : candidate copy for validation, not final PASS -->

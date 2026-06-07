@@ -1,0 +1,38 @@
+﻿
+   C:\WIC34_STATE\repair_candidates\TOOL001_CANDIDATE_20260607_153936.html
+[37m      L4919 |[90m    </div>[39m
+[37m                 ^ [31mTag must be paired, no start tag: [ </div> ] (tag-pair)[39m
+[37m      L5465 |[90m<style id="RUN23_SINGLE_PACKET_STYLE">[39m
+[37m                   ^ [31mThe id value [ RUN23_SINGLE_PACKET_STYLE ] must be unique. (id-unique)[39m
+[37m      L5473 |[90m<script id="RUN23_SINGLE_PACKET_INPUT_WEIGHT_RIGHT_HOLD_V1">[39m
+[37m                    ^ [31mThe id value [ RUN23_SINGLE_PACKET_INPUT_WEIGHT_RIGHT_HOLD_V1 ] must be unique. (id-unique)[39m
+[37m      L5759 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L5768 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L5901 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L5910 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L6043 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L6052 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L6185 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L6194 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L6327 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L6336 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L6469 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L6478 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+[37m      L6611 |[90m<style id="wic34_tool001_night_repair_style">[39m
+[37m                   ^ [31mThe id value [ wic34_tool001_night_repair_style ] must be unique. (id-unique)[39m
+[37m      L6620 |[90m<script id="wic34_tool001_night_repair_script">[39m
+[37m                    ^ [31mThe id value [ wic34_tool001_night_repair_script ] must be unique. (id-unique)[39m
+
+Scanned 1 files, found 17 errors in 1 files (27 ms)
