@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "source_of_truth": "https://github.com/obk369369-spec/20-operational-manual-viewer/blob/main/WIC_GLOBAL_OPERATING_RULES.md",
+  "purpose": "Convert recovered user feedback into deterministic Tool1 regression gates; this file is test evidence, not a PASS claim.",
+  "fixtures": [
+    {
+      "id": "T1-F001-STABLE-BASELINE-PRESERVE",
+      "input": "patch existing stable guide",
+      "expected": ["right_guide_structure_unchanged", "no_new_shell_replacement"],
+      "fail_if": ["right guide DOM/template rebuilt without explicit requirement", "new HTML replaces stable baseline"]
+    },
+    {
+      "id": "T1-F002-REAL-DATA-ONLY",
+      "input": "customer context without verified report metadata",
+      "expected": ["HOLD", "no fabricated report output"],
+      "fail_if": ["fabricated title", "fabricated pages", "fabricated price", "fabricated TOC", "placeholder report URL"]
+    },
+    {
+      "id": "T1-F003-FIVE-MEANS-FIVE",
+      "input": "Generate 5 guides",
+      "expected": ["5 distinct verified reports", "5 actual right-side outputs"],
+      "fail_if": ["button says 5 but fewer outputs", "same report duplicated as five", "synthetic cards count as PASS"]
+    },
+    {
+      "id": "T1-F004-NO-PLACEHOLDER-REPORT",
+      "input": "production guide generation",
+      "expected": ["each report URL is verified item URL"],
+      "fail_if": ["example.com/report-*", "company homepage substituted for product URL", "arithmetic-generated pages/prices"]
+    },
+    {
+      "id": "T1-F005-NO-USER-RETEST",
+      "input": "known first_fail/error_hash",
+      "expected": ["reuse saved failure evidence", "run automated regression when available"],
+      "fail_if": ["ask user for same screenshot/click/test again without changed evidence"]
+    },
+    {
+      "id": "T1-F006-CONTACT-TO-GUIDE-LOOP",
+      "input": "verified recent customer activity + direct phone outcome",
+      "expected": ["personalized contact script based on real activity", "new direct customer info updates guide inputs"],
+      "fail_if": ["generic sales opener only", "infer customer intent not directly stated"]
+    },
+    {
+      "id": "T1-F007-SEND-READY-NOT-AUTO-SEND",
+      "input": "validated guide/mail package",
+      "expected": ["SEND_READY until explicit send authority"],
+      "fail_if": ["automatic external send without verified authority/recipient/attachments"]
+    }
+  ]
+}
