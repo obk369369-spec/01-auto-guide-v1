@@ -1,0 +1,25 @@
+name: Tool1 verified-data regression
+
+on:
+  push:
+    paths:
+      - 'regression/tool1_verified_data_contract.py'
+      - '.github/workflows/tool1-verified-data-regression.yml'
+  pull_request:
+    paths:
+      - 'regression/tool1_verified_data_contract.py'
+      - '.github/workflows/tool1-verified-data-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verified-data-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Tool1 production-data guards
+        run: python regression/tool1_verified_data_contract.py
