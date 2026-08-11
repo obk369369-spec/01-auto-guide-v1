@@ -1,0 +1,37 @@
+version: 2.1
+
+jobs:
+  validate-tool1:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Verify required Tool 1 files
+          command: |
+            test -s index.html
+            test -s guide_template.html
+      - run:
+          name: Block synthetic TOC fallback
+          command: |
+            if grep -n "firstNormalized\.toc = defaultToc" index.html; then
+              echo "FAIL: synthetic TOC fallback is still active. Missing source TOC must remain HOLD/empty."
+              exit 1
+            fi
+      - run:
+          name: Block sample TOC generator
+          command: |
+            if grep -n "function defaultToc" index.html; then
+              echo "FAIL: defaultToc synthetic generator remains in production code."
+              exit 1
+            fi
+      - run:
+          name: Confirm Deno result path exists
+          command: |
+            grep -n "await fetch(endpoint" index.html
+            grep -n "if (!rawResults.length) throw new Error('결과 없음')" index.html
+
+workflows:
+  tool1-external-validation:
+    jobs:
+      - validate-tool1
