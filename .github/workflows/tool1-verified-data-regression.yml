@@ -1,6 +1,7 @@
 name: Tool1 verified-data regression
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'regression/tool1_verified_data_contract.py'
