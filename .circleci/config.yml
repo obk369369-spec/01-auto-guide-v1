@@ -19,14 +19,29 @@ jobs:
               exit 1
             fi
       - run:
-          name: Block sample TOC generator
+          name: Block sample TOC generators and templates
           command: |
             if grep -n "function defaultToc" index.html; then
               echo "FAIL: defaultToc synthetic generator remains in production code."
               exit 1
             fi
+            if grep -n "var TOC_TEMPLATE" index.html; then
+              echo "FAIL: fixed TOC_TEMPLATE remains in production code. Source TOC must be verified."
+              exit 1
+            fi
       - run:
-          name: Confirm Deno result path exists
+          name: Block synthetic report catalog and placeholder links
+          command: |
+            if grep -n "function publisherCatalog" index.html; then
+              echo "FAIL: hard-coded publisherCatalog remains in production code."
+              exit 1
+            fi
+            if grep -n "example\.com/" index.html; then
+              echo "FAIL: example.com placeholder report link remains in production code."
+              exit 1
+            fi
+      - run:
+          name: Confirm real result path exists
           command: |
             grep -n "await fetch(endpoint" index.html
             grep -n "if (!rawResults.length) throw new Error('결과 없음')" index.html
