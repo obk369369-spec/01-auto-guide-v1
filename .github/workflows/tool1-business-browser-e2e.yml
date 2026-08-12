@@ -1,0 +1,130 @@
+name: Tool1 actual browser business E2E
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'index.html'
+      - '.github/workflows/tool1-business-browser-e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  actual-business-browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm init -y
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local Tool001 page
+        run: |
+          python3 -m http.server 4173 > /tmp/tool001-http.log 2>&1 &
+          echo $! > /tmp/tool001-http.pid
+          sleep 2
+      - name: Run actual customer-to-guide browser E2E
+        run: |
+          cat > /tmp/tool001-e2e.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'fs';
+
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage();
+          const consoleErrors = [];
+          const pageErrors = [];
+          page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+          page.on('pageerror', e => pageErrors.push(String(e)));
+
+          await page.goto('http://127.0.0.1:4173/index.html', {waitUntil:'load'});
+          await page.waitForTimeout(4500);
+
+          const input = {
+            customerRaw: '반도체 세정 공정용 시장보고서와 공급망 자료를 검토 중입니다.',
+            researchField: '반도체 세정',
+            interestField: '웨이퍼 세정 장비 및 소재',
+            org: '월드산업정보센터 E2E 검증기관',
+            dept: '시장정보 검증팀',
+            duty: '반도체 세정 시장 및 공급망 검토'
+          };
+          for (const [id, value] of Object.entries(input)) {
+            const el = page.locator('#'+id);
+            await el.fill(value);
+          }
+          const pub1 = page.locator('#pub1');
+          if (await pub1.count()) await pub1.selectOption({label:'MarketsandMarkets'});
+
+          await page.locator('#generateBtn').click();
+          await page.waitForTimeout(1800);
+
+          const candidateCount = await page.locator('#manualFillCards > div').count();
+          const middle = {
+            titleEn: await page.locator('#midTitleEn').inputValue(),
+            titleKo: await page.locator('#midTitleKo').inputValue(),
+            publisher: await page.locator('#bookPub').inputValue(),
+            date: await page.locator('#bookDate').inputValue(),
+            pages: await page.locator('#bookPage').inputValue(),
+            listPrice: await page.locator('#bookListPrice').inputValue(),
+            supplyPrice: await page.locator('#bookSupplyPrice').inputValue(),
+            link: await page.locator('#midLink').inputValue(),
+            toc: await page.locator('#midToc').inputValue()
+          };
+          const frame = page.frames().find(f => f !== page.mainFrame());
+          const right = frame ? {
+            titleEn: await frame.locator('#guideTitleEn').innerText().catch(()=>''),
+            titleKo: await frame.locator('#guideTitleKo').innerText().catch(()=>''),
+            publisher: await frame.locator('#guidePub').innerText().catch(()=>''),
+            date: await frame.locator('#guideDate').innerText().catch(()=>''),
+            pages: await frame.locator('#guidePage').innerText().catch(()=>''),
+            listPrice: await frame.locator('#guideListPrice').innerText().catch(()=>''),
+            supplyPrice: await frame.locator('#guideSupplyPrice').innerText().catch(()=>''),
+            link: await frame.locator('#guideLinkText').innerText().catch(()=>''),
+            toc: await frame.locator('#guideTocLeft').innerText().catch(()=>''),
+          } : {};
+
+          const checks = {
+            customerInputRetained: (await page.locator('#customerRaw').inputValue()).includes('반도체 세정'),
+            candidateCount5: candidateCount === 5,
+            middleTopicMatch: middle.titleKo.includes('반도체') && middle.titleEn.toLowerCase().includes('semiconductor'),
+            middlePublisherPresent: middle.publisher.length > 0,
+            middleCoreFieldsPresent: middle.date.length > 0 && middle.pages.length > 0 && middle.listPrice.length > 0 && middle.toc.length > 0,
+            rightTopicMatch: (right.titleKo||'').includes('반도체') && (right.titleEn||'').toLowerCase().includes('semiconductor'),
+            rightPublisherMatch: right.publisher === middle.publisher,
+            rightDatePresent: (right.date||'').length > 0,
+            rightTocPresent: (right.toc||'').length > 0
+          };
+          const executionPass = Object.values(checks).every(Boolean);
+          const realPublicReportDataPass = !String(middle.link).startsWith('HOLD:') && !String(middle.supplyPrice).startsWith('HOLD:');
+          const result = {
+            executed_at: new Date().toISOString(),
+            test_type: 'ACTUAL_BROWSER_BUSINESS_FLOW_E2E',
+            input,
+            candidateCount,
+            middle,
+            right,
+            checks,
+            executionPass,
+            realPublicReportDataPass,
+            finalJudgment: executionPass && realPublicReportDataPass ? 'BUSINESS_E2E_PASS' : executionPass ? 'EXECUTION_E2E_PASS_DATA_QUALITY_HOLD' : 'EXECUTION_E2E_FAIL',
+            pageErrors,
+            consoleErrors: consoleErrors.slice(0,20)
+          };
+          fs.writeFileSync('/tmp/tool001-business-e2e.json', JSON.stringify(result,null,2));
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+          if (!executionPass) process.exit(1);
+          EOF
+          node /tmp/tool001-e2e.mjs
+      - name: Upload actual E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool001-actual-browser-business-e2e
+          path: /tmp/tool001-business-e2e.json
+          if-no-files-found: error
