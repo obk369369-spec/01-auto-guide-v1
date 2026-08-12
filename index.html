@@ -1266,7 +1266,7 @@ ul
   function guessAreaFromNode(node){
     const rect = node && node.getBoundingClientRect ? node.getBoundingClientRect() : {top:9999,left:9999,width:0,height:0};
     const txt = getText(node).trim();
-    if(/chapter\s*\d|
+    if(/chapter\s*\d|목차/i.test(txt)) return {id:'preview-toc-anchor', name:'원본 목차 앵커(임시)'};
     if(/publisher|발행사/i.test(txt)) return {id:'preview-book-publisher', name:'원본 발행사 앵커(임시)'};
     if(/published|publication date|발행일/i.test(txt)) return {id:'preview-book-date', name:'원본 발행일 앵커(임시)'};
     if(/pages?|페이지/i.test(txt)) return {id:'preview-book-page', name:'원본 페이지 앵커(임시)'};
@@ -1320,7 +1320,7 @@ function pickClickedTarget(ev, doc){
     }
 
     // 목차 문구가 있으면 목차 후보를 무조건 우선
-    if(/chapter\s*\d|
+    if(/chapter\s*\d|목차/i.test(textAtPoint)){
       const toc = tagged.find(x => x.id === 'preview-toc-anchor' || x.id === 'preview-toc-header')
         || areaRegistry.find(x => x.id === 'preview-toc-anchor' || x.id === 'preview-toc-header');
       if(toc) return toc.el;
@@ -1341,71 +1341,6 @@ function pickClickedTarget(ev, doc){
         }
         cur = cur.parentElement;
       }
-    }
-    return null;
-  };
-    const areaSize = (node)=>{
-      const r=node && node.getBoundingClientRect ? node.getBoundingClientRect() : {width:999999,height:999999};
-      return Math.max(1,r.width) * Math.max(1,r.height);
-    };
-    const priority = {
-      'preview-toc-header': 1,
-      'preview-toc-anchor': 2,
-      'preview-title-anchor': 3,
-      'preview-link-anchor': 4,
-      'preview-book-publisher': 5,
-      'preview-book-date': 6,
-      'preview-book-page': 7,
-      'preview-book-supply-price': 8,
-      'preview-book-list-price': 50,
-      'preview-book-anchor': 60,
-      'preview-root': 999
-    };
-    const tagged = areaRegistry
-      .filter(x => x && x.el && x.id !== 'preview-root' && pointIn(x.el))
-      .sort((a,b)=>{
-        const pa = priority[a.id] ?? 100;
-        const pb = priority[b.id] ?? 100;
-        if(pa !== pb) return pa - pb;
-        return areaSize(a.el) - areaSize(b.el);
-      });
-
-    if(tagged.length){
-      const nonPrice = tagged.filter(x => x.id !== 'preview-book-list-price');
-      if(nonPrice.length) return nonPrice[0].el;
-      return tagged[0].el;
-    }
-
-    const stack = doc.elementsFromPoint ? doc.elementsFromPoint(ev.clientX, ev.clientY) : [];
-    for(const el of stack){
-      let cur = el?.nodeType===3 ? el.parentElement : el;
-      while(cur && cur !== doc.body){
-        if(cur?.dataset?.areaId && cur.dataset.areaId !== 'preview-root'){
-          if(cur.dataset.areaId === 'preview-book-list-price'){
-            let probe = cur.parentElement;
-            while(probe && probe !== doc.body){
-              if(probe?.dataset?.areaId && probe.dataset.areaId !== 'preview-root' && probe.dataset.areaId !== 'preview-book-list-price') return probe;
-              probe = probe.parentElement;
-            }
-          }
-          return cur;
-        }
-        cur = cur.parentElement;
-      }
-    }
-    let raw = ev.target?.nodeType===3 ? ev.target.parentElement : ev.target;
-    while(raw && raw !== doc.body){
-      if(raw?.dataset?.areaId && raw.dataset.areaId !== 'preview-root'){
-        if(raw.dataset.areaId === 'preview-book-list-price'){
-          let probe = raw.parentElement;
-          while(probe && probe !== doc.body){
-            if(probe?.dataset?.areaId && probe.dataset.areaId !== 'preview-root' && probe.dataset.areaId !== 'preview-book-list-price') return probe;
-            probe = probe.parentElement;
-          }
-        }
-        return raw;
-      }
-      raw = raw.parentElement;
     }
     return null;
   }
@@ -1598,11 +1533,11 @@ function ensureInteractiveTagging(){
     const tocHeader = pickBest(doc,'p,td,div,span,b,strong',[[/table of contents|contents|목차/i,30]]);
     let tocBody = null;
     if(tocHeader){
-      const chapterNodes = [...doc.querySelectorAll('p,td,div,span')].filter(el => /chapter\s*\d|\d+\.\d+|
+      const chapterNodes = [...doc.querySelectorAll('p,td,div,span')].filter(el => /chapter\s*\d|\d+\.\d+|목차/i.test(getText(el)));
       tocBody = chapterNodes[0] || tocHeader;
     }
     if(!tocBody){
-      tocBody = pickBest(doc,'p,td,div,span',[[/chapter\s*\d|\d+\.\d+/i,12],[/
+      tocBody = pickBest(doc,'p,td,div,span',[[/chapter\s*\d|\d+\.\d+/i,12],[/table of contents|contents|목차/i,10]]);
     }
 
     if(tocBody && tocBody.closest){
@@ -1696,7 +1631,7 @@ function ensureInteractiveTagging(){
       'preview-title-anchor':()=> pickBest(doc,'p,td,div,span,b,strong',[[/market|report|analysis|global|industry|outlook|forecast|technology|battery|semiconductor|artificial intelligence|ai/i,12],[/chapter|table of contents|contents|목차|publisher|price|pages/i,-20]],(el,text,idx)=> (idx<50?6:0) + (text.length>=25 && text.length<=220?6:0)),
       'preview-link-anchor':()=> doc.querySelector('a[href]') || pickBest(doc,'p,td,div,span',[[/https?:\/\//i,20],[/www\./i,8],[/marketresearch|reportlinker|bccresearch|idtechex|frost|grandviewresearch/i,10]]),
       'preview-toc-header':()=> pickBest(doc,'p,td,div,span,b,strong',[[/table of contents|contents|목차/i,30]]),
-      'preview-toc-anchor':()=> pickBest(doc,'p,td,div,span',[[/chapter\s*\d|\d+\.\d+/i,12],[/
+      'preview-toc-anchor':()=> pickBest(doc,'p,td,div,span',[[/chapter\s*\d|\d+\.\d+/i,12],[/table of contents|contents|목차/i,10]]),
       'preview-book-anchor':()=> findByLabel(doc,[/publisher/i,/발행사/,/published|publication date/i,/발행일/,/pages?/i,/페이지/,/list price/i,/정가/,/supply price/i,/공급가격/])[0] || pickBest(doc,'p,td,div,span',[[/publisher|published|publication|date|pages|price|발행|페이지|정가|공급가격/i,18]]),
       'preview-book-publisher':()=> findByLabel(doc,[/publisher/i,/발행사/])[0],
       'preview-book-date':()=> findByLabel(doc,[/published|publication date/i,/발행일/])[0],
@@ -2297,7 +2232,7 @@ function bridgeMiddleToRightFromCurrentSet(){
 
     const frame = document.getElementById('rightFrame');
     const doc = frame && frame['content'+'Document'];
-    if (!doc) { if (typeof traceStep === 'function') traceStep('STEP4', '중단: rightFrame['content'+'Document'] 없음'); return; }
+    if (!doc) { if (typeof traceStep === 'function') traceStep('STEP4', '중단: rightFrame contentDocument 없음'); return; }
 
     const v = (id) => (document.getElementById(id)?.value || '').trim();
     const titleEn = v('midTitleEn');
@@ -2589,7 +2524,7 @@ function bridgeMiddleToRightFromCurrentSet(){
     if ($('midToc')) $('midToc').value = data.toc || '';
     setBox('mappingBox', 'MAPPING', data);
     const {doc, targets} = probeTargets(data);
-    if (!doc) throw new Error('rightFrame['content'+'Document'] 없음');
+    if (!doc) throw new Error('rightFrame contentDocument 없음');
     if(window.singleWriteGuide) window.singleWriteGuide('applyAllDataForced');
   }
 
@@ -3405,7 +3340,7 @@ endpoint: ${endpoint}`
     if(s.indexOf('조선')>=0||s.indexOf('ship')>=0) return ['Shipbuilding and Offshore','조선·해양','shipbuilding-and-offshore'];
     if(s.indexOf('탄소')>=0||s.indexOf('carbon')>=0) return ['Carbon Neutrality','탄소중립','carbon-neutrality'];
     if(s.indexOf('반도체')>=0||s.indexOf('semi')>=0) return ['Semiconductor','반도체','semiconductor'];
-    return ['
+    return ['Industry','산업','industry'];
   }
   function sampleToc(ko){
     return 'I. \n1. '+ko+' 시장 개요\n2. \n3. 정책·규제 및 표준 동향\n\nII. \n1. \n2. \n3. 수요처별·용도별 시장 분석\n\nIII. Technology and Application Trends\n1. 핵심 기술 동향\n2. 적용 분야별 개발 현황\n3. 공급망 및 가치사슬 분석\n\nIV. Competitive Landscape\n1. 주요 기업 현황\n2. 제품·서비스 비교\n3. 투자 및 협력 사례\n\nV. Business Opportunities and Appendix\n1. 고객 기관 검토 포인트\n2. 사업화 기회 및 리스크\n3. 데이터 출처 및 방법론';
@@ -3787,8 +3722,7 @@ endpoint: ${endpoint}`
     var toc = $('checkToc'); if (toc) { toc.textContent = '단일경로'; toc.className = 'state-ok'; }
     var grade = $('checkGrade'); if (grade) { grade.textContent = ok ? 'A' : 'C'; grade.className = ok ? 'state-ok' : 'state-warn'; }
     var explain = $('checkExplain'); if (explain) explain.textContent = filterMsg + ' / P2 도서정보와 P3 목차 흐름은 유지한다.';
-    var flow = $('flowTrace'); if(flow) flow.textContent = ['[TRACE]','34_CALL: LOADED','ENGINE: P4_FILTER_CHECK_V1','P2_DATA_FLOW: 유지','P3_LAYOUT_FLOW: 유지','P4_FILTER: '+filterMsg,'SHELL_RISK: '+(ok?'NO':'YES'),'P5/P6: 보류'].join('
-');
+    var flow = $('flowTrace'); if(flow) flow.textContent = ['[TRACE]','34_CALL: LOADED','ENGINE: P4_FILTER_CHECK_V1','P2_DATA_FLOW: 유지','P3_LAYOUT_FLOW: 유지','P4_FILTER: '+filterMsg,'SHELL_RISK: '+(ok?'NO':'YES'),'P5/P6: 보류'].join('\n');
     return {ok: ok, probe: p, payload: payload};
   }
 
@@ -4177,7 +4111,7 @@ endpoint: ${endpoint}`
       '':{date:'2025',pageRaw:'135',listPrice:'240만원',supplyPrice:'216만원',link:''},
       'Omdia':{date:'2026',pageRaw:'160',listPrice:'',supplyPrice:'',link:'https://omdia.tech.informa.com/'}
     };
-    return Object.assign({publisher:pub},map[pub]||map.);
+    return Object.assign({publisher:pub},map[pub]||map['']);
   }
   function callDomSync(){
     var ok=false;
@@ -4408,7 +4342,7 @@ endpoint: ${endpoint}`
   function infer(){
     var raw = [v('customerRaw'),v('researchField'),v('interestField'),v('duty')].join(' ').toLowerCase();
     if(/고분자|레진|수지|폴리머|polymer|resin/.test(raw)) return ['입력값 기반 주제','고분자·레진','polymer-resin'];
-    if(/ai|인공지능|gpu|서버|데이터센터/.test(raw)) return ['
+    if(/ai|인공지능|gpu|서버|데이터센터/.test(raw)) return ['AI Infrastructure','AI·GPU·데이터센터','ai-infrastructure'];
     if(/반도체|semiconductor|칩/.test(raw)) return ['Semiconductor','반도체','semiconductor'];
     var t = v('researchField') || v('interestField') || '산업';
     return [t + ' Market', t, encodeURIComponent(t).replace(/%/g,'').slice(0,18)||'custom-market'];
