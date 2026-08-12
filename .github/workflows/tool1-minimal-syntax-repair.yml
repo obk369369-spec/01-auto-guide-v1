@@ -49,6 +49,55 @@ jobs:
           p.write_text(s,encoding='utf-8')
           print('minimal confirmed corruption patch applied')
           PY
+      - name: Patch exact remaining parse failures from captured artifact
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          def once(old,new,label):
+              global s
+              n=s.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label} match count={n}')
+              s=s.replace(old,new,1)
+              print('patched',label)
+
+          once("""      const chapterNodes = [...doc.querySelectorAll('p,td,div,span')].filter(el => /chapter\\s*\\d|\\d+\\.\\d+|
+      tocBody = chapterNodes[0] || tocHeader;""",
+               """      const chapterNodes = [...doc.querySelectorAll('p,td,div,span')].filter(el => /chapter\\s*\\d|\\d+\\.\\d+|목차/i.test(getText(el)));
+      tocBody = chapterNodes[0] || tocHeader;""", 'script001-chapterNodes')
+
+          once("""      tocBody = pickBest(doc,'p,td,div,span',[[/chapter\\s*\\d|\\d+\\.\\d+/i,12],[/
+    }""",
+               """      tocBody = pickBest(doc,'p,td,div,span',[[/chapter\\s*\\d|\\d+\\.\\d+/i,12],[/table of contents|contents|목차/i,10]]);
+    }""", 'script001-tocBody')
+
+          once("""traceStep('STEP4', '중단: rightFrame['content'+'Document'] 없음')""",
+               """traceStep('STEP4', '중단: rightFrame contentDocument 없음')""", 'script002-string')
+
+          once("""    return ['
+  }
+  function sampleToc(ko){""",
+               """    return ['Industry','산업','industry'];
+  }
+  function sampleToc(ko){""", 'script008-fallback')
+
+          once("""'P5/P6: 보류'].join('
+');""",
+               """'P5/P6: 보류'].join('\\n');""", 'script010-join')
+
+          once("""return Object.assign({publisher:pub},map[pub]||map.);""",
+               """return Object.assign({publisher:pub},map[pub]||map['']);""", 'script012-map-fallback')
+
+          once("""    if(/ai|인공지능|gpu|서버|데이터센터/.test(raw)) return ['
+    if(/반도체|semiconductor|칩/.test(raw))""",
+               """    if(/ai|인공지능|gpu|서버|데이터센터/.test(raw)) return ['AI Infrastructure','AI·GPU·데이터센터','ai-infrastructure'];
+    if(/반도체|semiconductor|칩/.test(raw))""", 'script015-ai-fallback')
+
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Parse-check every inline script and persist exact failures
         id: parsecheck
         shell: bash
