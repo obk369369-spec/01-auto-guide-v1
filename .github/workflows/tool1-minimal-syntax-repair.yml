@@ -1,0 +1,79 @@
+name: Tool1 minimal syntax repair
+
+on:
+  push:
+    paths:
+      - '.github/workflows/tool1-minimal-syntax-repair.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch only confirmed corruption coordinates
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          original=s
+
+          old1="""    if(/chapter\\s*\\d|\n    if(/publisher|발행사/i.test(txt))"""
+          new1="""    if(/chapter\\s*\\d|목차/i.test(txt)) return {id:'preview-toc-anchor', name:'원본 목차 앵커(임시)'};\n    if(/publisher|발행사/i.test(txt))"""
+          if old1 not in s:
+              raise SystemExit('confirmed corruption #1 not found')
+          s=s.replace(old1,new1,1)
+
+          old2="""    if(/chapter\\s*\\d|\n      const toc = tagged.find"""
+          new2="""    if(/chapter\\s*\\d|목차/i.test(textAtPoint)){\n      const toc = tagged.find"""
+          if old2 not in s:
+              raise SystemExit('confirmed corruption #2 not found')
+          s=s.replace(old2,new2,1)
+
+          pattern=re.compile(r"\n  \};\n    const areaSize = \(node\)=>\{.*?\n    return null;\n  \}\n  function buildTrace", re.S)
+          s,n=pattern.subn("\n  }\n  function buildTrace",s,count=1)
+          if n != 1:
+              raise SystemExit(f'confirmed orphan duplicate block match count={n}')
+
+          if s==original:
+              raise SystemExit('no changes')
+          p.write_text(s,encoding='utf-8')
+          print('minimal confirmed corruption patch applied')
+          PY
+      - name: Parse-check every inline script
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S|re.I)
+          Path('/tmp/scripts').mkdir(exist_ok=True)
+          for i,script in enumerate(scripts,1):
+              Path(f'/tmp/scripts/script-{i:03d}.js').write_text(script,encoding='utf-8')
+          print('inline_scripts',len(scripts))
+          PY
+          failed=0
+          for f in /tmp/scripts/*.js; do
+            if ! node --check "$f"; then
+              echo "PARSE_FAIL=$f"
+              failed=1
+            fi
+          done
+          test "$failed" -eq 0
+      - name: Commit minimal repair
+        run: |
+          git config user.name 'wic-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: isolate confirmed Tool001 syntax corruption'
+          git push
