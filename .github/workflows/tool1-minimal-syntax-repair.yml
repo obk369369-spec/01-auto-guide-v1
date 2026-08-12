@@ -49,7 +49,9 @@ jobs:
           p.write_text(s,encoding='utf-8')
           print('minimal confirmed corruption patch applied')
           PY
-      - name: Parse-check every inline script
+      - name: Parse-check every inline script and persist exact failures
+        id: parsecheck
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -61,14 +63,29 @@ jobs:
               Path(f'/tmp/scripts/script-{i:03d}.js').write_text(script,encoding='utf-8')
           print('inline_scripts',len(scripts))
           PY
+          : > /tmp/parse-report.txt
           failed=0
           for f in /tmp/scripts/*.js; do
-            if ! node --check "$f"; then
-              echo "PARSE_FAIL=$f"
+            if ! node --check "$f" >> /tmp/parse-report.txt 2>&1; then
+              echo "PARSE_FAIL=$f" | tee -a /tmp/parse-report.txt
               failed=1
             fi
           done
-          test "$failed" -eq 0
+          cat /tmp/parse-report.txt
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+      - name: Upload exact parse failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool001-parse-failure-evidence
+          path: |
+            /tmp/parse-report.txt
+            /tmp/scripts/*.js
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce zero parse failures
+        run: |
+          test "${{ steps.parsecheck.outputs.failed }}" -eq 0
       - name: Commit minimal repair
         run: |
           git config user.name 'wic-automation'
