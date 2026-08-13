@@ -5,10 +5,12 @@ on:
   push:
     paths:
       - 'regression/tool1_verified_data_contract.py'
+      - 'WIC_TARGET_APPLY_STATE.json'
       - '.github/workflows/tool1-verified-data-regression.yml'
   pull_request:
     paths:
       - 'regression/tool1_verified_data_contract.py'
+      - 'WIC_TARGET_APPLY_STATE.json'
       - '.github/workflows/tool1-verified-data-regression.yml'
 
 permissions:
