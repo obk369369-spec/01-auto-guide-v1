@@ -2,15 +2,24 @@
   "schema_version": 1,
   "tool": "TOOL001",
   "central_master": "obk369369-spec/20-operational-manual-viewer/WIC_GLOBAL_OPERATING_RULES.md",
-  "feedback_id": "b6acdbfd3bc4d0de1b66",
-  "canonical_revision": "11f7a751685aeaaf10cab428",
+  "feedback_id": "37a4a2166bb5e2a08a8c",
+  "canonical_revision": "3f0c83fe635a4067354e8456",
   "apply_mode": "CENTRAL_RULE_REFERENCE_REVISION_ACK",
   "changed_scope": [
-    "GLOBAL_REPORT_TITLE_SCOPE",
-    "TOC_MAX_DEPTH_TWO",
-    "TOC_CHILD_INDENT_ONE_LEVEL",
-    "TEXT_ONLY_REPORT_INFO_SOURCE",
-    "SOURCE_POSITION_DIRECT_MATCH"
+    "WIC_GLOBAL_PRIORITY_ORDER",
+    "WORK_GATE_POLICY",
+    "TARGET_APPLY_READBACK_TEST_REQUIREMENT"
+  ],
+  "priority_order": [
+    "EMAIL_COLLECTION",
+    "TOOL007",
+    "TOOL001",
+    "TOOL037",
+    "TOOL013",
+    "TOOL006",
+    "TOOL002",
+    "TOOL028_031",
+    "REMAINING_REGISTERED_TOOLS"
   ],
   "status": "APPLIED_READBACK_PENDING_TEST_EVIDENCE",
   "external_independent_verification": false
