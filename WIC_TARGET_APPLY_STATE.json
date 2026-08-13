@@ -21,6 +21,15 @@
     "TOOL028_031",
     "REMAINING_REGISTERED_TOOLS"
   ],
-  "status": "APPLIED_READBACK_PENDING_TEST_EVIDENCE",
+  "status": "APPLIED_READBACK_TEST_VERIFIED",
+  "target_apply_commit": "9f2b1297387d4089cdb55973a89bf4b0349d110f",
+  "read_back": "VERIFIED",
+  "target_test": {
+    "workflow": ".github/workflows/tool1-verified-data-regression.yml",
+    "run_id": 31718307325,
+    "job_id": 94508576446,
+    "result": "success",
+    "verified_step": "Run Tool1 production-data guards"
+  },
   "external_independent_verification": false
 }
