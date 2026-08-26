@@ -110,6 +110,27 @@ def validate_guide_candidate(customer, reports):
     return {"state": "PASS", "customer": customer_result, "reports": report_results}
 
 
+def validate_runtime_report_set(reports, required_count=5):
+    """The browser runtime must fail closed until the full verified set exists."""
+    if len(reports) != required_count:
+        return {
+            "state": "HOLD",
+            "error_hash": "HOLD_RUNTIME_VERIFIED_DATA_REQUIRED",
+            "required_count": required_count,
+            "actual_count": len(reports),
+        }
+    results = [validate_report_payload(report) for report in reports]
+    if any(result["state"] != "PASS" for result in results):
+        return {
+            "state": "HOLD",
+            "error_hash": "HOLD_RUNTIME_VERIFIED_DATA_REQUIRED",
+            "required_count": required_count,
+            "actual_count": len(reports),
+            "reports": results,
+        }
+    return {"state": "PASS", "error_hash": None, "reports": results}
+
+
 def build_feedback_event(*, guide_id, report_link, area_id, observed_value, corrected_value, note=""):
     """One click -> one structured correction event; no whole-chat context merge."""
     if area_id not in ALLOWED_FEEDBACK_AREAS:
@@ -180,6 +201,11 @@ def run_fixtures():
     assert validate_guide_candidate(customer, [synthetic])["state"] == "HOLD"
     assert validate_guide_candidate(customer, [])["state"] == "HOLD"
 
+    assert validate_runtime_report_set([])["error_hash"] == "HOLD_RUNTIME_VERIFIED_DATA_REQUIRED"
+    assert validate_runtime_report_set([report] * 4)["state"] == "HOLD"
+    assert validate_runtime_report_set([report] * 5)["state"] == "PASS"
+    assert validate_runtime_report_set([report] * 4 + [synthetic])["state"] == "HOLD"
+
     feedback = build_feedback_event(
         guide_id="G-001",
         report_link=report["report_link"],
@@ -199,7 +225,7 @@ def run_fixtures():
     )
     assert bad_feedback["error_hash"] == "TOOL001_UNKNOWN_FEEDBACK_AREA"
 
-    return "PASS: 12 deterministic Tool1 verified-data/feedback fixtures"
+    return "PASS: 16 deterministic Tool1 verified-data/runtime/feedback fixtures"
 
 
 if __name__ == "__main__":

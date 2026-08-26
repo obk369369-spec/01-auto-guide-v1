@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "tool_id": "TOOL001",
+  "scope": "TOOL001-only USB candidate quarantine; no full USB scan",
+  "canonical_remote_before": "b4d8df9",
+  "candidate_counts": {
+    "reviewed_runtime_roots": 2,
+    "reviewed_top_level_run23_files": 5,
+    "verified": 0,
+    "review": 0,
+    "block_shell": 1,
+    "obsolete": 4,
+    "duplicate": 0,
+    "hold_evidence": 0
+  },
+  "classifications": [
+    {
+      "path": "drive-discovered:GPT 도구 작업/1번 고객 자동화 안내서/RUN23_B_MANUAL_LEVEL_FILL.html",
+      "classification": "BLOCK_SHELL",
+      "reason": "UI generates invented title/page/price/TOC values while real URL and quote remain HOLD; not a verified production asset."
+    },
+    {
+      "paths": [
+        "RUN23_B_5GUIDE_VALUE_RECONNECT.html",
+        "RUN23_B_RIGHT_VALUE_RECONNECT.html",
+        "RUN23_B_CLEAN_QUALITY.html",
+        "RUN23_CLEAN_LOCKED.html"
+      ],
+      "classification": "OBSOLETE",
+      "reason": "Earlier superseded RUN23 layers; no independent actual-input/output proof and older than canonical remote main."
+    }
+  ],
+  "github_absorbed": [
+    "Fail-closed runtime verified-data gate only; no USB HTML copied or promoted."
+  ],
+  "usb_deleted": false
+}

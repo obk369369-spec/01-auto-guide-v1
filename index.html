@@ -5642,9 +5642,32 @@ endpoint: ${endpoint}`
       card.innerHTML='<b>'+(i+1)+'. '+esc(c.titleKo)+'</b><br>발행사: '+esc(c.publisher)+' / 발행일: '+esc(c.date)+' / 정가: '+esc(c.listPrice)+'<br><span style="color:#555">목차 4개 대분류 + 12개 세부항목</span>';
       card.onclick=()=>{Array.from(box.children).forEach(x=>x.style.background='#fff'); card.style.background='#ecfdf5'; apply(c);}; box.appendChild(card);});
   }
+  function verifiedReports(){
+    const required=['titleEn','titleKo','publisher','date','pages','listPrice','supplyPrice','link','toc'];
+    const reports=Array.isArray(window.__TOOL001_VERIFIED_REPORTS__) ? window.__TOOL001_VERIFIED_REPORTS__ : [];
+    if(reports.length!==5)return [];
+    return reports.filter(r=>required.every(k=>String(r&&r[k]||'').trim()) && /^https?:\/\//i.test(String(r.link)) && !/^(HOLD:|example\.)/i.test(String(r.link)) && r.verified===true);
+  }
+  function clearOutputForHold(){
+    qa('#setTabs,#tool001RightReconnectPanel,#manualFillPanel').forEach(x=>x.remove());
+    ['midTitleEn','midTitleKo','bookPub','bookDate','bookPage','bookListPrice','bookSupplyPrice','midLink','midToc'].forEach(id=>setVal(id,''));
+    ['guideTitleEn','guideTitleKo','guidePub','guideDate','guidePage','guideListPrice','guideSupplyPrice','guideLinkText','guideTocLeft'].forEach(id=>rt(id,''));
+    const d=rightDoc(), a=d&&$('guideLinkAnchor',d); if(a)a.removeAttribute('href');
+  }
   function run(ev){
     if(ev){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();}
-    const list=build(); window.__RUN23_B_MANUAL_GUIDES__=list; render(list); apply(list[0]);
+    const list=verifiedReports();
+    if(list.length!==5){
+      clearOutputForHold();
+      window.__RUN23_B_MANUAL_GUIDES__=[];
+      const hold='HOLD_RUNTIME_VERIFIED_DATA_REQUIRED';
+      const ls=$('leftSummary'); if(ls)ls.innerHTML='<b>'+hold+':</b> 검증된 실제 보고서 5건이 모두 준비되기 전에는 안내서를 생성하지 않습니다.';
+      const rb=$('realEngineState'); if(rb){rb.textContent=hold; rb.className='warn';}
+      const f=$('flowTrace'); if(f)f.textContent='[TRACE]\nENGINE='+ENGINE+'\n후보=0개\n판정='+hold+'\n합성 제목·페이지·가격·목차 출력 차단';
+      const d=$('diagPacket'); if(d)d.value='[TOOL001_VERIFIED_DATA_GATE]\n'+JSON.stringify({engine:ENGINE,state:'HOLD',error_hash:hold,required_verified_reports:5,received:Array.isArray(window.__TOOL001_VERIFIED_REPORTS__)?window.__TOOL001_VERIFIED_REPORTS__.length:0},null,2);
+      return false;
+    }
+    window.__RUN23_B_MANUAL_GUIDES__=list; render(list); apply(list[0]);
     const ls=$('leftSummary'); if(ls)ls.innerHTML='<b>MANUAL_LEVEL_FILL:</b> 후보 5개 + 오른쪽 안내서 값/목차 채움 보강 완료. 공개 상세페이지 확인 전 항목은 HOLD.';
     const f=$('flowTrace'); if(f)f.textContent='[TRACE]\nENGINE='+ENGINE+'\n후보=5개\n발행사=후보별 단일 표시\n오른쪽=제목/한글명/발행사/발행일/페이지/정가/공급가격/링크/목차 주입\n판정=수동작성 수준 보강 후보 / 온라인 검증 전 HOLD';
     const d=$('diagPacket'); if(d)d.value='[RUN23_B_MANUAL_LEVEL_FILL_EVIDENCE]\n'+JSON.stringify({engine:ENGINE,candidate_count:5,filled_slots:['titleEn','titleKo','publisher','date','pages','listPrice','supplyPrice','link','toc'],hold:['실제 공개 URL 확인','실공급가 확인','최종 플랫폼 1회 확인']},null,2);
@@ -5655,6 +5678,8 @@ endpoint: ${endpoint}`
     const title=q('.title'); if(title)title.textContent='1번 고객 자동화 안내서 - RUN23_B_MANUAL_LEVEL_FILL / 수동작성 수준 채움 보강';
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();setTimeout(bind,800);setTimeout(bind,2500)}); else {bind();setTimeout(bind,800);setTimeout(bind,2500)}
+  const gateHost=$('generateBtn')&&$('generateBtn').parentNode;
+  if(gateHost)new MutationObserver(bind).observe(gateHost,{childList:true});
   window.RUN23_B_MANUAL_LEVEL_FILL={run,bind,build,apply};
 })();
 </script>
