@@ -31,5 +31,31 @@
     "result": "success",
     "verified_step": "Run Tool1 production-data guards"
   },
-  "external_independent_verification": false
+  "external_independent_verification": false,
+  "work16_runtime_checkpoint": {
+    "root_cause_id": "T1-RC-RUNTIME-VERIFIED-DATA-GATE-GAP",
+    "status": "REMOTE_VERIFIED",
+    "implementation_commits": [
+      "204046f78215746daaf9849b632a0a98753feb4c",
+      "24c0c988c9e63f97e41c10a08981891339a1068e"
+    ],
+    "actual_browser_ci": {
+      "run_id": 32948603985,
+      "result": "success",
+      "verified_behaviors": [
+        "unverified payload produces zero guide candidates",
+        "unverified output slots are cleared",
+        "five fully verified reports pass into middle and right guide output",
+        "legacy RUN23 click handlers cannot bypass the canonical gate"
+      ]
+    },
+    "usb_quarantine": {
+      "evidence": "evidence/TOOL001_USB_ASSET_QUARANTINE_20260826.json",
+      "verified": 0,
+      "block_shell": 1,
+      "obsolete": 4,
+      "usb_deleted": false
+    },
+    "next_start": "External verified-report acquisition adapter remains HOLD_EVIDENCE; do not restore USB RUN23 shells."
+  }
 }
