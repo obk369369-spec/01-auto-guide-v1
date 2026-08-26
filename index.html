@@ -114,6 +114,19 @@
 #qualityLockBadge{display:inline-block;border:1px solid #7f1d1d;border-radius:999px;padding:3px 8px;background:#fff;color:#7f1d1d;font-weight:800;margin-left:6px;}
 </style>
 
+<script id="TOOL001_CANONICAL_GENERATE_GATE_V1">
+document.addEventListener('click', function(event){
+  const target=event.target&&event.target.closest&&event.target.closest('#generateBtn');
+  if(!target)return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+  if(window.RUN23_B_MANUAL_LEVEL_FILL&&typeof window.RUN23_B_MANUAL_LEVEL_FILL.run==='function'){
+    window.RUN23_B_MANUAL_LEVEL_FILL.run();
+  }
+}, true);
+</script>
+
 </head>
 <body>
   <div class="top">
