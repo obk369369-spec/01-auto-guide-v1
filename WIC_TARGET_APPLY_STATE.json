@@ -32,6 +32,42 @@
     "verified_step": "Run Tool1 production-data guards"
   },
   "external_independent_verification": false,
+  "actual_customer_work_stabilization_20260902": {
+    "status": "LOCAL_VALIDATED_ACTUAL_REPORT_DATA_HOLD",
+    "fixed": [
+      "actual verified-report JSON load path",
+      "required-field and duplicate validation before generation",
+      "generated guide HTML download path",
+      "non-core MutationObserver failures isolated from runtime"
+    ],
+    "actual_browser_negative_test": {
+      "input": "tests/unverified_report_payload.json",
+      "result": "PASS_FAIL_CLOSED",
+      "observed": "zero generated reports and download disabled when actual verification evidence is absent"
+    },
+    "format_and_workspace_validation": {
+      "status": "LOCAL_REGRESSION_PASS_REAL_OUTPUT_HOLD",
+      "sequential_replacements": 3,
+      "stable_styles": {
+        "title_en": "15.5pt / Gulim / 700 / 1.15",
+        "title_ko": "10.5pt / Gulim / 400 / 1.25",
+        "metadata": "9.7pt / Gulim / 1.35",
+        "link": "10.5pt / Gulim / 1.3",
+        "toc": "9.5pt / Gulim / 1.32"
+      },
+      "workspace": {
+        "primary_title": "1번 고객 안내서 만들기",
+        "diagnostics_hidden": true,
+        "advanced_conditions_collapsed": true,
+        "core_flow": "verified report load -> customer confirmation/edit -> toc/output review -> generate -> download"
+      },
+      "actual_final_output_compared": false,
+      "reason": "five actual independently verified report payloads remain unavailable"
+    },
+    "remaining_hold": "HOLD-T1-VERIFIED-REPORT-ACQUISITION",
+    "next_trigger": "FIVE_ACTUAL_VERIFIED_REPORT_PAYLOADS_AVAILABLE",
+    "real_use_pass": false
+  },
   "work16_runtime_checkpoint": {
     "root_cause_id": "T1-RC-RUNTIME-VERIFIED-DATA-GATE-GAP",
     "status": "REMOTE_VERIFIED",

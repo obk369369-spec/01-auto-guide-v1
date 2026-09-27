@@ -1,0 +1,18 @@
+{
+  "reports": [
+    {
+      "titleEn": "Unverified regression-only report",
+      "titleKo": "검증되지 않은 회귀 전용 보고서",
+      "publisher": "Regression Publisher",
+      "date": "2026-01",
+      "pages": "100",
+      "listPrice": "USD 1000",
+      "supplyPrice": "HOLD",
+      "link": "https://example.invalid/report",
+      "toc": "1. Regression only",
+      "verified": false,
+      "evidenceClass": "REGRESSION_FIXTURE",
+      "evidenceSource": "tests/unverified_report_payload.json"
+    }
+  ]
+}
